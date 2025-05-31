@@ -1,0 +1,40 @@
+/** @type {import('tailwindcss').Config} */
+export default {
+  content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
+  darkMode: 'class',
+  theme: {
+    extend: {
+      colors: {
+        'wk-primary-orange': 'var(--wk-primary-orange)',
+        'wk-primary-orange-light': 'var(--wk-primary-orange-light)',
+        'wk-primary-orange-dark': 'var(--wk-primary-orange-dark)',
+        'wk-secondary-yellow': 'var(--wk-secondary-yellow)',
+        'wk-secondary-yellow-light': 'var(--wk-secondary-yellow-light)',
+        'wk-secondary-yellow-dark': 'var(--wk-secondary-yellow-dark)',
+        'wk-accent-green': 'var(--wk-accent-green)',
+        'wk-accent-green-light': 'var(--wk-accent-green-light)',
+        'wk-accent-green-dark': 'var(--wk-accent-green-dark)',
+        'theme-primary': 'var(--wk-bg-primary)',
+        'theme-secondary': 'var(--wk-bg-secondary)',
+        'theme-tertiary': 'var(--wk-bg-tertiary)',
+        'theme-card': 'var(--wk-bg-card)',
+        'theme-header': 'var(--wk-bg-header)',
+        'theme-section': 'var(--wk-bg-section)',
+        'text-theme-primary': 'var(--wk-text-primary)',
+        'text-theme-secondary': 'var(--wk-text-secondary)',
+        'text-theme-muted': 'var(--wk-text-muted)',
+        'text-theme-light': 'var(--wk-text-light)',
+        'border-theme': 'var(--wk-border)',
+        'border-theme-hover': 'var(--wk-border-hover)',
+        'border-theme-strong': 'var(--wk-border-strong)',
+      },
+      boxShadow: {
+        'theme-sm': 'var(--wk-shadow-sm)',
+        'theme': 'var(--wk-shadow)',
+        'theme-lg': 'var(--wk-shadow-lg)',
+        'theme-xl': 'var(--wk-shadow-xl)',
+      },
+    },
+  },
+  plugins: [],
+};

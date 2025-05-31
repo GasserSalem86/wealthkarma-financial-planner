@@ -1,0 +1,1117 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  font-family: 'Inter', sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  
+  /* WealthKarma Brand Colors (consistent across themes) */
+  --wk-primary-orange: #f97316;
+  --wk-primary-orange-light: #fb923c;
+  --wk-primary-orange-dark: #ea580c;
+  --wk-secondary-yellow: #eab308;
+  --wk-secondary-yellow-light: #facc15;
+  --wk-secondary-yellow-dark: #ca8a04;
+  --wk-accent-green: #22c55e;
+  --wk-accent-green-light: #4ade80;
+  --wk-accent-green-dark: #16a34a;
+}
+
+/* Light Theme Variables */
+:root[data-theme="light"] {
+  color-scheme: light;
+  
+  /* Light Mode Backgrounds - Green-focused WealthKarma Theme */
+  --wk-bg-primary: #fefffe;
+  --wk-bg-secondary: #f6fdf7;
+  --wk-bg-tertiary: #ecfdf5;
+  --wk-bg-card: #ffffff;
+  --wk-bg-card-hover: #f6fdf7;
+  --wk-bg-header: rgba(255, 255, 255, 0.95);
+  --wk-bg-section: #f9fefb;
+  
+  /* Light Mode Text Colors - High Contrast & Readable */
+  --wk-text-primary: #0f1a0f;
+  --wk-text-secondary: #1f2d20;
+  --wk-text-muted: #4b5c4d;
+  --wk-text-accent: #6b7c6d;
+  --wk-text-light: #0f1a0f;
+  
+  /* Light Mode Borders - Green-tinted */
+  --wk-border: #d1f2db;
+  --wk-border-hover: #bbf0c8;
+  --wk-border-strong: #86efac;
+  
+  /* Light Mode Glassmorphism - Green-enhanced */
+  --wk-glass-bg: rgba(255, 255, 255, 0.9);
+  --wk-glass-border: rgba(34, 197, 94, 0.08);
+  --wk-glass-dark-bg: rgba(246, 253, 247, 0.95);
+  --wk-glass-dark-border: rgba(34, 197, 94, 0.12);
+  
+  /* Light Mode Shadows - Green-tinted */
+  --wk-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.08);
+  --wk-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.12), 0 1px 2px 0 rgba(34, 197, 94, 0.04);
+  --wk-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(34, 197, 94, 0.06);
+  --wk-shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.06), 0 10px 10px -5px rgba(34, 197, 94, 0.04);
+  
+  /* Enhanced navigation for light mode - Green theme */
+  --nav-light-bg: rgba(255, 255, 255, 0.98);
+  --nav-light-border: rgba(34, 197, 94, 0.1);
+  
+  /* Better card styling for light mode - Green accents */
+  --card-light-bg: #ffffff;
+  --card-light-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.06), 0 2px 4px -1px rgba(34, 197, 94, 0.04);
+  --card-light-hover-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(34, 197, 94, 0.06);
+}
+
+/* Dark Theme Variables */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  
+  /* Dark Mode Backgrounds */
+  --wk-bg-primary: #0f172a;
+  --wk-bg-secondary: #1e293b;
+  --wk-bg-tertiary: #334155;
+  --wk-bg-card: #1e293b;
+  --wk-bg-card-hover: #334155;
+  --wk-bg-header: rgba(15, 23, 42, 0.9);
+  --wk-bg-section: #1e293b;
+  
+  /* Dark Mode Text Colors */
+  --wk-text-primary: #f8fafc;
+  --wk-text-secondary: #cbd5e1;
+  --wk-text-muted: #94a3b8;
+  --wk-text-accent: #64748b;
+  --wk-text-light: #f8fafc;
+  
+  /* Dark Mode Borders */
+  --wk-border: rgba(75, 85, 99, 0.3);
+  --wk-border-hover: rgba(34, 197, 94, 0.3);
+  --wk-border-strong: rgba(156, 163, 175, 0.4);
+  
+  /* Dark Mode Glassmorphism */
+  --wk-glass-bg: rgba(30, 41, 59, 0.8);
+  --wk-glass-border: rgba(34, 197, 94, 0.1);
+  --wk-glass-dark-bg: rgba(15, 23, 42, 0.9);
+  --wk-glass-dark-border: rgba(75, 85, 99, 0.2);
+  
+  /* Dark Mode Shadows */
+  --wk-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+  --wk-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.4), 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+  --wk-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3);
+  --wk-shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 10px 10px -5px rgba(0, 0, 0, 0.3);
+}
+
+html {
+  scroll-behavior: smooth;
+  transition: color-scheme 0.3s ease;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background: linear-gradient(135deg, var(--wk-bg-primary) 0%, var(--wk-bg-secondary) 100%);
+  color: var(--wk-text-primary);
+  transition: background 0.3s ease, color 0.3s ease;
+}
+
+/* Modern App Background - Theme Aware */
+.app-background {
+  background: 
+    radial-gradient(circle at 20% 80%, rgba(34, 197, 94, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(249, 115, 22, 0.08) 0%, transparent 50%),
+    radial-gradient(circle at 40% 40%, rgba(234, 179, 8, 0.06) 0%, transparent 50%),
+    linear-gradient(135deg, var(--wk-bg-primary) 0%, var(--wk-bg-secondary) 100%);
+  min-height: 100vh;
+  position: relative;
+  transition: background 0.3s ease;
+}
+
+.app-background::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: 
+    radial-gradient(circle at 25% 25%, rgba(34, 197, 94, 0.05) 0%, transparent 70%),
+    radial-gradient(circle at 75% 75%, rgba(249, 115, 22, 0.05) 0%, transparent 70%);
+  pointer-events: none;
+  transition: background-image 0.3s ease;
+}
+
+/* Light theme specific app background */
+:root[data-theme="light"] .app-background {
+  background: 
+    radial-gradient(circle at 20% 80%, rgba(34, 197, 94, 0.06) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(52, 211, 153, 0.04) 0%, transparent 50%),
+    radial-gradient(circle at 40% 40%, rgba(16, 185, 129, 0.03) 0%, transparent 50%),
+    linear-gradient(135deg, #fefffe 0%, #f6fdf7 100%);
+}
+
+:root[data-theme="light"] .app-background::before {
+  background-image: 
+    radial-gradient(circle at 25% 25%, rgba(34, 197, 94, 0.04) 0%, transparent 70%),
+    radial-gradient(circle at 75% 75%, rgba(52, 211, 153, 0.03) 0%, transparent 70%);
+}
+
+/* Theme-aware utility classes */
+@layer utilities {
+  .text-theme-primary {
+    color: var(--wk-text-primary);
+  }
+  
+  .text-theme-secondary {
+    color: var(--wk-text-secondary);
+  }
+  
+  .text-theme-muted {
+    color: var(--wk-text-muted);
+  }
+  
+  .text-theme-light {
+    color: var(--wk-text-light);
+  }
+
+  /* Semantic text colors - theme aware */
+  .text-theme-success {
+    color: #22c55e;
+  }
+
+  .text-theme-success-light {
+    color: #4ade80;
+  }
+
+  .text-theme-success-muted {
+    color: #16a34a;
+  }
+
+  .text-theme-warning {
+    color: #eab308;
+  }
+
+  .text-theme-warning-light {
+    color: #facc15;
+  }
+
+  .text-theme-warning-muted {
+    color: #ca8a04;
+  }
+
+  .text-theme-error {
+    color: #ef4444;
+  }
+
+  .text-theme-error-light {
+    color: #f87171;
+  }
+
+  .text-theme-error-muted {
+    color: #dc2626;
+  }
+
+  .text-theme-info {
+    color: #3b82f6;
+  }
+
+  .text-theme-info-light {
+    color: #60a5fa;
+  }
+
+  .text-theme-info-muted {
+    color: #2563eb;
+  }
+
+  /* Brand colors for accent text */
+  .text-theme-brand-primary {
+    color: var(--wk-primary-orange);
+  }
+
+  .text-theme-brand-secondary {
+    color: var(--wk-secondary-yellow);
+  }
+
+  .text-theme-brand-accent {
+    color: var(--wk-accent-green);
+  }
+  
+  .bg-theme-primary {
+    background-color: var(--wk-bg-primary);
+  }
+  
+  .bg-theme-secondary {
+    background-color: var(--wk-bg-secondary);
+  }
+  
+  .bg-theme-tertiary {
+    background-color: var(--wk-bg-tertiary);
+  }
+  
+  .bg-theme-card {
+    background-color: var(--wk-bg-card);
+  }
+  
+  .bg-theme-header {
+    background-color: var(--wk-bg-header);
+  }
+  
+  .bg-theme-section {
+    background-color: var(--wk-bg-section);
+  }
+  
+  .border-theme {
+    border-color: var(--wk-border);
+  }
+  
+  .border-theme-hover {
+    border-color: var(--wk-border-hover);
+  }
+  
+  .border-theme-strong {
+    border-color: var(--wk-border-strong);
+  }
+  
+  .shadow-theme-sm {
+    box-shadow: var(--wk-shadow-sm);
+  }
+  
+  .shadow-theme {
+    box-shadow: var(--wk-shadow);
+  }
+  
+  .shadow-theme-lg {
+    box-shadow: var(--wk-shadow-lg);
+  }
+  
+  .shadow-theme-xl {
+    box-shadow: var(--wk-shadow-xl);
+  }
+
+  /* Comprehensive Heading Typography Design System */
+  
+  /* Display Headings - For hero sections and major page titles */
+  .heading-display {
+    @apply text-5xl md:text-6xl lg:text-7xl font-bold text-theme-light leading-tight;
+  }
+
+  .heading-display-sm {
+    @apply text-4xl md:text-5xl lg:text-6xl font-bold text-theme-light leading-tight;
+  }
+
+  /* Page Headers */
+  .heading-h1 {
+    @apply text-4xl font-bold text-theme-primary leading-tight;
+  }
+
+  .heading-h1-sm {
+    @apply text-3xl font-bold text-theme-primary leading-tight;
+  }
+
+  /* Section Headers */
+  .heading-h2 {
+    @apply text-3xl font-bold text-theme-light leading-tight;
+  }
+
+  .heading-h2-sm {
+    @apply text-2xl font-bold text-theme-light leading-tight;
+  }
+
+  /* Subsection Headers */
+  .heading-h3 {
+    @apply text-2xl font-semibold text-theme-primary leading-tight;
+  }
+
+  .heading-h3-sm {
+    @apply text-xl font-semibold text-theme-primary leading-tight;
+  }
+
+  /* Component Headers */
+  .heading-h4 {
+    @apply text-xl font-semibold text-theme-primary leading-tight;
+  }
+
+  .heading-h4-sm {
+    @apply text-lg font-semibold text-theme-primary leading-tight;
+  }
+
+  /* Small Headers */
+  .heading-h5 {
+    @apply text-lg font-semibold text-theme-secondary leading-tight;
+  }
+
+  .heading-h5-sm {
+    @apply text-base font-semibold text-theme-secondary leading-tight;
+  }
+
+  /* Micro Headers */
+  .heading-h6 {
+    @apply text-base font-semibold text-theme-secondary leading-tight;
+  }
+
+  .heading-h6-sm {
+    @apply text-sm font-semibold text-theme-secondary leading-tight;
+  }
+
+  /* Specialized Heading Variants */
+  
+  /* Gradient Text Headings */
+  .heading-gradient {
+    @apply bg-gradient-to-r from-green-400 to-orange-400 bg-clip-text text-transparent font-bold;
+  }
+
+  .heading-gradient-primary {
+    @apply bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent font-bold;
+  }
+
+  .heading-gradient-hero {
+    @apply bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent font-bold;
+  }
+
+  /* Branded Accent Headings */
+  .heading-brand-success {
+    @apply font-bold text-theme-success;
+  }
+
+  .heading-brand-warning {
+    @apply font-bold text-theme-warning;
+  }
+
+  .heading-brand-error {
+    @apply font-bold text-theme-error;
+  }
+
+  .heading-brand-info {
+    @apply font-bold text-theme-info;
+  }
+
+  /* Card/Widget Headers */
+  .heading-card {
+    @apply text-lg font-semibold text-theme-primary;
+  }
+
+  .heading-card-sm {
+    @apply text-base font-semibold text-theme-primary;
+  }
+
+  /* Stats and Numbers */
+  .heading-stat {
+    @apply text-2xl font-bold text-theme-primary;
+  }
+
+  .heading-stat-lg {
+    @apply text-3xl font-bold text-emerald-600;
+  }
+
+  .heading-stat-xl {
+    @apply text-4xl md:text-5xl font-bold;
+  }
+
+  /* Navigation and Menu Headers */
+  .heading-nav {
+    @apply text-sm font-semibold text-theme-secondary uppercase tracking-wider;
+  }
+
+  /* Table headers specific styling */
+  .heading-table {
+    @apply text-xs font-semibold text-theme-secondary uppercase tracking-wider;
+  }
+
+  /* Additional Animation Classes */
+  .animate-fadeIn {
+    animation: fadeIn 0.3s ease-out;
+  }
+  
+  .animate-slideUp {
+    animation: slideUp 0.4s ease-out;
+  }
+  
+  .animate-bounce-gentle {
+    animation: bounceGentle 1s ease-in-out infinite;
+  }
+  
+  .hover\\:scale-102:hover {
+    transform: scale(1.02);
+  }
+  
+  .hover\\:scale-105:hover {
+    transform: scale(1.05);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes bounceGentle {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+/* Navigation Styles - Theme Aware */
+.nav-dark {
+  background: linear-gradient(135deg, var(--wk-bg-secondary) 0%, var(--wk-bg-primary) 100%);
+  border-color: var(--wk-border);
+  transition: background 0.3s ease, border-color 0.3s ease;
+}
+
+.nav-dark-header {
+  background: linear-gradient(135deg, var(--wk-bg-tertiary) 0%, var(--wk-bg-secondary) 100%);
+  border-color: var(--wk-border);
+  transition: background 0.3s ease, border-color 0.3s ease;
+}
+
+@layer base {
+  input[type='number']::-webkit-outer-spin-button,
+  input[type='number']::-webkit-inner-spin-button,
+  input[type='number'] {
+    -webkit-appearance: none;
+    margin: 0;
+    -moz-appearance: textfield !important;
+  }
+}
+
+/* Enhanced scrollbar - Theme Aware */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--wk-bg-tertiary);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(34, 197, 94, 0.4);
+  border-radius: 3px;
+  transition: background 0.3s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(34, 197, 94, 0.6);
+}
+
+/* Smooth transitions for theme switching */
+*, *::before, *::after {
+  transition-property: background-color, border-color, color, fill, stroke;
+  transition-duration: 0.3s;
+  transition-timing-function: ease;
+}
+
+/* Enhanced Animations */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+@keyframes slideIn {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.animate-slideIn {
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes glow {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(34, 197, 94, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(34, 197, 94, 0.6);
+  }
+}
+
+@keyframes pulse-warm {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 10px rgba(34, 197, 94, 0);
+  }
+}
+
+.animate-shimmer {
+  background: linear-gradient(90deg, var(--wk-bg-secondary), var(--wk-bg-tertiary), var(--wk-bg-secondary));
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+.animate-glow {
+  animation: glow 2s ease-in-out infinite;
+}
+
+.animate-pulse-warm {
+  animation: pulse-warm 2s infinite;
+}
+
+/* Glassmorphism utilities - Theme Aware */
+.glass-morphism {
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  background: var(--wk-glass-bg);
+  border: 1px solid var(--wk-glass-border);
+  transition: background 0.3s ease, border-color 0.3s ease;
+}
+
+.glass-morphism-dark {
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  background: var(--wk-glass-dark-bg);
+  border: 1px solid var(--wk-glass-dark-border);
+  transition: background 0.3s ease, border-color 0.3s ease;
+}
+
+.glass-morphism-warm {
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  background: var(--wk-glass-bg);
+  border: 1px solid rgba(34, 197, 94, 0.2);
+  transition: background 0.3s ease, border-color 0.3s ease;
+}
+
+/* Smooth transitions for all interactive elements */
+.transition-smooth {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hover-lift:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 10px 25px -5px rgba(34, 197, 94, 0.15), 0 10px 10px -5px rgba(34, 197, 94, 0.08);
+}
+
+/* Custom scale utilities for navigation */
+.hover\:scale-102:hover {
+  transform: scale(1.02);
+}
+
+/* WealthKarma specific gradient utilities - Brand Consistent */
+.bg-wk-gradient-primary {
+  background: linear-gradient(135deg, var(--wk-primary-orange) 0%, var(--wk-primary-orange-light) 100%);
+}
+
+.bg-wk-gradient-secondary {
+  background: linear-gradient(135deg, var(--wk-secondary-yellow) 0%, var(--wk-secondary-yellow-light) 100%);
+}
+
+.bg-wk-gradient-success {
+  background: linear-gradient(135deg, var(--wk-accent-green) 0%, var(--wk-accent-green-light) 100%);
+}
+
+.bg-wk-gradient-warm {
+  background: linear-gradient(135deg, var(--wk-primary-orange) 0%, var(--wk-secondary-yellow) 50%, var(--wk-accent-green) 100%);
+}
+
+.text-wk-gradient {
+  background: linear-gradient(135deg, var(--wk-accent-green) 0%, var(--wk-primary-orange) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* WealthKarma button styles - Theme Aware */
+.btn-wk-primary {
+  background: linear-gradient(135deg, var(--wk-accent-green) 0%, var(--wk-accent-green-light) 100%);
+  color: #1f2937;
+  border: none;
+  transition: all 0.3s ease;
+}
+
+.btn-wk-primary:hover {
+  background: linear-gradient(135deg, var(--wk-accent-green-dark) 0%, var(--wk-accent-green) 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 25px -5px rgba(34, 197, 94, 0.4);
+}
+
+.btn-wk-secondary {
+  background: linear-gradient(135deg, var(--wk-secondary-yellow) 0%, var(--wk-secondary-yellow-light) 100%);
+  color: #1f2937;
+  border: none;
+  transition: all 0.3s ease;
+}
+
+.btn-wk-secondary:hover {
+  background: linear-gradient(135deg, var(--wk-secondary-yellow-dark) 0%, var(--wk-secondary-yellow) 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 25px -5px rgba(234, 179, 8, 0.4);
+}
+
+.btn-wk-success {
+  background: linear-gradient(135deg, var(--wk-accent-green) 0%, var(--wk-accent-green-light) 100%);
+  color: #1f2937;
+  border: none;
+  transition: all 0.3s ease;
+}
+
+.btn-wk-success:hover {
+  background: linear-gradient(135deg, var(--wk-accent-green-dark) 0%, var(--wk-accent-green) 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 25px -5px rgba(34, 197, 94, 0.4);
+}
+
+/* Card Styles - Theme Aware */
+.card-dark {
+  background: var(--wk-bg-card);
+  border: 1px solid var(--wk-border);
+  color: var(--wk-text-primary);
+  transition: background 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+}
+
+.card-dark:hover {
+  background: var(--wk-bg-card-hover);
+  border-color: var(--wk-border-hover);
+}
+
+/* Input Styles - Theme Aware */
+.input-dark {
+  background: var(--wk-bg-secondary);
+  border: 1px solid var(--wk-border);
+  color: var(--wk-text-primary);
+  transition: background 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+}
+
+.input-dark:focus {
+  border-color: var(--wk-accent-green);
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.1);
+}
+
+.input-dark::placeholder {
+  color: var(--wk-text-muted);
+}
+
+/* Theme Toggle Button Styles */
+.theme-toggle {
+  position: relative;
+  width: 60px;
+  height: 30px;
+  background: var(--wk-bg-tertiary);
+  border: 1px solid var(--wk-border);
+  border-radius: 15px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  overflow: hidden;
+}
+
+.theme-toggle:hover {
+  background: var(--wk-bg-card-hover);
+  border-color: var(--wk-border-hover);
+}
+
+.theme-toggle-slider {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 26px;
+  height: 26px;
+  background: linear-gradient(135deg, var(--wk-accent-green) 0%, var(--wk-accent-green-light) 100%);
+  border-radius: 50%;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(34, 197, 94, 0.3);
+}
+
+.theme-toggle[data-theme="light"] .theme-toggle-slider {
+  transform: translateX(30px);
+  background: linear-gradient(135deg, var(--wk-secondary-yellow) 0%, var(--wk-secondary-yellow-light) 100%);
+  box-shadow: 0 2px 8px rgba(234, 179, 8, 0.3);
+}
+
+.theme-toggle-icon {
+  width: 14px;
+  height: 14px;
+  color: white;
+  transition: transform 0.3s ease;
+}
+
+.theme-toggle[data-theme="light"] .theme-toggle-icon {
+  transform: rotate(180deg);
+}
+
+/* Light mode navigation styling */
+:root[data-theme="light"] .nav-dark {
+  background: linear-gradient(135deg, var(--nav-light-bg) 0%, rgba(249, 250, 251, 0.95) 100%);
+  border-color: var(--nav-light-border);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+:root[data-theme="light"] .nav-dark-header {
+  background: linear-gradient(135deg, #ffffff 0%, #f9fafb 100%);
+  border-color: var(--nav-light-border);
+}
+
+/* Enhanced card styling for light mode */
+:root[data-theme="light"] .glass-morphism-dark {
+  background: var(--card-light-bg);
+  border: 1px solid rgba(229, 231, 235, 0.6);
+  box-shadow: var(--card-light-shadow);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+:root[data-theme="light"] .glass-morphism-dark:hover {
+  box-shadow: var(--card-light-hover-shadow);
+  border-color: rgba(209, 213, 219, 0.8);
+}
+
+/* Light mode theme toggle improvements */
+:root[data-theme="light"] .theme-toggle {
+  background: #f3f4f6;
+  border: 1px solid #d1d5db;
+}
+
+:root[data-theme="light"] .theme-toggle:hover {
+  background: #e5e7eb;
+  border-color: #9ca3af;
+}
+
+/* Light mode button improvements */
+:root[data-theme="light"] .btn-wk-primary:hover {
+  box-shadow: 0 8px 25px -5px rgba(34, 197, 94, 0.5);
+}
+
+:root[data-theme="light"] .btn-wk-secondary:hover {
+  box-shadow: 0 8px 25px -5px rgba(234, 179, 8, 0.5);
+}
+
+/* Light mode specific improvements for backgrounds */
+:root[data-theme="light"] .bg-theme-section {
+  background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+}
+
+/* Light mode progress bars and interactive elements */
+:root[data-theme="light"] .bg-theme-tertiary {
+  background: #e5e7eb;
+}
+
+/* Improved focus states for light mode */
+:root[data-theme="light"] .theme-toggle:focus {
+  ring-offset-color: #ffffff;
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.15);
+}
+
+/* Enhanced text readability for light mode */
+:root[data-theme="light"] .text-theme-primary {
+  color: #0f1a0f;
+  font-weight: 500;
+}
+
+:root[data-theme="light"] .text-theme-secondary {
+  color: #1f2d20;
+  font-weight: 400;
+}
+
+:root[data-theme="light"] .text-theme-muted {
+  color: #4b5c4d;
+}
+
+:root[data-theme="light"] .text-theme-light {
+  color: #0f1a0f;
+  font-weight: 600;
+}
+
+/* Light mode navigation button overrides */
+:root[data-theme="light"] .nav-dark button:not(.btn-wk-primary) {
+  color: var(--wk-text-secondary);
+}
+
+:root[data-theme="light"] .nav-dark button:not(.btn-wk-primary):hover {
+  background: rgba(34, 197, 94, 0.06);
+}
+
+/* Light mode step indicators */
+:root[data-theme="light"] .bg-theme-tertiary {
+  background: #d1fae5;
+}
+
+/* Light mode hover states for navigation */
+:root[data-theme="light"] .hover:bg-theme-tertiary:hover {
+  background: #bbf7d0;
+}
+
+/* Light mode text colors for better readability */
+:root[data-theme="light"] .text-green-300 {
+  color: #059669;
+  font-weight: 500;
+}
+
+:root[data-theme="light"] .text-green-400 {
+  color: #047857;
+  font-weight: 600;
+}
+
+/* Theme-aware focus ring offset colors */
+.focus\:ring-offset-theme-primary:focus {
+  --tw-ring-offset-color: var(--wk-bg-primary);
+}
+
+/* Light mode button focus improvements */
+:root[data-theme="light"] button:focus {
+  --tw-ring-offset-color: #fefffe;
+}
+
+:root[data-theme="dark"] button:focus {
+  --tw-ring-offset-color: #0f172a;
+}
+
+/* Light mode semantic colors - adjusted for better contrast */
+:root[data-theme="light"] .text-theme-success {
+  color: #16a34a;
+}
+
+:root[data-theme="light"] .text-theme-success-light {
+  color: #22c55e;
+}
+
+:root[data-theme="light"] .text-theme-success-muted {
+  color: #15803d;
+}
+
+:root[data-theme="light"] .text-theme-warning {
+  color: #ca8a04;
+}
+
+:root[data-theme="light"] .text-theme-warning-light {
+  color: #eab308;
+}
+
+:root[data-theme="light"] .text-theme-warning-muted {
+  color: #a16207;
+}
+
+:root[data-theme="light"] .text-theme-error {
+  color: #dc2626;
+}
+
+:root[data-theme="light"] .text-theme-error-light {
+  color: #ef4444;
+}
+
+:root[data-theme="light"] .text-theme-error-muted {
+  color: #b91c1c;
+}
+
+:root[data-theme="light"] .text-theme-info {
+  color: #2563eb;
+}
+
+:root[data-theme="light"] .text-theme-info-light {
+  color: #3b82f6;
+}
+
+:root[data-theme="light"] .text-theme-info-muted {
+  color: #1d4ed8;
+}
+
+/* Light mode heading adjustments for optimal contrast */
+:root[data-theme="light"] .heading-display,
+:root[data-theme="light"] .heading-display-sm {
+  color: #0f1a0f;
+  font-weight: 700;
+}
+
+:root[data-theme="light"] .heading-h1,
+:root[data-theme="light"] .heading-h1-sm {
+  color: #0f1a0f;
+  font-weight: 700;
+}
+
+:root[data-theme="light"] .heading-h2,
+:root[data-theme="light"] .heading-h2-sm {
+  color: #0f1a0f;
+  font-weight: 700;
+}
+
+:root[data-theme="light"] .heading-h3,
+:root[data-theme="light"] .heading-h3-sm {
+  color: #1f2d20;
+  font-weight: 600;
+}
+
+:root[data-theme="light"] .heading-h4,
+:root[data-theme="light"] .heading-h4-sm {
+  color: #1f2d20;
+  font-weight: 600;
+}
+
+:root[data-theme="light"] .heading-h5,
+:root[data-theme="light"] .heading-h5-sm,
+:root[data-theme="light"] .heading-h6,
+:root[data-theme="light"] .heading-h6-sm {
+  color: #4b5c4d;
+  font-weight: 600;
+}
+
+:root[data-theme="light"] .heading-stat-lg {
+  color: #16a34a;
+}
+
+:root[data-theme="light"] .heading-card,
+:root[data-theme="light"] .heading-card-sm {
+  color: #1f2d20;
+  font-weight: 600;
+}
+
+/* Light mode gradient heading adjustments - softer colors */
+:root[data-theme="light"] .heading-gradient {
+  @apply bg-gradient-to-r from-green-600 to-orange-500 bg-clip-text text-transparent font-bold;
+}
+
+:root[data-theme="light"] .heading-gradient-primary {
+  @apply bg-gradient-to-r from-emerald-700 to-teal-700 bg-clip-text text-transparent font-bold;
+}
+
+:root[data-theme="light"] .heading-gradient-hero {
+  @apply bg-gradient-to-r from-slate-700 to-slate-800 bg-clip-text text-transparent font-bold;
+}
+
+/* Gradient background text color overrides */
+.bg-gradient-to-r.from-green-400.to-orange-400 * {
+  color: white !important;
+}
+
+/* Light mode uses dark text on lighter gradients, dark mode uses white text */
+:root[data-theme="light"] .bg-gradient-to-r.from-green-400.to-orange-400 * {
+  color: #1f2937 !important;
+}
+
+:root[data-theme="light"] .bg-gradient-to-br.from-green-400.to-orange-400 * {
+  color: #1f2937 !important;
+}
+
+:root[data-theme="light"] .bg-gradient-to-br.from-green-500.to-orange-500 * {
+  color: #1f2937 !important;
+}
+
+/* Ensure dark mode keeps white text on gradients */
+:root[data-theme="dark"] .bg-gradient-to-r.from-green-400.to-orange-400 *,
+:root[data-theme="dark"] .bg-gradient-to-br.from-green-400.to-orange-400 *,
+:root[data-theme="dark"] .bg-gradient-to-br.from-green-500.to-orange-500 * {
+  color: white !important;
+}
+
+/* Light mode button gradient overrides */
+:root[data-theme="light"] .hover\:from-green-500.hover\:to-orange-500:hover {
+  background: linear-gradient(to right, #86efac, #fdba74) !important;
+}
+
+/* Light mode gradient background overrides - softer, more subtle gradients */
+:root[data-theme="light"] .bg-gradient-to-r.from-green-400.to-orange-400 {
+  background: linear-gradient(to right, #86efac, #fdba74) !important;
+}
+
+:root[data-theme="light"] .bg-gradient-to-r.from-green-500.to-orange-500 {
+  background: linear-gradient(to right, #86efac, #fdba74) !important;
+}
+
+:root[data-theme="light"] .bg-gradient-to-br.from-green-400.to-orange-400 {
+  background: linear-gradient(to bottom right, #86efac, #fdba74) !important;
+}
+
+:root[data-theme="light"] .bg-gradient-to-br.from-green-500.to-orange-500 {
+  background: linear-gradient(to bottom right, #86efac, #fdba74) !important;
+}
+
+/* Light mode button gradient overrides */
+:root[data-theme="light"] .hover\:from-green-500.hover\:to-orange-500:hover {
+  background: linear-gradient(to right, #86efac, #fdba74) !important;
+}
+
+/* Light mode button gradient overrides */
+:root[data-theme="light"] .hover\:from-green-500.hover\:to-orange-500:hover {
+  background: linear-gradient(to right, #86efac, #fdba74) !important;
+}
+
+/* Enhanced theme-aware backgrounds for better visual appeal */
+:root[data-theme="light"] .bg-theme-success\/10 {
+  background-color: rgba(34, 197, 94, 0.08) !important;
+}
+
+:root[data-theme="light"] .bg-theme-warning\/10 {
+  background-color: rgba(234, 179, 8, 0.08) !important;
+}
+
+:root[data-theme="light"] .bg-theme-error\/10 {
+  background-color: rgba(239, 68, 68, 0.08) !important;
+}
+
+:root[data-theme="light"] .border-theme-success\/30 {
+  border-color: rgba(34, 197, 94, 0.2) !important;
+}
+
+:root[data-theme="light"] .border-theme-warning\/30 {
+  border-color: rgba(234, 179, 8, 0.2) !important;
+}
+
+:root[data-theme="light"] .border-theme-error\/30 {
+  border-color: rgba(239, 68, 68, 0.2) !important;
+}
+
+/* Dark mode enhanced gradients for better visual appeal */
+:root[data-theme="dark"] .bg-theme-success\/10 {
+  background-color: rgba(34, 197, 94, 0.12) !important;
+}
+
+:root[data-theme="dark"] .bg-theme-warning\/10 {
+  background-color: rgba(234, 179, 8, 0.12) !important;
+}
+
+:root[data-theme="dark"] .bg-theme-error\/10 {
+  background-color: rgba(239, 68, 68, 0.12) !important;
+}
