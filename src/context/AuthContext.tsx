@@ -39,23 +39,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log('Auth state change:', event, 'User:', session?.user?.email);
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
 
-      // Create profile when email is confirmed
-      if (event === 'SIGNED_IN' && session?.user && session.user.email_confirmed_at) {
-        // Check if profile already exists
-        const { data: existingProfile } = await supabase
-          .from('profiles')
-          .select('id')
-          .eq('id', session.user.id)
-          .single();
+      // Create profile when user signs in with confirmed email
+      if (event === 'SIGNED_IN' && session?.user) {
+        console.log('User signed in, checking profile...');
+        await createUserProfile(session.user, session.user.user_metadata || {});
+      }
 
-        // Only create profile if it doesn't exist
-        if (!existingProfile) {
-          await createUserProfile(session.user, session.user.user_metadata);
-        }
+      // Also handle when email gets confirmed
+      if (event === 'TOKEN_REFRESHED' && session?.user && session.user.email_confirmed_at) {
+        console.log('Token refreshed with confirmed email, ensuring profile exists...');
+        await createUserProfile(session.user, session.user.user_metadata || {});
       }
     });
 
@@ -64,14 +62,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const createUserProfile = async (user: User, userData: any = {}) => {
     try {
+      // First check if profile already exists
+      const { data: existingProfile } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('id', user.id)
+        .single();
+
+      if (existingProfile) {
+        console.log('Profile already exists for user:', user.id);
+        return { error: null };
+      }
+
+      // Create new profile
       const { error } = await supabase
         .from('profiles')
         .insert({
           id: user.id,
           email: user.email,
           full_name: userData.fullName || user.user_metadata?.full_name || '',
-          country: userData.country || '',
-          nationality: userData.nationality || '',
+          country: userData.country || user.user_metadata?.country || '',
+          nationality: userData.nationality || user.user_metadata?.nationality || '',
+          currency: 'AED', // Default currency for GCC expats
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
         });
@@ -80,6 +92,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         console.error('Error creating user profile:', error);
         return { error };
       }
+      
+      console.log('Profile created successfully for user:', user.id);
       return { error: null };
     } catch (error) {
       console.error('Error creating user profile:', error);

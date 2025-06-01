@@ -78,6 +78,32 @@ const GetStartedSection: React.FC<GetStartedSectionProps> = ({ onBack }) => {
         return;
       }
 
+      // Wait a moment for auth state to update, then save planning data
+      setTimeout(async () => {
+        try {
+          // Import and save planning data to Supabase
+          const { plannerPersistence } = await import('../../services/plannerPersistence');
+          
+          // Check if user is now authenticated
+          const { data: { user: currentUser } } = await import('../../lib/supabase').then(m => m.supabase.auth.getUser());
+          
+          if (currentUser) {
+            console.log('Saving planning data for new user:', currentUser.id);
+            const saveResult = await plannerPersistence.savePlanningData(currentUser.id, state);
+            
+            if (saveResult.success) {
+              console.log('Successfully saved planning data to Supabase!');
+            } else {
+              console.error('Failed to save planning data:', saveResult.error);
+              // Don't block the flow, but log the error
+            }
+          }
+        } catch (error) {
+          console.error('Error saving planning data:', error);
+          // Don't block the flow
+        }
+      }, 1000);
+
       // Track successful signup
       if (window.gtag) {
         window.gtag('event', 'signup_success', {
@@ -127,13 +153,31 @@ const GetStartedSection: React.FC<GetStartedSectionProps> = ({ onBack }) => {
     }
   };
 
-  const handleSkipToDashboard = () => {
+  const handleSkipToDashboard = async () => {
     // Track skip action
     if (window.gtag) {
       window.gtag('event', 'signup_skipped', {
         plan_value: totalPlanValue
       });
     }
+
+    // If user is already authenticated, save their planning data before going to dashboard
+    if (user) {
+      try {
+        console.log('Saving planning data for authenticated user:', user.id);
+        const { plannerPersistence } = await import('../../services/plannerPersistence');
+        const saveResult = await plannerPersistence.savePlanningData(user.id, state);
+        
+        if (saveResult.success) {
+          console.log('Successfully saved planning data to Supabase!');
+        } else {
+          console.error('Failed to save planning data:', saveResult.error);
+        }
+      } catch (error) {
+        console.error('Error saving planning data:', error);
+      }
+    }
+
     // Exit wizard and go to standalone dashboard
     window.location.href = '/dashboard';
   };
@@ -331,28 +375,22 @@ const GetStartedSection: React.FC<GetStartedSectionProps> = ({ onBack }) => {
                     onClick={() => setSelectedPlan('monthly')}
                     className={`relative p-6 rounded-2xl border-2 cursor-pointer transition-all duration-300 ${
                       selectedPlan === 'monthly'
-                        ? 'border-orange-500 bg-gradient-to-r from-orange-500/10 to-orange-500/10 ring-2 ring-orange-500/30 transform scale-102'
-                        : 'border-theme bg-theme-tertiary hover:border-orange-500/50'
+                        ? 'border-green-500 bg-gradient-to-r from-green-500/10 to-orange-500/10 ring-2 ring-green-500/30 transform scale-102'
+                        : 'border-theme bg-theme-tertiary hover:border-green-500/50'
                     }`}
                   >
-                    {selectedPlan === 'monthly' && (
-                      <div className="absolute -top-2 -right-2">
-                        <span className="bg-gradient-to-r from-orange-500 to-orange-600 text-white text-xs font-bold px-3 py-1 rounded-full">
-                          FLEXIBLE
-                        </span>
-                      </div>
-                    )}
-                    
                     <div className="flex justify-between items-center mb-3">
                       <div className="flex items-center gap-3">
-                        <Zap className="w-6 h-6 text-orange-500" />
+                        <Crown className="w-6 h-6 text-orange-500" />
                         <div>
                           <h3 className="font-bold text-theme-primary">Premium Monthly</h3>
-                          <p className="text-sm text-theme-muted">Flexible billing</p>
+                          <p className="text-sm text-theme-muted">Flexible • No commitment</p>
                         </div>
                       </div>
                       <div className="text-right">
-                        <span className="text-2xl font-bold text-orange-600">$10</span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-2xl font-bold text-green-600">$10</span>
+                        </div>
                         <p className="text-xs text-theme-muted">/month</p>
                       </div>
                     </div>
@@ -368,189 +406,111 @@ const GetStartedSection: React.FC<GetStartedSectionProps> = ({ onBack }) => {
                       </div>
                       <div className="flex items-center gap-1">
                         <CheckCircle className="w-3 h-3 text-green-500" />
-                        <span>Analytics</span>
+                        <span>Tax optimization</span>
                       </div>
                       <div className="flex items-center gap-1">
                         <CheckCircle className="w-3 h-3 text-green-500" />
-                        <span>Support</span>
+                        <span>Priority support</span>
                       </div>
                     </div>
                   </div>
 
-                  {/* Free Trial */}
+                  {/* Trial Plan */}
                   <div 
                     onClick={() => setSelectedPlan('trial')}
-                    className={`relative p-4 rounded-xl border-2 cursor-pointer transition-all duration-300 ${
+                    className={`relative p-6 rounded-2xl border-2 cursor-pointer transition-all duration-300 ${
                       selectedPlan === 'trial'
-                        ? 'border-green-500 bg-green-500/10 ring-2 ring-green-500/30 transform scale-102'
+                        ? 'border-green-500 bg-gradient-to-r from-green-500/10 to-orange-500/10 ring-2 ring-green-500/30 transform scale-102'
                         : 'border-theme bg-theme-tertiary hover:border-green-500/50'
                     }`}
                   >
-                    {selectedPlan === 'trial' && (
-                      <div className="absolute -top-2 -right-2">
-                        <span className="bg-gradient-to-r from-green-500 to-green-600 text-white text-xs font-bold px-3 py-1 rounded-full">
-                          RISK FREE
-                        </span>
-                      </div>
-                    )}
-                    
-                    <div className="flex justify-between items-center">
+                    <div className="flex justify-between items-center mb-3">
                       <div className="flex items-center gap-3">
-                        <Gift className="w-5 h-5 text-green-500" />
+                        <Gift className="w-6 h-6 text-orange-500" />
                         <div>
-                          <h3 className="font-semibold text-theme-primary">Free 7-Day Trial</h3>
-                          <p className="text-xs text-theme-muted">No credit card required</p>
+                          <h3 className="font-bold text-theme-primary">Free Trial</h3>
+                          <p className="text-sm text-theme-muted">No credit card required</p>
                         </div>
                       </div>
-                      <span className="text-xl font-bold text-green-600">$0</span>
+                      <div className="text-right">
+                        <div className="flex items-center gap-2">
+                          <span className="text-2xl font-bold text-green-600">$0</span>
+                        </div>
+                        <p className="text-xs text-theme-muted">/month</p>
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-2 text-xs text-theme-secondary">
+                      <div className="flex items-center gap-1">
+                        <CheckCircle className="w-3 h-3 text-green-500" />
+                        <span>Live tracking</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <CheckCircle className="w-3 h-3 text-green-500" />
+                        <span>AI coaching</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <CheckCircle className="w-3 h-3 text-green-500" />
+                        <span>Tax optimization</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <CheckCircle className="w-3 h-3 text-green-500" />
+                        <span>Priority support</span>
+                      </div>
                     </div>
                   </div>
                 </div>
 
-                {/* Form Fields */}
+                {/* Signup Form */}
                 <div className="space-y-4">
-                  <div className="relative group">
-                    <User className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-theme-muted group-focus-within:text-green-500 transition-colors" />
-                    <input
-                      type="text"
-                      id="name"
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      className="w-full pl-12 pr-4 py-4 rounded-xl text-lg bg-theme-tertiary border-2 border-theme text-theme-primary placeholder-theme-muted focus:ring-0 focus:border-green-500 transition-all duration-300"
-                      placeholder="Your full name"
-                      required
-                    />
-                  </div>
-
-                  <div className="relative group">
-                    <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-theme-muted group-focus-within:text-green-500 transition-colors" />
-                    <input
+                  <div className="relative">
+                    <input 
                       type="email"
-                      id="email"
+                      placeholder="Email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="w-full pl-12 pr-4 py-4 rounded-xl text-lg bg-theme-tertiary border-2 border-theme text-theme-primary placeholder-theme-muted focus:ring-0 focus:border-green-500 transition-all duration-300"
-                      placeholder="your.email@example.com"
-                      required
+                      className="w-full px-4 py-3 rounded-lg border border-theme bg-theme-tertiary focus:outline-none focus:ring-2 focus:ring-green-500"
                     />
+                    <Mail className="absolute top-3 right-3 w-5 h-5 text-theme-muted" />
                   </div>
-
-                  <div className="relative group">
-                    <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-theme-muted group-focus-within:text-green-500 transition-colors" />
-                    <input
+                  <div className="relative">
+                    <input 
+                      type="text"
+                      placeholder="Name"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      className="w-full px-4 py-3 rounded-lg border border-theme bg-theme-tertiary focus:outline-none focus:ring-2 focus:ring-green-500"
+                    />
+                    <User className="absolute top-3 right-3 w-5 h-5 text-theme-muted" />
+                  </div>
+                  <div className="relative">
+                    <input 
                       type="password"
-                      id="password"
+                      placeholder="Password"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className="w-full pl-12 pr-4 py-4 rounded-xl text-lg bg-theme-tertiary border-2 border-theme text-theme-primary placeholder-theme-muted focus:ring-0 focus:border-green-500 transition-all duration-300"
-                      placeholder="Password"
-                      required
+                      className="w-full px-4 py-3 rounded-lg border border-theme bg-theme-tertiary focus:outline-none focus:ring-2 focus:ring-green-500"
                     />
+                    <Lock className="absolute top-3 right-3 w-5 h-5 text-theme-muted" />
                   </div>
-                </div>
-
-                {/* Plan Summary */}
-                <div className="bg-gradient-to-r from-green-500/10 to-orange-500/10 rounded-xl p-4 border border-green-500/20">
-                  <div className="flex justify-between items-center">
-                    <span className="font-semibold text-theme-primary">
-                      {selectedPlan === 'trial' ? 'Free Trial (7 days)' 
-                       : selectedPlan === 'annual' ? 'Premium Annual' 
-                       : 'Premium Monthly'}
-                    </span>
-                    <span className="text-xl font-bold text-green-600">
-                      {selectedPlan === 'trial' ? '$0' 
-                       : selectedPlan === 'annual' ? '$99/year' 
-                       : '$10/month'}
-                    </span>
-                  </div>
-                  {selectedPlan === 'annual' && (
-                    <p className="text-sm text-green-600 font-medium mt-1">
-                      🎉 You're saving $20 with the annual plan!
-                    </p>
-                  )}
                 </div>
 
                 {/* Submit Button */}
-                <Button
-                  type="submit"
-                  disabled={isSigningUp}
-                  fullWidth
-                  className="py-4 text-xl rounded-xl bg-gradient-to-r from-green-500 to-orange-500 hover:from-green-600 hover:to-orange-600 text-white shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300 font-bold"
-                >
-                  {isSigningUp ? (
-                    <div className="flex items-center justify-center gap-3">
-                      <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                      Creating your account...
-                    </div>
-                  ) : (
-                    <div className="flex items-center justify-center gap-3">
-                      {selectedPlan === 'trial' 
-                        ? '🚀 Start Free Trial' 
-                        : selectedPlan === 'annual'
-                        ? '💎 Get Annual Plan'
-                        : '⚡ Get Monthly Plan'
-                      }
-                      <ArrowRight className="w-6 h-6" />
-                    </div>
-                  )}
+                <Button type="submit" className="w-full" disabled={isSigningUp}>
+                  {isSigningUp ? 'Signing up...' : 'Sign Up'}
                 </Button>
 
-                {/* Security & Trust */}
-                <div className="flex items-center justify-center gap-6 pt-4 border-t border-theme">
-                  <div className="flex items-center gap-2 text-sm text-theme-muted">
-                    <Shield className="w-4 h-4 text-green-500" />
-                    <span>Secure Payment</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm text-theme-muted">
-                    <Clock className="w-4 h-4 text-orange-500" />
-                    <span>Cancel Anytime</span>
-                  </div>
-                </div>
-
-                {/* Skip Option */}
-                <div className="text-center">
-                  <button
-                    type="button"
-                    onClick={handleSkipToDashboard}
-                    className="text-theme-muted hover:text-green-500 transition-colors text-sm underline font-medium"
-                  >
-                    Skip for now - Preview dashboard
-                  </button>
-                </div>
-
-                {/* Terms */}
-                <p className="text-xs text-theme-muted text-center leading-relaxed">
-                  By continuing, you agree to our{' '}
-                  <a href="#" className="text-green-500 hover:underline font-medium">Terms</a>{' '}
-                  and{' '}
-                  <a href="#" className="text-green-500 hover:underline font-medium">Privacy Policy</a>.
-                </p>
-
+                {/* Skip Button */}
+                <Button variant="outline" className="w-full" onClick={handleSkipToDashboard}>
+                  Skip Signup
+                </Button>
               </form>
             </CardContent>
           </Card>
         </div>
       </div>
-
-      {/* Success Modal */}
-      {showSuccess && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 animate-fadeIn">
-          <div className="bg-theme-card p-10 rounded-3xl max-w-md mx-4 text-center border border-theme shadow-2xl animate-slideUp">
-            <div className="w-24 h-24 bg-gradient-to-r from-green-500 to-orange-500 rounded-full flex items-center justify-center mx-auto mb-8 animate-bounce shadow-xl">
-              <CheckCircle className="w-12 h-12 text-white" />
-            </div>
-            <h3 className="text-2xl font-bold text-theme-primary mb-4">Welcome to WealthKarma!</h3>
-            <p className="text-theme-secondary mb-8 leading-relaxed text-lg">
-              🎉 Your dashboard is ready! Time to turn your {formatCurrency(totalPlanValue, currency)} plan into reality.
-            </p>
-            <div className="text-sm text-theme-muted">
-              Taking you to your dashboard...
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
 
-export default GetStartedSection; 
+export default GetStartedSection;

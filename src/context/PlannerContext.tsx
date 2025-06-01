@@ -3,7 +3,7 @@ import { Goal, Profile, ReturnPhase, FundingStyle } from '../types/plannerTypes'
 import { calculateRequiredPMT, calculateSequentialAllocations, GoalResult } from '../utils/calculations';
 
 // Define the context state type
-interface PlannerState {
+export interface PlannerState {
   currentStep: number;
   monthlyExpenses: number;
   bufferMonths: number;
