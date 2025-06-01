@@ -51,6 +51,13 @@ const GetStartedSection: React.FC<GetStartedSectionProps> = ({ onBack }) => {
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Prevent multiple rapid submissions
+    if (isSigningUp) {
+      console.log('🚫 Signup already in progress, ignoring duplicate submission');
+      return;
+    }
+    
     setIsSigningUp(true);
     setDebugStatus('Starting signup...');
     
@@ -89,15 +96,22 @@ const GetStartedSection: React.FC<GetStartedSectionProps> = ({ onBack }) => {
       
       if (result.error) {
         console.error('❌ Signup failed:', result.error);
-        setDebugStatus(`Signup failed: ${result.error.message}`);
-        alert(`Signup failed: ${result.error.message}`);
+        
+        // Handle rate limiting specifically
+        if (result.error.message?.includes('request this after')) {
+          setDebugStatus('Rate limit reached - please wait');
+          alert(`Please wait before trying again. ${result.error.message}`);
+        } else {
+          setDebugStatus(`Signup failed: ${result.error.message}`);
+          alert(`Signup failed: ${result.error.message}`);
+        }
         return;
       }
 
       console.log('✅ Signup successful, proceeding...');
       setDebugStatus('Account created! Saving your planning data...');
 
-      // Save planning data (with shorter timeout and non-blocking)
+      // Save planning data (with longer timeout and non-blocking)
       const saveDataWithTimeout = async () => {
         try {
           console.log('💾 Attempting to save planning data...');
@@ -115,8 +129,9 @@ const GetStartedSection: React.FC<GetStartedSectionProps> = ({ onBack }) => {
             return { success: false, error: 'No authenticated user found' };
           })();
           
+          // Increase timeout to 20 seconds for data saving
           const saveTimeout = new Promise((_, reject) => {
-            setTimeout(() => reject(new Error('Data save timed out')), 10000);
+            setTimeout(() => reject(new Error('Data save timed out')), 20000);
           });
           
           const saveResult = await Promise.race([savePromise, saveTimeout]) as any;
@@ -567,14 +582,28 @@ const GetStartedSection: React.FC<GetStartedSectionProps> = ({ onBack }) => {
                 </div>
 
                 {/* Submit Button */}
-                <Button type="submit" className="w-full" disabled={isSigningUp}>
-                  {isSigningUp ? 'Signing up...' : 'Sign Up'}
+                <Button 
+                  type="submit" 
+                  className={`w-full ${isSigningUp ? 'opacity-75 cursor-not-allowed' : ''}`}
+                  disabled={isSigningUp || !email || !name || !password}
+                >
+                  {isSigningUp ? (
+                    <div className="flex items-center justify-center gap-2">
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                      {debugStatus || 'Signing up...'}
+                    </div>
+                  ) : (
+                    'Sign Up'
+                  )}
                 </Button>
 
                 {/* Debug Status - Only show during signup */}
                 {isSigningUp && debugStatus && (
                   <div className="text-center p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
                     <p className="text-sm text-blue-600">{debugStatus}</p>
+                    {debugStatus.includes('Rate limit') && (
+                      <p className="text-xs text-blue-500 mt-1">Please wait a moment before trying again</p>
+                    )}
                   </div>
                 )}
 
