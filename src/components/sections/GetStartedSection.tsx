@@ -42,6 +42,7 @@ const GetStartedSection: React.FC<GetStartedSectionProps> = ({ onBack }) => {
   const [password, setPassword] = useState('');
   const [selectedPlan, setSelectedPlan] = useState<'trial' | 'monthly' | 'annual'>('annual');
   const [showSuccess, setShowSuccess] = useState(false);
+  const [debugStatus, setDebugStatus] = useState('');
 
   // Calculate plan value for display
   const totalPlanValue = state.allocations.reduce((sum, allocation) => 
@@ -51,6 +52,7 @@ const GetStartedSection: React.FC<GetStartedSectionProps> = ({ onBack }) => {
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSigningUp(true);
+    setDebugStatus('Starting signup...');
     
     // Track signup attempt
     if (window.gtag) {
@@ -61,8 +63,16 @@ const GetStartedSection: React.FC<GetStartedSectionProps> = ({ onBack }) => {
       });
     }
 
+    // Add timeout mechanism to prevent hanging
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error('Signup timed out after 30 seconds')), 30000);
+    });
+
     try {
-      // Use Supabase Auth
+      console.log('🚀 Starting signup process...', { email, selectedPlan });
+      setDebugStatus('Connecting to authentication service...');
+      
+      // Use Supabase Auth with timeout
       const userData = {
         name,
         plan_type: selectedPlan,
@@ -70,52 +80,63 @@ const GetStartedSection: React.FC<GetStartedSectionProps> = ({ onBack }) => {
         signup_source: 'post_plan_generation'
       };
 
-      const { error } = await signUp(email, password, userData);
+      console.log('📝 Calling signUp with userData:', userData);
+      setDebugStatus('Creating account...');
       
-      if (error) {
-        console.error('Signup failed:', error);
-        alert(`Signup failed: ${error.message}`);
+      // Race between signup and timeout
+      const signupPromise = signUp(email, password, userData);
+      const result = await Promise.race([signupPromise, timeoutPromise]) as { error: any };
+      
+      if (result.error) {
+        console.error('❌ Signup failed:', result.error);
+        setDebugStatus(`Signup failed: ${result.error.message}`);
+        alert(`Signup failed: ${result.error.message}`);
         return;
       }
 
-      // Instead of setTimeout, save data immediately after successful signup
-      try {
-        // Import and save planning data to Supabase
-        const { plannerPersistence } = await import('../../services/plannerPersistence');
-        
-        // Check if user is now authenticated
-        const { data: { user: currentUser } } = await import('../../lib/supabase').then(m => m.supabase.auth.getUser());
-        
-        if (currentUser) {
-          console.log('🔍 DEBUG: Planning state before saving:', {
-            userProfile: state.userProfile,
-            goals: state.goals,
-            budget: state.budget,
-            fundingStyle: state.fundingStyle,
-            selectedPhase: state.selectedPhase,
-            emergencyFund: state.emergencyFundCreated,
-            bufferMonths: state.bufferMonths,
-            allocations: state.allocations
+      console.log('✅ Signup successful, proceeding...');
+      setDebugStatus('Account created! Saving your planning data...');
+
+      // Save planning data (with shorter timeout and non-blocking)
+      const saveDataWithTimeout = async () => {
+        try {
+          console.log('💾 Attempting to save planning data...');
+          
+          const savePromise = (async () => {
+            const { plannerPersistence } = await import('../../services/plannerPersistence');
+            const { supabase } = await import('../../lib/supabase');
+            
+            const { data: { user: currentUser } } = await supabase.auth.getUser();
+            
+            if (currentUser) {
+              console.log('👤 Found authenticated user:', currentUser.id);
+              return await plannerPersistence.savePlanningData(currentUser.id, state);
+            }
+            return { success: false, error: 'No authenticated user found' };
+          })();
+          
+          const saveTimeout = new Promise((_, reject) => {
+            setTimeout(() => reject(new Error('Data save timed out')), 10000);
           });
           
-          console.log('💾 Saving planning data for new user:', currentUser.id);
-          const saveResult = await plannerPersistence.savePlanningData(currentUser.id, state);
+          const saveResult = await Promise.race([savePromise, saveTimeout]) as any;
           
           if (saveResult.success) {
-            console.log('✅ Successfully saved planning data to Supabase!');
+            console.log('✅ Planning data saved successfully!');
+            setDebugStatus('Planning data saved successfully!');
           } else {
-            console.error('❌ Failed to save planning data:', saveResult.error);
-            // Still continue with the flow but alert user
-            alert(`Warning: Unable to save your planning data. Error: ${saveResult.error}`);
+            console.warn('⚠️ Failed to save planning data:', saveResult.error);
+            setDebugStatus('Data save failed, but continuing...');
           }
-        } else {
-          console.error('❌ No authenticated user found after signup');
-          alert('Warning: Authentication issue detected. Please contact support.');
+        } catch (error) {
+          console.warn('⚠️ Non-critical error saving planning data:', error);
+          setDebugStatus('Data save error (non-critical)');
+          // Don't block the signup flow for data saving issues
         }
-      } catch (error) {
-        console.error('💥 Error saving planning data:', error);
-        alert(`Warning: Unable to save your planning data. Please contact support.`);
-      }
+      };
+
+      // Start data saving but don't wait for it
+      saveDataWithTimeout();
 
       // Track successful signup
       if (window.gtag) {
@@ -125,38 +146,79 @@ const GetStartedSection: React.FC<GetStartedSectionProps> = ({ onBack }) => {
         });
       }
 
-      if (selectedPlan !== 'trial') {
-        // Handle paid plans with Stripe
-        const { paymentService } = await import('../../services/paymentService');
-        const productId = selectedPlan === 'monthly' ? 'monthly-subscription' : 'annual-subscription';
-        
-        const result = await paymentService.createCheckoutSession({
-          productId,
-          customerEmail: email,
-          metadata: {
-            userName: name,
-            planValue: totalPlanValue.toString(),
-            signupSource: 'post_plan_generation'
-          }
-        });
-
-        if (result.error) {
-          alert(`Payment error: ${result.error}`);
-          return;
-        } else if (result.url) {
-          // In production, this would redirect to Stripe
-          console.log('Would redirect to Stripe:', result.url);
-          alert(`Account created! Redirecting to payment for ${selectedPlan} plan.`);
-        }
-      } else {
-        // Handle free trial
+      // Handle different plan types
+      if (selectedPlan === 'trial') {
+        console.log('✅ Free trial signup completed');
+        setDebugStatus('Free trial setup complete!');
         alert('Account created successfully! Welcome to WealthKarma.');
+        setShowSuccess(true);
+        return;
       }
 
+      // Handle paid plans with timeout
+      try {
+        console.log('💳 Processing payment for plan:', selectedPlan);
+        setDebugStatus('Setting up payment...');
+        
+        const paymentPromise = (async () => {
+          const { paymentService } = await import('../../services/paymentService');
+          const productId = selectedPlan === 'monthly' ? 'monthly-subscription' : 'annual-subscription';
+          
+          return await paymentService.createCheckoutSession({
+            productId,
+            customerEmail: email,
+            metadata: {
+              userName: name,
+              planValue: totalPlanValue.toString(),
+              signupSource: 'post_plan_generation'
+            }
+          });
+        })();
+        
+        const paymentTimeout = new Promise((_, reject) => {
+          setTimeout(() => reject(new Error('Payment setup timed out')), 15000);
+        });
+        
+        const result = await Promise.race([paymentPromise, paymentTimeout]) as any;
+
+        if (result.error) {
+          console.error('❌ Payment error:', result.error);
+          setDebugStatus('Payment setup failed, account created');
+          alert(`Payment setup failed: ${result.error}. Your account was created successfully, you can set up payment later.`);
+          setShowSuccess(true);
+          return;
+        }
+
+        if (result.url) {
+          console.log('🔄 Redirecting to payment:', result.url);
+          setDebugStatus('Redirecting to payment...');
+          alert(`Account created! Redirecting to payment for ${selectedPlan} plan.`);
+          // In production, redirect to Stripe
+          window.location.href = result.url;
+          return;
+        }
+      } catch (paymentError) {
+        console.error('❌ Payment service error:', paymentError);
+        setDebugStatus('Payment error, account created');
+        alert('Payment setup failed, but your account was created successfully. You can set up payment later from your dashboard.');
+        setShowSuccess(true);
+        return;
+      }
+
+      // Fallback success
+      console.log('✅ Signup process completed');
+      setDebugStatus('Signup completed successfully!');
       setShowSuccess(true);
+
     } catch (error) {
-      console.error('Signup failed:', error);
-      alert('Signup failed. Please try again.');
+      console.error('❌ Unexpected signup error:', error);
+      if (error instanceof Error && error.message.includes('timeout')) {
+        setDebugStatus('Signup timed out');
+        alert('Signup is taking longer than expected. Please check your internet connection and try again.');
+      } else {
+        setDebugStatus(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        alert('Signup failed due to an unexpected error. Please try again.');
+      }
     } finally {
       setIsSigningUp(false);
     }
@@ -189,41 +251,6 @@ const GetStartedSection: React.FC<GetStartedSectionProps> = ({ onBack }) => {
 
     // Exit wizard and go to standalone dashboard
     window.location.href = '/dashboard';
-  };
-
-  // Test function for manual data saving
-  const handleTestDataSaving = async () => {
-    if (!user) {
-      alert('Please log in first to test data saving');
-      return;
-    }
-
-    try {
-      console.log('🧪 TESTING: Manual data save for user:', user.id);
-      console.log('🔍 Current planning state:', {
-        userProfile: state.userProfile,
-        goals: state.goals,
-        goalsCount: state.goals.length,
-        budget: state.budget,
-        fundingStyle: state.fundingStyle,
-        selectedPhase: state.selectedPhase,
-        allocations: state.allocations?.length || 0
-      });
-
-      const { plannerPersistence } = await import('../../services/plannerPersistence');
-      const saveResult = await plannerPersistence.savePlanningData(user.id, state);
-      
-      if (saveResult.success) {
-        alert('✅ Test successful! Data saved to Supabase. Check your database.');
-        console.log('✅ Test data save successful!');
-      } else {
-        alert(`❌ Test failed: ${saveResult.error}`);
-        console.error('❌ Test data save failed:', saveResult.error);
-      }
-    } catch (error) {
-      console.error('💥 Test error:', error);
-      alert(`💥 Test error: ${error}`);
-    }
   };
 
   return (
@@ -544,21 +571,17 @@ const GetStartedSection: React.FC<GetStartedSectionProps> = ({ onBack }) => {
                   {isSigningUp ? 'Signing up...' : 'Sign Up'}
                 </Button>
 
+                {/* Debug Status - Only show during signup */}
+                {isSigningUp && debugStatus && (
+                  <div className="text-center p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+                    <p className="text-sm text-blue-600">{debugStatus}</p>
+                  </div>
+                )}
+
                 {/* Skip Button */}
                 <Button variant="outline" className="w-full" onClick={handleSkipToDashboard}>
                   Skip Signup
                 </Button>
-
-                {/* Test Data Saving Button - For Development/Debug */}
-                {process.env.NODE_ENV === 'development' && user && (
-                  <Button 
-                    variant="outline" 
-                    className="w-full bg-blue-500/10 border-blue-500 text-blue-600 hover:bg-blue-500/20" 
-                    onClick={handleTestDataSaving}
-                  >
-                    🧪 Test Data Saving (Debug)
-                  </Button>
-                )}
               </form>
             </CardContent>
           </Card>
