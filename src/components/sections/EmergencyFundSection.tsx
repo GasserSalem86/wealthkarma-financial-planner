@@ -958,64 +958,69 @@ Include ALL banks mentioned with ANY rate information. Return only the JSON arra
   // View when exists and not editing
   if (existing && !isEditing) {
     return (
-      <div className="container mx-auto max-w-3xl">
-        <h2 className="heading-h1-sm text-theme-light mb-6">Your Safety Net</h2>
-        <Card className="mb-8">
+      <div className="container mx-auto max-w-3xl px-4 lg:px-0">
+        <h2 className="text-2xl lg:text-3xl font-bold text-theme-light mb-4 lg:mb-6">Your Safety Net</h2>
+        <Card className="mb-6 lg:mb-8">
           <CardContent>
-            <div className="space-y-4">
-              <div className="flex justify-between">
-                <span className="text-theme-secondary">Buffer Months:</span>
-                <span className="text-theme-light">{existing.bufferMonths ?? 3} months</span>
+            <div className="space-y-3 lg:space-y-4">
+              <div className="flex flex-col sm:flex-row sm:justify-between gap-1 sm:gap-0">
+                <span className="text-theme-secondary text-sm lg:text-base">Buffer Months:</span>
+                <span className="text-theme-light font-medium text-sm lg:text-base">{existing.bufferMonths ?? 3} months</span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-theme-secondary">Monthly Expenses:</span>
-                <span className="text-theme-light">{formatCurrency(existing.amount / (existing.bufferMonths ?? 1), currency)}</span>
+              <div className="flex flex-col sm:flex-row sm:justify-between gap-1 sm:gap-0">
+                <span className="text-theme-secondary text-sm lg:text-base">Monthly Expenses:</span>
+                <span className="text-theme-light font-medium text-sm lg:text-base">{formatCurrency(existing.amount / (existing.bufferMonths ?? 1), currency)}</span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-theme-secondary">Target Date:</span>
-                <span className="text-theme-light">
+              <div className="flex flex-col sm:flex-row sm:justify-between gap-1 sm:gap-0">
+                <span className="text-theme-secondary text-sm lg:text-base">Target Date:</span>
+                <span className="text-theme-light font-medium text-sm lg:text-base">
                   {monthOptions[existing.targetDate.getMonth()]} {existing.targetDate.getFullYear()}
                 </span>
               </div>
-              <div className="flex justify-between border-t border-theme pt-3">
-                <span className="text-theme-light font-semibold">Total Required:</span>
-                <span className="text-theme-light font-bold">{formatCurrency(existing.amount, currency)}</span>
+              <div className="flex flex-col sm:flex-row sm:justify-between border-t border-theme pt-3 gap-1 sm:gap-0">
+                <span className="text-theme-light font-semibold text-sm lg:text-base">Total Required:</span>
+                <span className="text-theme-light font-bold text-lg lg:text-xl">{formatCurrency(existing.amount, currency)}</span>
               </div>
-              <div className="flex justify-between pt-2">
-                <span className="text-theme-secondary">Monthly Savings ({selectedBank ? `${(bankReturnRate * 100).toFixed(1)}% p.a. - ${selectedBank.bankName}` : '1% p.a.'}):</span>
-                <span className="text-green-400 font-bold">
-                  {formatCurrency(existing.requiredPMT, currency)}
+              <div className="flex flex-col sm:flex-row sm:justify-between pt-2 gap-2 sm:gap-0">
+                <div className="flex-1">
+                  <span className="text-theme-secondary text-sm lg:text-base">Monthly Savings:</span>
+                  <div className="text-xs text-theme-muted">
+                    {selectedBank ? `${(bankReturnRate * 100).toFixed(1)}% p.a. - ${selectedBank.bankName}` : '1% p.a.'}
+                  </div>
+                </div>
+                <div className="text-left sm:text-right">
+                  <span className="text-green-400 font-bold text-lg lg:text-xl">
+                    {formatCurrency(existing.requiredPMT, currency)}
+                  </span>
                   {existing.selectedBank && (
-                    <span className="text-sm text-theme-muted ml-2">
+                    <div className="text-xs text-theme-muted mt-1">
                       ({(existing.selectedBank.returnRate * 100).toFixed(1)}% p.a. - {existing.selectedBank.bankName})
-                    </span>
+                    </div>
                   )}
-                </span>
+                </div>
               </div>
               {!existing.selectedBank && (
-                <div className="bg-theme-card border border-blue-500/30 rounded-lg p-3 mt-4">
-                  <div className="text-sm text-blue-300">
+                <div className="bg-theme-card border border-blue-500/30 rounded-lg p-3 mt-3 lg:mt-4 shadow-theme-sm">
+                  <div className="text-xs lg:text-sm text-blue-300">
                     <strong>💡 Get Better Rates!</strong> Your safety net is currently using a 1% interest rate. Select a local bank below offering 3-5% p.a., which could reduce your monthly savings significantly!
                   </div>
                 </div>
               )}
               {existing.selectedBank && (
-                <div className="bg-theme-card border border-green-500/30 rounded-lg p-3 mt-4">
-                  <div className="text-sm text-green-300">
-                    <strong>Selected Bank:</strong> {existing.selectedBank.bankName} - {existing.selectedBank.accountType}
-                    <br />
-                    <strong>Interest Rate:</strong> {existing.selectedBank.interestRate}
-                    <br />
-                    <strong>Features:</strong> {existing.selectedBank.features}
+                <div className="bg-theme-card border border-green-500/30 rounded-lg p-3 mt-3 lg:mt-4 shadow-theme-sm">
+                  <div className="text-xs lg:text-sm text-green-300 space-y-1">
+                    <div><strong>Selected Bank:</strong> {existing.selectedBank.bankName} - {existing.selectedBank.accountType}</div>
+                    <div><strong>Interest Rate:</strong> {existing.selectedBank.interestRate}</div>
+                    <div><strong>Features:</strong> {existing.selectedBank.features}</div>
                   </div>
                 </div>
               )}
             </div>
           </CardContent>
           <CardFooter>
-            <div className="flex space-x-4 w-full">
-              <Button variant="outline" onClick={() => setIsEditing(true)} fullWidth>Edit</Button>
-              <Button onClick={onNext} fullWidth>Continue to Goals</Button>
+            <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4 w-full">
+              <Button variant="outline" onClick={() => setIsEditing(true)} fullWidth className="text-sm lg:text-base py-3 lg:py-2">Edit</Button>
+              <Button onClick={onNext} fullWidth className="text-sm lg:text-base py-3 lg:py-2">Continue to Goals</Button>
             </div>
           </CardFooter>
         </Card>
@@ -1226,16 +1231,16 @@ Include ALL banks mentioned with ANY rate information. Return only the JSON arra
 
             {/* Comprehensive Search Progress */}
             {hasValidExpenses && searchProgress && (
-              <div className="mb-4 p-4 bg-theme-section border border-blue-500/30 rounded-lg shadow-theme">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="font-semibold text-theme-primary">🔍 Deep Bank Rate Search</div>
-                  <div className="flex items-center gap-2">
-                    <div className="text-theme-secondary text-sm">
+              <div className="mb-4 p-3 lg:p-4 bg-theme-section border border-blue-500/30 rounded-lg shadow-theme">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-2 lg:mb-3 gap-2 sm:gap-0">
+                  <div className="font-semibold text-theme-primary text-sm lg:text-base">🔍 Deep Bank Rate Search</div>
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                    <div className="text-theme-secondary text-xs lg:text-sm">
                       {searchProgress.current}/{searchProgress.total} batches
                     </div>
                     <button
                       onClick={stopSearch}
-                      className="px-2 py-1 bg-orange-600 hover:bg-orange-700 text-white rounded text-xs font-medium shadow-theme-sm"
+                      className="px-2 py-1 bg-orange-600 hover:bg-orange-700 text-white rounded text-xs font-medium shadow-theme-sm w-full sm:w-auto"
                     >
                       🛑 Stop Search
                     </button>
@@ -1248,7 +1253,7 @@ Include ALL banks mentioned with ANY rate information. Return only the JSON arra
                   ></div>
                 </div>
                 <div className="text-theme-secondary text-xs mb-2">{searchProgress.status}</div>
-                <div className="text-theme-primary text-xs bg-theme-card p-2 rounded border border-blue-500/20 shadow-theme-sm">
+                <div className="text-theme-primary text-xs bg-theme-card p-2 lg:p-3 rounded border border-blue-500/20 shadow-theme-sm">
                   <strong>🎯 Smart Search System:</strong> We search in batches with a 3-minute timeout to get comprehensive results while ensuring you're not waiting forever. You can stop early and use the results found so far plus manual check options for remaining banks.
                 </div>
               </div>
@@ -1256,11 +1261,11 @@ Include ALL banks mentioned with ANY rate information. Return only the JSON arra
 
             {/* Cache Status for Users */}
             {hasValidExpenses && finalAvailableBanks.length > 0 && !bankDataLoading && (
-              <div className="mb-3 p-2 bg-theme-section border border-green-500/30 rounded text-xs shadow-theme-sm">
-                <div className="flex justify-between items-center">
-                  <div>
+              <div className="mb-3 p-2 lg:p-3 bg-theme-section border border-green-500/30 rounded text-xs shadow-theme-sm">
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 sm:gap-0">
+                  <div className="flex-1">
                     <div className="font-semibold text-theme-primary mb-1">📊 Data Freshness</div>
-                    <div className="text-theme-secondary">
+                    <div className="text-theme-secondary text-xs lg:text-sm">
                       {getCacheInfo(userCountry).includes('Cached') 
                         ? `${getCacheInfo(userCountry)} - Data stays consistent for 24 hours`
                         : 'Fresh data just fetched - Will remain stable for 24 hours'
@@ -1270,7 +1275,7 @@ Include ALL banks mentioned with ANY rate information. Return only the JSON arra
                   <button
                     onClick={refreshBankData}
                     disabled={bankDataLoading}
-                    className="px-2 py-1 bg-green-600 hover:bg-green-700 text-white rounded text-xs disabled:opacity-50 disabled:cursor-not-allowed shadow-theme-sm"
+                    className="px-2 py-1 bg-green-600 hover:bg-green-700 text-white rounded text-xs disabled:opacity-50 disabled:cursor-not-allowed shadow-theme-sm w-full sm:w-auto"
                   >
                     🔄 Refresh
                   </button>
@@ -1284,7 +1289,7 @@ Include ALL banks mentioned with ANY rate information. Return only the JSON arra
                 <label className="block text-sm font-medium text-theme-secondary mb-1">
                   Choose Bank Account ({userCountry} Retail Banks - Top {totalRetailBanks} Banks Listed by Highest Rates)
                   {bankDataLoading && (
-                    <span className="ml-2 text-xs text-theme-light">
+                    <span className="block sm:inline sm:ml-2 text-xs text-theme-light mt-1 sm:mt-0">
                       🔄 Fetching latest rates...
                     </span>
                   )}
@@ -1300,9 +1305,9 @@ Include ALL banks mentioned with ANY rate information. Return only the JSON arra
                 
                 {/* Show loading or empty state */}
                 {finalAvailableBanks.length === 0 && !bankDataLoading && (
-                  <div className="mb-3 p-3 bg-theme-card border border-orange-500/30 rounded text-sm">
+                  <div className="mb-3 p-3 lg:p-4 bg-theme-card border border-orange-500/30 rounded text-sm">
                     <div className="font-semibold text-orange-300 mb-2">🔄 Comprehensive Bank Data Search</div>
-                    <div className="text-theme-secondary">
+                    <div className="text-theme-secondary text-xs lg:text-sm">
                       We're conducting thorough searches across {totalRetailBanks} retail banks in {userCountry}. This includes deep searches of bank websites for the most current rates. The process takes 2-3 minutes but ensures you get the best available rates.
                     </div>
                   </div>
@@ -1319,10 +1324,10 @@ Include ALL banks mentioned with ANY rate information. Return only the JSON arra
                 
                 {/* Account Type Guidance */}
                 <div className="mb-3 p-3 bg-theme-section border border-blue-500/30 rounded text-xs shadow-theme-sm">
-                  <div className="grid md:grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     <div>
                       <div className="font-semibold text-theme-primary mb-1">💰 Savings Accounts</div>
-                      <div className="text-theme-secondary">
+                      <div className="text-theme-secondary text-xs lg:text-sm">
                         • Instant access to funds<br/>
                         • Perfect for emergency funds<br/>
                         • Lower rates but maximum flexibility
@@ -1330,7 +1335,7 @@ Include ALL banks mentioned with ANY rate information. Return only the JSON arra
                     </div>
                     <div>
                       <div className="font-semibold text-theme-primary mb-1">🏦 Time Deposits</div>
-                      <div className="text-theme-secondary">
+                      <div className="text-theme-secondary text-xs lg:text-sm">
                         • Higher interest rates<br/>
                         • Funds locked for specific period<br/>
                         • Consider for part of emergency fund
@@ -1356,7 +1361,7 @@ Include ALL banks mentioned with ANY rate information. Return only the JSON arra
                     handleBankChange(e);
                   }}
                   disabled={bankDataLoading || finalAvailableBanks.length === 0}
-                  className={`input-dark w-full rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
+                  className={`input-dark w-full rounded px-3 py-3 lg:py-2 text-base lg:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
                     (bankDataLoading || finalAvailableBanks.length === 0) ? 'opacity-50 cursor-not-allowed' : ''
                   }`}
                 >
@@ -1482,10 +1487,10 @@ Include ALL banks mentioned with ANY rate information. Return only the JSON arra
                   )}
                 </select>
                 {selectedBank && (
-                  <div className="mt-2 p-3 bg-theme-section border border-green-500/30 rounded text-xs text-green-600 shadow-theme-sm">
+                  <div className="mt-2 lg:mt-3 p-3 bg-theme-section border border-green-500/30 rounded text-xs lg:text-sm text-green-600 shadow-theme-sm">
                     <div className="font-semibold mb-1">Selected: {selectedBank.bankName} - {selectedBank.accountType}</div>
-                    <div><strong>Interest Rate:</strong> {selectedBank.interestRate}</div>
-                    <div><strong>Features:</strong> {selectedBank.features}</div>
+                    <div className="mb-1"><strong>Interest Rate:</strong> {selectedBank.interestRate}</div>
+                    <div className="mb-2 lg:mb-0"><strong>Features:</strong> {selectedBank.features}</div>
                     {selectedBank.features.includes('Manual check required') && (
                       <div className="mt-2 p-2 bg-theme-card border border-green-500/30 rounded shadow-theme-sm">
                         <div className="text-xs text-green-600">
@@ -1494,7 +1499,7 @@ Include ALL banks mentioned with ANY rate information. Return only the JSON arra
                             href={selectedBank.website} 
                             target="_blank" 
                             rel="noopener noreferrer"
-                            className="ml-1 text-theme-primary hover:text-theme-secondary underline transition-colors"
+                            className="ml-1 text-theme-primary hover:text-theme-secondary underline transition-colors break-all"
                           >
                             {selectedBank.website} →
                           </a>
@@ -1512,46 +1517,46 @@ Include ALL banks mentioned with ANY rate information. Return only the JSON arra
           <div className="space-y-4 w-full">
             {/* Summary calculation */}
             <div className="border-t pt-4">
-              <h4 className="font-semibold text-theme-secondary mb-3">Your Safety Net Plan:</h4>
+              <h4 className="font-semibold text-theme-secondary mb-3 text-sm lg:text-base">Your Safety Net Plan:</h4>
               <div className="space-y-2">
-                <div className="flex justify-between">
-                  <span className="text-theme-secondary">Monthly expenses:</span>
-                  <span className="font-medium text-theme-light">{formatCurrency(expenses, currency)}</span>
-            </div>
-            <div className="flex justify-between">
-                  <span className="text-theme-secondary">Buffer months:</span>
-                  <span className="font-medium text-theme-light">{bufferMonths} months</span>
+                <div className="flex flex-col sm:flex-row sm:justify-between gap-1 sm:gap-0">
+                  <span className="text-theme-secondary text-sm lg:text-base">Monthly expenses:</span>
+                  <span className="font-medium text-theme-light text-sm lg:text-base">{formatCurrency(expenses, currency)}</span>
                 </div>
-                <div className="flex justify-between border-t border-theme pt-2">
-                  <span className="font-semibold text-theme-light">Total safety net needed:</span>
-                  <span className="font-bold text-lg text-theme-light">{formatCurrency(amount, currency)}</span>
+                <div className="flex flex-col sm:flex-row sm:justify-between gap-1 sm:gap-0">
+                  <span className="text-theme-secondary text-sm lg:text-base">Buffer months:</span>
+                  <span className="font-medium text-theme-light text-sm lg:text-base">{bufferMonths} months</span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-theme-secondary">Timeline to complete:</span>
-                  <span className="font-medium text-theme-light">{horizonMonths} months</span>
+                <div className="flex flex-col sm:flex-row sm:justify-between border-t border-theme pt-2 gap-1 sm:gap-0">
+                  <span className="font-semibold text-theme-light text-sm lg:text-base">Total safety net needed:</span>
+                  <span className="font-bold text-lg lg:text-xl text-theme-light">{formatCurrency(amount, currency)}</span>
                 </div>
-                <div className="flex justify-between items-center bg-theme-section p-3 rounded border border-green-500/30 shadow-theme-sm">
+                <div className="flex flex-col sm:flex-row sm:justify-between gap-1 sm:gap-0">
+                  <span className="text-theme-secondary text-sm lg:text-base">Timeline to complete:</span>
+                  <span className="font-medium text-theme-light text-sm lg:text-base">{horizonMonths} months</span>
+                </div>
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center bg-theme-section p-3 rounded border border-green-500/30 shadow-theme-sm gap-2 sm:gap-0">
                   <div>
-                    <span className="font-semibold text-theme-primary">Monthly savings needed:</span>
+                    <span className="font-semibold text-theme-primary text-sm lg:text-base">Monthly savings needed:</span>
                     <div className="text-xs text-theme-secondary">
                       {selectedBank ? `${(bankReturnRate * 100).toFixed(1)}% p.a. - ${selectedBank.bankName}` : '1% p.a. (basic rate)'}
                     </div>
                   </div>
-                  <span className="text-green-600 font-bold text-xl">
-                {formatCurrency(requiredPMT, currency)}
-              </span>
-            </div>
+                  <span className="text-green-600 font-bold text-xl lg:text-2xl">
+                    {formatCurrency(requiredPMT, currency)}
+                  </span>
                 </div>
               </div>
+            </div>
 
             {/* Bank selection guidance */}
             {!selectedBank && hasValidExpenses && finalAvailableBanks.length > 0 && (
-              <div className="bg-theme-section border border-blue-500/30 rounded-lg p-4 shadow-theme-sm">
-                <div className="flex items-start gap-3">
-                  <span className="text-2xl">💡</span>
-                  <div>
-                    <div className="font-semibold text-theme-primary mb-1">Optimize Your Savings Rate!</div>
-                    <div className="text-sm text-theme-secondary mb-2">
+              <div className="bg-theme-section border border-blue-500/30 rounded-lg p-3 lg:p-4 shadow-theme-sm">
+                <div className="flex flex-col sm:flex-row sm:items-start gap-3">
+                  <span className="text-2xl flex-shrink-0">💡</span>
+                  <div className="flex-1">
+                    <div className="font-semibold text-theme-primary mb-1 text-sm lg:text-base">Optimize Your Savings Rate!</div>
+                    <div className="text-sm text-theme-secondary">
                       Your calculation uses a basic 1% interest rate. Select a local bank above offering 2-5% p.a., which could reduce your monthly savings by up to 20%!
                     </div>
                   </div>
@@ -1561,10 +1566,10 @@ Include ALL banks mentioned with ANY rate information. Return only the JSON arra
 
             {/* Action guidance */}
             {hasValidExpenses && (
-              <div className="bg-theme-section border border-indigo-500/30 rounded-lg p-4 shadow-theme-sm">
+              <div className="bg-theme-section border border-indigo-500/30 rounded-lg p-3 lg:p-4 shadow-theme-sm">
                 <div className="text-sm text-theme-secondary">
-                  <div className="font-semibold mb-2 text-theme-primary">🎯 Next Steps After Creating Your Safety Net:</div>
-                  <ol className="space-y-1 list-decimal list-inside">
+                  <div className="font-semibold mb-2 text-theme-primary text-sm lg:text-base">🎯 Next Steps After Creating Your Safety Net:</div>
+                  <ol className="space-y-1 list-decimal list-inside text-xs lg:text-sm">
                     <li>Open a dedicated emergency fund account (separate from checking)</li>
                     <li>Set up automatic transfers of {formatCurrency(requiredPMT, currency)} monthly</li>
                     <li>Keep funds easily accessible but not too tempting to spend</li>
@@ -1574,7 +1579,7 @@ Include ALL banks mentioned with ANY rate information. Return only the JSON arra
               </div>
             )}
 
-            <Button onClick={handleSave} fullWidth disabled={!hasValidExpenses}>
+            <Button onClick={handleSave} fullWidth disabled={!hasValidExpenses} className="text-sm lg:text-base py-3 lg:py-4">
               {existing 
                 ? 'Update Safety Net Plan' 
                 : 'Create My Safety Net Plan'
