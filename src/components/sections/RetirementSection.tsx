@@ -82,8 +82,8 @@ const RetirementSection: React.FC<RetirementSectionProps> = ({ onNext, onBack })
 
   if (showRetirementCalculator) {
     return (
-      <div className="container mx-auto max-w-4xl">
-        <div className="mb-6">
+      <div className="container mx-auto max-w-4xl px-4 lg:px-0">
+        <div className="mb-4 lg:mb-6">
           <Button 
             variant="outline" 
             onClick={handleCancel}
@@ -101,92 +101,92 @@ const RetirementSection: React.FC<RetirementSectionProps> = ({ onNext, onBack })
   }
 
   return (
-    <div className="container mx-auto max-w-4xl">
+    <div className="container mx-auto max-w-4xl px-4 lg:px-0">
       {/* Hero Section */}
-      <div className="text-center mb-12">
-        <div className="relative mb-6">
+      <div className="text-center mb-8 lg:mb-12">
+        <div className="relative mb-4 lg:mb-6">
           <div className="absolute inset-0 bg-gradient-to-r from-green-400/10 to-orange-400/10 rounded-full blur-3xl transform scale-150"></div>
-          <div className="relative bg-gradient-to-r from-green-400 to-orange-400 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 shadow-2xl">
-            <Target className="w-10 h-10 text-white" />
+          <div className="relative bg-gradient-to-r from-green-400 to-orange-400 w-16 h-16 lg:w-20 lg:h-20 rounded-full flex items-center justify-center mx-auto mb-4 lg:mb-6 shadow-2xl">
+            <Target className="w-8 h-8 lg:w-10 lg:h-10 text-white" />
           </div>
         </div>
-        <h2 className="heading-gradient heading-h1 mb-4">
+        <h2 className="text-2xl lg:text-4xl xl:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-orange-400 mb-3 lg:mb-4">
           Plan Your Golden Years
         </h2>
-        <p className="text-xl text-theme-secondary max-w-3xl mx-auto leading-relaxed">
+        <p className="text-base lg:text-xl text-theme-secondary max-w-3xl mx-auto leading-relaxed">
           As a GCC expat, retirement planning is your pathway to financial freedom. 
           Let's build a plan that gives you the retirement lifestyle you deserve.
         </p>
       </div>
 
       {/* Create New Retirement Plan */}
-      <Card className="mb-12 border-0 shadow-xl bg-theme-card">
-        <CardHeader className="pb-4">
-          <CardTitle className="flex items-center space-x-3 text-2xl text-theme-primary">
-            <div className="w-8 h-8 bg-gradient-to-r from-green-400 to-orange-400 rounded-lg flex items-center justify-center">
-              <Plus className="w-5 h-5 text-white" />
+      <Card className="mb-8 lg:mb-12 border-0 shadow-xl bg-theme-card">
+        <CardHeader className="pb-3 lg:pb-4">
+          <CardTitle className="flex items-center space-x-2 lg:space-x-3 text-lg lg:text-2xl text-theme-primary">
+            <div className="w-6 h-6 lg:w-8 lg:h-8 bg-gradient-to-r from-green-400 to-orange-400 rounded-lg flex items-center justify-center">
+              <Plus className="w-3 h-3 lg:w-5 lg:h-5 text-white" />
             </div>
             <span>Create Your Retirement Plan</span>
           </CardTitle>
         </CardHeader>
         <CardContent>
           {/* Why Retirement Planning Matters Section */}
-          <div className="grid md:grid-cols-2 gap-8 mb-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-8 mb-6 lg:mb-8">
             <div>
-              <h4 className="font-bold text-theme-primary mb-4 flex items-center">
-                <Heart className="w-5 h-5 text-theme-error mr-2" />
+              <h4 className="font-bold text-theme-primary mb-3 lg:mb-4 flex items-center text-sm lg:text-base">
+                <Heart className="w-4 h-4 lg:w-5 lg:h-5 text-theme-error mr-2" />
                 Why This Matters for GCC Expats
               </h4>
-              <div className="space-y-3">
-                <div className="flex items-start space-x-3 p-3 bg-theme-tertiary rounded-lg shadow-theme-sm">
-                  <Shield className="w-5 h-5 text-theme-info mt-0.5 flex-shrink-0" />
+              <div className="space-y-2 lg:space-y-3">
+                <div className="flex items-start space-x-2 lg:space-x-3 p-2 lg:p-3 bg-theme-tertiary rounded-lg shadow-theme-sm">
+                  <Shield className="w-4 h-4 lg:w-5 lg:h-5 text-theme-info mt-0.5 flex-shrink-0" />
                   <div>
-                    <p className="font-medium text-theme-primary">No Local Pensions</p>
-                    <p className="text-sm text-theme-secondary">You're responsible for your own retirement security</p>
+                    <p className="font-medium text-theme-primary text-sm lg:text-base">No Local Pensions</p>
+                    <p className="text-xs lg:text-sm text-theme-secondary">You're responsible for your own retirement security</p>
                   </div>
                 </div>
-                <div className="flex items-start space-x-3 p-3 bg-theme-tertiary rounded-lg shadow-theme-sm">
-                  <Globe className="w-5 h-5 text-theme-success mt-0.5 flex-shrink-0" />
+                <div className="flex items-start space-x-2 lg:space-x-3 p-2 lg:p-3 bg-theme-tertiary rounded-lg shadow-theme-sm">
+                  <Globe className="w-4 h-4 lg:w-5 lg:h-5 text-theme-success mt-0.5 flex-shrink-0" />
                   <div>
-                    <p className="font-medium text-theme-primary">Visa Dependency</p>
-                    <p className="text-sm text-theme-secondary">Plan for potential relocation and global mobility</p>
+                    <p className="font-medium text-theme-primary text-sm lg:text-base">Visa Dependency</p>
+                    <p className="text-xs lg:text-sm text-theme-secondary">Plan for potential relocation and global mobility</p>
                   </div>
                 </div>
-                <div className="flex items-start space-x-3 p-3 bg-theme-tertiary rounded-lg shadow-theme-sm">
-                  <Zap className="w-5 h-5 text-theme-warning mt-0.5 flex-shrink-0" />
+                <div className="flex items-start space-x-2 lg:space-x-3 p-2 lg:p-3 bg-theme-tertiary rounded-lg shadow-theme-sm">
+                  <Zap className="w-4 h-4 lg:w-5 lg:h-5 text-theme-warning mt-0.5 flex-shrink-0" />
                   <div>
-                    <p className="font-medium text-theme-primary">Tax Advantages</p>
-                    <p className="text-sm text-theme-secondary">Zero income tax means more money to save and invest</p>
+                    <p className="font-medium text-theme-primary text-sm lg:text-base">Tax Advantages</p>
+                    <p className="text-xs lg:text-sm text-theme-secondary">Zero income tax means more money to save and invest</p>
                   </div>
                 </div>
               </div>
             </div>
             
             <div>
-              <h4 className="font-bold text-theme-primary mb-4 flex items-center">
-                <Sparkles className="w-5 h-5 text-theme-success mr-2" />
+              <h4 className="font-bold text-theme-primary mb-3 lg:mb-4 flex items-center text-sm lg:text-base">
+                <Sparkles className="w-4 h-4 lg:w-5 lg:h-5 text-theme-success mr-2" />
                 Your Retirement Advantages
               </h4>
-              <div className="space-y-3">
-                <div className="flex items-start space-x-3 p-3 bg-theme-tertiary rounded-lg shadow-theme-sm">
-                  <TrendingUp className="w-5 h-5 text-theme-success mt-0.5 flex-shrink-0" />
+              <div className="space-y-2 lg:space-y-3">
+                <div className="flex items-start space-x-2 lg:space-x-3 p-2 lg:p-3 bg-theme-tertiary rounded-lg shadow-theme-sm">
+                  <TrendingUp className="w-4 h-4 lg:w-5 lg:h-5 text-theme-success mt-0.5 flex-shrink-0" />
                   <div>
-                    <p className="font-medium text-theme-primary">Early Retirement Potential</p>
-                    <p className="text-sm text-theme-secondary">High savings rates enable earlier financial freedom</p>
+                    <p className="font-medium text-theme-primary text-sm lg:text-base">Early Retirement Potential</p>
+                    <p className="text-xs lg:text-sm text-theme-secondary">High savings rates enable earlier financial freedom</p>
                   </div>
                 </div>
-                <div className="flex items-start space-x-3 p-3 bg-theme-tertiary rounded-lg shadow-theme-sm">
-                  <MapPin className="w-5 h-5 text-theme-info mt-0.5 flex-shrink-0" />
+                <div className="flex items-start space-x-2 lg:space-x-3 p-2 lg:p-3 bg-theme-tertiary rounded-lg shadow-theme-sm">
+                  <MapPin className="w-4 h-4 lg:w-5 lg:h-5 text-theme-info mt-0.5 flex-shrink-0" />
                   <div>
-                    <p className="font-medium text-theme-primary">Global Lifestyle</p>
-                    <p className="text-sm text-theme-secondary">Build wealth for retirement anywhere in the world</p>
+                    <p className="font-medium text-theme-primary text-sm lg:text-base">Global Lifestyle</p>
+                    <p className="text-xs lg:text-sm text-theme-secondary">Build wealth for retirement anywhere in the world</p>
                   </div>
                 </div>
-                <div className="flex items-start space-x-3 p-3 bg-theme-tertiary rounded-lg shadow-theme-sm">
-                  <DollarSign className="w-5 h-5 text-theme-success mt-0.5 flex-shrink-0" />
+                <div className="flex items-start space-x-2 lg:space-x-3 p-2 lg:p-3 bg-theme-tertiary rounded-lg shadow-theme-sm">
+                  <DollarSign className="w-4 h-4 lg:w-5 lg:h-5 text-theme-success mt-0.5 flex-shrink-0" />
                   <div>
-                    <p className="font-medium text-theme-primary">High Earning Potential</p>
-                    <p className="text-sm text-theme-secondary">GCC salaries enable accelerated wealth building</p>
+                    <p className="font-medium text-theme-primary text-sm lg:text-base">High Earning Potential</p>
+                    <p className="text-xs lg:text-sm text-theme-secondary">GCC salaries enable accelerated wealth building</p>
                   </div>
                 </div>
               </div>
@@ -194,9 +194,9 @@ const RetirementSection: React.FC<RetirementSectionProps> = ({ onNext, onBack })
           </div>
           
           {/* Call to Action */}
-          <div className="text-center bg-gradient-to-r from-green-400 to-orange-400 rounded-xl p-8">
-            <h4 className="heading-h4 mb-3 text-white dark:text-gray-800">Ready to Secure Your Future?</h4>
-            <p className="mb-6 opacity-90 text-white dark:text-gray-800">
+          <div className="text-center bg-gradient-to-r from-green-400 to-orange-400 rounded-xl p-4 lg:p-8">
+            <h4 className="text-lg lg:text-xl font-bold mb-2 lg:mb-3 text-white dark:text-gray-800">Ready to Secure Your Future?</h4>
+            <p className="mb-4 lg:mb-6 opacity-90 text-white dark:text-gray-800 text-sm lg:text-base">
               Our AI-powered retirement calculator will help you discover amazing destinations and 
               calculate exactly how much you need to save for your dream retirement.
             </p>

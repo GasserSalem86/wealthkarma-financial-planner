@@ -38,15 +38,15 @@ const RateEditor: React.FC<RateEditorProps> = ({ goalId, profile, customRates, o
   };
 
   return (
-    <div className="bg-theme-tertiary p-4 rounded-lg shadow-lg border border-theme">
-      <div className="flex justify-between items-center mb-4">
-        <h3 className="text-lg font-medium text-theme-primary">Customize Return Rates</h3>
+    <div className="bg-theme-tertiary p-3 lg:p-4 rounded-lg shadow-lg border border-theme">
+      <div className="flex justify-between items-center mb-3 lg:mb-4">
+        <h3 className="text-base lg:text-lg font-medium text-theme-primary">Customize Return Rates</h3>
         <button onClick={onClose} className="text-theme-muted hover:text-theme-secondary transition-colors">
-          <X className="w-5 h-5" />
+          <X className="w-4 h-4 lg:w-5 lg:h-5" />
         </button>
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-3 lg:space-y-4">
         <div>
           <label className="block text-sm font-medium text-theme-secondary mb-1">
             High Return Rate (%)
@@ -58,7 +58,7 @@ const RateEditor: React.FC<RateEditorProps> = ({ goalId, profile, customRates, o
             step="0.1"
             min="0"
             max="15"
-            className="input-dark block w-full px-3 py-2 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+            className="input-dark block w-full px-3 py-3 lg:py-2 text-base lg:text-sm rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
           />
         </div>
 
@@ -73,7 +73,7 @@ const RateEditor: React.FC<RateEditorProps> = ({ goalId, profile, customRates, o
             step="0.1"
             min="0"
             max="15"
-            className="input-dark block w-full px-3 py-2 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+            className="input-dark block w-full px-3 py-3 lg:py-2 text-base lg:text-sm rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
           />
         </div>
 
@@ -88,15 +88,15 @@ const RateEditor: React.FC<RateEditorProps> = ({ goalId, profile, customRates, o
             step="0.1"
             min="0"
             max="15"
-            className="input-dark block w-full px-3 py-2 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+            className="input-dark block w-full px-3 py-3 lg:py-2 text-base lg:text-sm rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
           />
         </div>
 
-        <div className="flex justify-end space-x-3">
-          <Button variant="outline" onClick={onClose}>
+        <div className="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-3">
+          <Button variant="outline" onClick={onClose} className="w-full sm:w-auto">
             Cancel
           </Button>
-          <Button onClick={handleSave}>
+          <Button onClick={handleSave} className="w-full sm:w-auto">
             Save Changes
           </Button>
         </div>
@@ -131,16 +131,16 @@ const RiskReturnsSection: React.FC<RiskReturnsSectionProps> = ({ onNext, onBack 
   );
 
   return (
-    <div className="container mx-auto max-w-3xl">
-      <div className="text-center mb-8">
-        <h2 className="heading-h1-sm text-theme-primary mb-4">Return Rates</h2>
-        <p className="text-theme-secondary mb-6">
+    <div className="container mx-auto max-w-3xl px-4 lg:px-0">
+      <div className="text-center mb-6 lg:mb-8">
+        <h2 className="text-2xl lg:text-3xl font-bold text-theme-primary mb-3 lg:mb-4">Return Rates</h2>
+        <p className="text-sm lg:text-base text-theme-secondary mb-4 lg:mb-6">
           Each goal has a recommended return rate profile based on its time horizon.
           You can adjust these if you prefer a different risk level.
         </p>
       </div>
 
-      <div className="space-y-6 mb-8">
+      <div className="space-y-4 lg:space-y-6 mb-6 lg:mb-8">
         {sortedGoals.map((goal) => {
           const years = Math.floor(goal.horizonMonths / 12);
           const months = goal.horizonMonths % 12;
@@ -151,35 +151,35 @@ const RiskReturnsSection: React.FC<RiskReturnsSectionProps> = ({ onNext, onBack 
           return (
             <Card key={goal.id}>
               <CardHeader>
-                <CardTitle className="flex justify-between items-center">
-                  <span>{goal.name} ({timeframe})</span>
+                <CardTitle className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 sm:gap-0">
+                  <span className="text-base lg:text-lg">{goal.name} ({timeframe})</span>
                   {!goal.id.includes('emergency-fund') && (
                     <button
                       onClick={() => setEditingRates(goal.id)}
-                      className="text-theme-muted hover:text-theme-secondary transition-colors"
+                      className="text-theme-muted hover:text-theme-secondary transition-colors self-start sm:self-center"
                     >
-                      <Settings className="w-5 h-5" />
+                      <Settings className="w-4 h-4 lg:w-5 lg:h-5" />
                     </button>
                   )}
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 {goal.id === 'emergency-fund' ? (
-                  <div className="mb-4">
-                    <div className="flex items-center mb-3">
-                      <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-500/20 text-blue-600">
+                  <div className="mb-3 lg:mb-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center mb-2 lg:mb-3 gap-2 sm:gap-0">
+                      <span className="inline-flex items-center px-2 lg:px-3 py-1 rounded-full text-xs font-medium bg-blue-500/20 text-blue-600">
                         Conservative ({goal.selectedBank ? 
                           `${(goal.selectedBank.returnRate * 100).toFixed(1)}% p.a. - ${goal.selectedBank.bankName}` : 
                           '1% p.a.'
                         })
                       </span>
-                      <span className="ml-2 text-sm text-theme-muted">
+                      <span className="text-xs lg:text-sm text-theme-muted sm:ml-2">
                         Emergency funds should always stay in safe, liquid investments
                       </span>
                     </div>
                     {goal.selectedBank && (
-                      <div className="bg-green-500/20 border border-green-500/30 rounded-lg p-3 mb-3 shadow-theme-sm">
-                        <div className="text-sm text-green-600">
+                      <div className="bg-green-500/20 border border-green-500/30 rounded-lg p-2 lg:p-3 mb-2 lg:mb-3 shadow-theme-sm">
+                        <div className="text-xs lg:text-sm text-green-600">
                           <strong>Selected Bank:</strong> {goal.selectedBank.bankName} - {goal.selectedBank.accountType}
                           <br />
                           <strong>Interest Rate:</strong> {goal.selectedBank.interestRate}
@@ -188,14 +188,14 @@ const RiskReturnsSection: React.FC<RiskReturnsSectionProps> = ({ onNext, onBack 
                         </div>
                       </div>
                     )}
-                    <div className="h-4 bg-white dark:bg-gray-800 rounded-full overflow-hidden border-2 border-gray-300 dark:border-gray-600">
+                    <div className="h-3 lg:h-4 bg-white dark:bg-gray-800 rounded-full overflow-hidden border-2 border-gray-300 dark:border-gray-600">
                       <div className="h-full bg-blue-600 rounded-full flex-shrink-0" style={{ width: '100%' }}></div>
                     </div>
                   </div>
                 ) : hasPaymentPeriod ? (
-                  <div className="space-y-4">
-                    <div className="flex items-center mb-3">
-                      <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-500/20 text-blue-600">
+                  <div className="space-y-3 lg:space-y-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center mb-2 lg:mb-3 gap-2 sm:gap-0">
+                      <span className="inline-flex items-center px-2 lg:px-3 py-1 rounded-full text-xs font-medium bg-blue-500/20 text-blue-600">
                         {goal.paymentFrequency} payments over {goal.paymentPeriod} years
                       </span>
                     </div>

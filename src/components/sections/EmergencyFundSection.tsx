@@ -1025,38 +1025,38 @@ Include ALL banks mentioned with ANY rate information. Return only the JSON arra
 
   // Creation / editing view
   return (
-    <div className="container mx-auto max-w-3xl">
-      <h2 className="heading-h1-sm text-theme-light mb-4">
+    <div className="container mx-auto max-w-3xl px-4 lg:px-0">
+      <h2 className="text-2xl lg:text-3xl font-bold text-theme-light mb-3 lg:mb-4">
         {existing ? (isEditing ? 'Edit Safety Net' : 'Safety Net') : "Let's Start with Your Safety Net"}
       </h2>
 
       {/* Educational Section - Only show when creating new emergency fund */}
       {!existing && (
-        <div className="space-y-4 mb-6">
+        <div className="space-y-3 lg:space-y-4 mb-4 lg:mb-6">
           {/* What is a Safety Net & Why Expats Need More */}
           <Card className="border-blue-500/30 bg-theme-card">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-theme-primary">
-                <span className="text-2xl">🛡️</span>
+              <CardTitle className="flex items-center gap-2 text-theme-primary text-lg lg:text-xl">
+                <span className="text-xl lg:text-2xl">🛡️</span>
                 Emergency Fund for GCC Expats
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-3 text-theme-secondary">
-                <p className="leading-relaxed">
+                <p className="leading-relaxed text-sm lg:text-base">
                   Money set aside for unexpected expenses. As an expat, you need 3-6 months of living expenses due to unique risks like visa cancellation (30 days to leave) and limited local support.
                 </p>
-                <div className="grid md:grid-cols-3 gap-3">
-                  <div className="bg-theme-tertiary rounded p-3 border border-blue-500/30 text-center shadow-theme-sm">
-                    <div className="text-lg font-bold text-blue-500 mb-1">3 Months</div>
+                <div className="grid grid-cols-3 gap-2 lg:gap-3">
+                  <div className="bg-theme-tertiary rounded p-2 lg:p-3 border border-blue-500/30 text-center shadow-theme-sm">
+                    <div className="text-base lg:text-lg font-bold text-blue-500 mb-1">3 Months</div>
                     <div className="text-xs text-theme-muted">Minimum for stable jobs</div>
                   </div>
-                  <div className="bg-theme-tertiary rounded p-3 border-2 border-green-500 text-center shadow-theme">
-                    <div className="text-lg font-bold text-green-500 mb-1">6 Months</div>
+                  <div className="bg-theme-tertiary rounded p-2 lg:p-3 border-2 border-green-500 text-center shadow-theme">
+                    <div className="text-base lg:text-lg font-bold text-green-500 mb-1">6 Months</div>
                     <div className="text-xs font-semibold text-theme-secondary">Recommended for expats</div>
                   </div>
-                  <div className="bg-theme-tertiary rounded p-3 border border-blue-500/30 text-center shadow-theme-sm">
-                    <div className="text-lg font-bold text-blue-500 mb-1">9+ Months</div>
+                  <div className="bg-theme-tertiary rounded p-2 lg:p-3 border border-blue-500/30 text-center shadow-theme-sm">
+                    <div className="text-base lg:text-lg font-bold text-blue-500 mb-1">9+ Months</div>
                     <div className="text-xs text-theme-muted">Conservative approach</div>
                   </div>
                 </div>
@@ -1067,32 +1067,32 @@ Include ALL banks mentioned with ANY rate information. Return only the JSON arra
           {/* Quick Guide */}
           <Card className="border-green-500/30 bg-theme-card">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-green-600">
-                <span className="text-2xl">🎯</span>
+              <CardTitle className="flex items-center gap-2 text-green-600 text-lg lg:text-xl">
+                <span className="text-xl lg:text-2xl">🎯</span>
                 Quick Setup Guide
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid md:grid-cols-2 gap-4 text-theme-secondary">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 lg:gap-4 text-theme-secondary">
                 <div>
-                  <h4 className="font-semibold mb-2 text-theme-primary">✅ For emergencies:</h4>
-                  <div className="text-sm space-y-1">
+                  <h4 className="font-semibold mb-2 text-theme-primary text-sm lg:text-base">✅ For emergencies:</h4>
+                  <div className="text-xs lg:text-sm space-y-1">
                     <div>• Job loss, medical bills</div>
                     <div>• Car/home repairs</div>
                     <div>• Repatriation costs</div>
                   </div>
                 </div>
                 <div>
-                  <h4 className="font-semibold mb-2 text-theme-primary">🏦 Where to keep it:</h4>
-                  <div className="text-sm space-y-1">
+                  <h4 className="font-semibold mb-2 text-theme-primary text-sm lg:text-base">🏦 Where to keep it:</h4>
+                  <div className="text-xs lg:text-sm space-y-1">
                     <div>• High-yield savings (2-5% p.a.)</div>
                     <div>• Easily accessible, separate account</div>
                     <div>• Government insured/guaranteed</div>
                   </div>
                 </div>
               </div>
-              <div className="mt-3 p-3 bg-theme-section rounded border border-green-500/30 shadow-theme-sm">
-                <div className="text-sm text-green-600">
+              <div className="mt-3 p-2 lg:p-3 bg-theme-section rounded border border-green-500/30 shadow-theme-sm">
+                <div className="text-xs lg:text-sm text-green-600">
                   <strong>💡 Expat Tip:</strong> Keep some funds in home currency for flights and repatriation costs.
                 </div>
               </div>
@@ -1101,14 +1101,14 @@ Include ALL banks mentioned with ANY rate information. Return only the JSON arra
         </div>
       )}
       
-      <Card className="mb-8">
-        <CardHeader><CardTitle>Emergency fund calculator</CardTitle></CardHeader>
+      <Card className="mb-6 lg:mb-8">
+        <CardHeader><CardTitle className="text-lg lg:text-xl">Emergency fund calculator</CardTitle></CardHeader>
         <CardContent>
-          <div className="space-y-6">
+          <div className="space-y-4 lg:space-y-6">
 
             {/* Monthly expenses display */}
-            <div className={`border rounded-lg p-4 shadow-theme-sm ${hasValidExpenses ? 'bg-theme-section border-blue-500/30' : 'bg-theme-section border-red-500/30'}`}>
-              <div className="flex justify-between items-center">
+            <div className={`border rounded-lg p-3 lg:p-4 shadow-theme-sm ${hasValidExpenses ? 'bg-theme-section border-blue-500/30' : 'bg-theme-section border-red-500/30'}`}>
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 sm:gap-0">
             <div>
                   <label className={`block text-sm font-medium mb-1 ${hasValidExpenses ? 'text-blue-600' : 'text-red-600'}`}>
                     Monthly Living Expenses (from your profile)
@@ -1120,8 +1120,8 @@ Include ALL banks mentioned with ANY rate information. Return only the JSON arra
                     }
                   </p>
                 </div>
-                <div className="text-right">
-                  <span className={`text-lg font-bold ${hasValidExpenses ? 'text-blue-600' : 'text-red-600'}`}>
+                <div className="text-left sm:text-right">
+                  <span className={`text-base lg:text-lg font-bold ${hasValidExpenses ? 'text-blue-600' : 'text-red-600'}`}>
                     {hasValidExpenses ? formatCurrency(expenses, currency) : 'Not set'}
                 </span>
                 </div>
@@ -1130,10 +1130,10 @@ Include ALL banks mentioned with ANY rate information. Return only the JSON arra
 
             {/* Buffer months */}
             <div>
-              <label className="block text-sm font-medium text-theme-secondary mb-1">
+              <label className="block text-sm font-medium text-theme-secondary mb-2">
                 Buffer Months (3-6 months recommended for expats)
               </label>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
                 {[
                   { months: 3, label: '3 mo', desc: 'Minimum', recommended: false },
                   { months: 4, label: '4 mo', desc: 'Conservative', recommended: false },
@@ -1143,7 +1143,7 @@ Include ALL banks mentioned with ANY rate information. Return only the JSON arra
                   <button
                     key={option.months}
                     onClick={() => setBufferMonths(option.months)}
-                    className={`p-3 rounded-lg border-2 text-center transition-all shadow-theme-sm hover:shadow-theme ${
+                    className={`p-2 lg:p-3 rounded-lg border-2 text-center transition-all shadow-theme-sm hover:shadow-theme ${
                       bufferMonths === option.months 
                         ? 'bg-blue-600 text-white border-blue-600 shadow-theme-lg' 
                         : option.recommended
@@ -1151,7 +1151,7 @@ Include ALL banks mentioned with ANY rate information. Return only the JSON arra
                           : 'bg-theme-tertiary border-theme text-theme-secondary hover:bg-theme-section hover:border-theme-hover'
                     }`}
                   >
-                    <div className="font-semibold">{option.label}</div>
+                    <div className="font-semibold text-sm lg:text-base">{option.label}</div>
                     <div className="text-xs mt-1">{option.desc}</div>
                     {option.recommended && bufferMonths !== option.months && (
                       <div className="text-xs mt-1 font-medium">✨ Best for expats</div>
@@ -1178,16 +1178,16 @@ Include ALL banks mentioned with ANY rate information. Return only the JSON arra
 
             {/* Target date */}
             <div>
-              <label className="block text-sm font-medium text-theme-secondary mb-1">
+              <label className="block text-sm font-medium text-theme-secondary mb-2">
                 Target Completion Date (6-12 months recommended)
               </label>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 lg:gap-4">
               <div>
                   <label className="block text-xs font-medium mb-1 text-theme-muted">Target Month</label>
                 <select
                   value={targetMonth}
                   onChange={e => setTargetMonth(Number(e.target.value))}
-                    className="input-dark w-full rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                    className="input-dark w-full rounded px-3 py-3 lg:py-2 text-base lg:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
                 >
                   {monthOptions.map((m,i) => (
                     <option key={m} value={i+1}>{m}</option>
@@ -1199,7 +1199,7 @@ Include ALL banks mentioned with ANY rate information. Return only the JSON arra
                 <select
                   value={targetYear}
                   onChange={e => setTargetYear(Number(e.target.value))}
-                    className="input-dark w-full rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                    className="input-dark w-full rounded px-3 py-3 lg:py-2 text-base lg:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
                 >
                   {yearOptions.map(y => (
                     <option key={y} value={y}>{y}</option>

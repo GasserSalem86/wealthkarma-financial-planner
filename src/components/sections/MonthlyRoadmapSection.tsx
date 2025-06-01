@@ -354,50 +354,50 @@ const MonthlyRoadmapSection: React.FC<MonthlyRoadmapSectionProps> = ({ onNext, o
   };
 
   return (
-    <div className="container mx-auto max-w-6xl p-4">
+    <div className="container mx-auto max-w-6xl p-3 lg:p-4">
       {/* Enhanced Header with Rate Targets */}
-      <div className="text-center mb-8">
-        <h1 className="heading-h1-sm text-theme-primary mb-4">
+      <div className="text-center mb-6 lg:mb-8">
+        <h1 className="text-2xl lg:text-3xl font-bold text-theme-primary mb-3 lg:mb-4">
           Your Complete Financial Roadmap
         </h1>
-        <p className="text-xl text-theme-secondary mb-4">
+        <p className="text-base lg:text-xl text-theme-secondary mb-3 lg:mb-4">
           A detailed {totalMonthsNeeded}-month plan ({Math.round(totalMonthsNeeded / 12)} years) showing exactly what to do each month to achieve your goals
         </p>
       </div>
 
       {/* Enhanced Monthly Timeline Preview with Rate Targets */}
-      <Card className="mb-8">
+      <Card className="mb-6 lg:mb-8">
         <CardHeader>
-          <CardTitle>Next 6 Months with Target Rates</CardTitle>
+          <CardTitle className="text-lg lg:text-xl">Next 6 Months with Target Rates</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-6">
+          <div className="space-y-4 lg:space-y-6">
             {monthlyPlan.slice(0, 6).map((month, index) => (
-              <div key={index} className="border border-theme rounded-lg p-4 bg-theme-card shadow-theme">
-                <div className="flex justify-between items-center mb-4">
-                  <h3 className="font-semibold text-lg text-theme-primary">{month.monthName}</h3>
-                  <div className="text-xl font-bold text-emerald-400">
+              <div key={index} className="border border-theme rounded-lg p-3 lg:p-4 bg-theme-card shadow-theme">
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-3 lg:mb-4 gap-2 sm:gap-0">
+                  <h3 className="font-semibold text-base lg:text-lg text-theme-primary">{month.monthName}</h3>
+                  <div className="text-lg lg:text-xl font-bold text-emerald-400">
                     {formatCurrency(month.totalAllocation, currency)}
                   </div>
                 </div>
                 
-                <div className="grid md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
                   {/* Goal Allocations with Target Rates */}
                   <div>
-                    <h4 className="font-medium text-theme-secondary mb-3">Monthly Allocations & Target Rates:</h4>
-                    <div className="space-y-3">
+                    <h4 className="font-medium text-theme-secondary mb-2 lg:mb-3 text-sm lg:text-base">Monthly Allocations & Target Rates:</h4>
+                    <div className="space-y-2 lg:space-y-3">
                       {month.goalBreakdown.filter(goal => goal.contribution > 0).map((goal, goalIndex) => (
-                        <div key={goalIndex} className="bg-theme-tertiary rounded-lg p-3 border border-theme shadow-theme-sm">
-                          <div className="flex justify-between items-start mb-2">
-                            <span className="font-medium text-sm text-theme-primary">{goal.goalName}</span>
-                            <span className="font-bold text-emerald-400">
+                        <div key={goalIndex} className="bg-theme-tertiary rounded-lg p-2 lg:p-3 border border-theme shadow-theme-sm">
+                          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-2 gap-1 sm:gap-0">
+                            <span className="font-medium text-xs lg:text-sm text-theme-primary">{goal.goalName}</span>
+                            <span className="font-bold text-emerald-400 text-sm lg:text-base">
                               {formatCurrency(goal.contribution, currency)}
                             </span>
                           </div>
                           <div className="grid grid-cols-2 gap-2 text-xs">
                             <div className="bg-theme-section rounded p-2 shadow-theme-sm">
                               <div className="text-theme-secondary">Target Rate:</div>
-                              <div className="font-bold text-blue-400 text-lg">
+                              <div className="font-bold text-blue-400 text-sm lg:text-lg">
                                 {(goal.targetRate * 100).toFixed(1)}%
                               </div>
                               {goal.bankDetails && (
@@ -408,7 +408,7 @@ const MonthlyRoadmapSection: React.FC<MonthlyRoadmapSectionProps> = ({ onNext, o
                             </div>
                             <div className="bg-theme-section rounded p-2 shadow-theme-sm">
                               <div className="text-theme-secondary">Phase:</div>
-                              <div className="font-medium text-theme-primary">{goal.currentPhase}</div>
+                              <div className="font-medium text-theme-primary text-xs lg:text-sm">{goal.currentPhase}</div>
                               <div className="text-xs text-theme-muted">{goal.riskLevel} Risk</div>
                             </div>
                           </div>
@@ -427,11 +427,11 @@ const MonthlyRoadmapSection: React.FC<MonthlyRoadmapSectionProps> = ({ onNext, o
 
                   {/* Key Actions */}
                   <div>
-                    <h4 className="font-medium text-theme-secondary mb-3">Key Actions:</h4>
+                    <h4 className="font-medium text-theme-secondary mb-2 lg:mb-3 text-sm lg:text-base">Key Actions:</h4>
                     <ul className="space-y-2">
                       {month.keyActions.slice(0, 4).map((action, actionIndex) => (
-                        <li key={actionIndex} className="flex items-center gap-2 text-sm bg-theme-tertiary text-theme-primary rounded p-2 border border-theme shadow-theme-sm">
-                          <CheckCircle className="w-4 h-4 text-emerald-400" />
+                        <li key={actionIndex} className="flex items-center gap-2 text-xs lg:text-sm bg-theme-tertiary text-theme-primary rounded p-2 border border-theme shadow-theme-sm">
+                          <CheckCircle className="w-3 h-3 lg:w-4 lg:h-4 text-emerald-400 flex-shrink-0" />
                           <span>{action.description}</span>
                           {action.amount && (
                             <span className="font-medium">
@@ -450,50 +450,50 @@ const MonthlyRoadmapSection: React.FC<MonthlyRoadmapSectionProps> = ({ onNext, o
       </Card>
 
       {/* Export Status */}
-      <Card className="mb-8">
+      <Card className="mb-6 lg:mb-8">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 justify-center">
-            <Download className="w-6 h-6" />
+          <CardTitle className="flex items-center gap-2 justify-center text-lg lg:text-xl">
+            <Download className="w-5 h-5 lg:w-6 lg:h-6" />
             Download Your Complete Financial Tracker
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex justify-center">
-            <div className="max-w-md">
+            <div className="max-w-md w-full">
               {/* Free Excel Tracker */}
-              <div className="border-2 border-emerald-500/30 rounded-lg p-6 bg-emerald-500/10 relative shadow-theme">
+              <div className="border-2 border-emerald-500/30 rounded-lg p-4 lg:p-6 bg-emerald-500/10 relative shadow-theme">
                 <div className="absolute -top-2 -right-2 bg-emerald-600 text-white px-2 py-1 rounded-full text-xs">
                   New!
                 </div>
-                <div className="text-center mb-4">
-                  <div className="w-10 h-10 mx-auto mb-3 text-emerald-400 text-2xl">📊</div>
-                  <h3 className="font-semibold text-lg text-theme-primary">Complete Excel Tracker</h3>
-                  <div className="text-3xl font-bold text-emerald-400">FREE</div>
+                <div className="text-center mb-3 lg:mb-4">
+                  <div className="w-8 h-8 lg:w-10 lg:h-10 mx-auto mb-2 lg:mb-3 text-emerald-400 text-xl lg:text-2xl">📊</div>
+                  <h3 className="font-semibold text-base lg:text-lg text-theme-primary">Complete Excel Tracker</h3>
+                  <div className="text-2xl lg:text-3xl font-bold text-emerald-400">FREE</div>
                   <div className="text-sm text-emerald-600 dark:text-emerald-300">Professional Grade</div>
                 </div>
-                <ul className="text-sm space-y-3 mb-6">
+                <ul className="text-xs lg:text-sm space-y-2 lg:space-y-3 mb-4 lg:mb-6">
                   <li className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-green-400" />
+                    <CheckCircle className="w-3 h-3 lg:w-4 lg:h-4 text-green-400 flex-shrink-0" />
                     <span className="text-theme-secondary">4 essential worksheets</span>
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-green-400" />
+                    <CheckCircle className="w-3 h-3 lg:w-4 lg:h-4 text-green-400 flex-shrink-0" />
                     <span className="text-theme-secondary">Monthly rate guidance (2.5%-8%+)</span>
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-green-400" />
+                    <CheckCircle className="w-3 h-3 lg:w-4 lg:h-4 text-green-400 flex-shrink-0" />
                     <span className="text-theme-secondary">Investment phase transitions</span>
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-green-400" />
+                    <CheckCircle className="w-3 h-3 lg:w-4 lg:h-4 text-green-400 flex-shrink-0" />
                     <span className="text-theme-secondary">Dynamic progress tracking</span>
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-green-400" />
+                    <CheckCircle className="w-3 h-3 lg:w-4 lg:h-4 text-green-400 flex-shrink-0" />
                     <span className="text-theme-secondary">Financial calculators</span>
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-green-400" />
+                    <CheckCircle className="w-3 h-3 lg:w-4 lg:h-4 text-green-400 flex-shrink-0" />
                     <span className="text-theme-secondary">UAE/GCC expat focused</span>
                   </li>
                 </ul>
@@ -512,18 +512,18 @@ const MonthlyRoadmapSection: React.FC<MonthlyRoadmapSectionProps> = ({ onNext, o
             </div>
           </div>
 
-          <div className="mt-6 p-4 bg-blue-500/10 rounded-lg border border-blue-500/30 shadow-theme-sm">
-            <h4 className="font-semibold text-blue-600 dark:text-blue-300 mb-2">📧 Want updates and expat financial tips?</h4>
-            <p className="text-blue-600 dark:text-blue-200 text-sm mb-3">
+          <div className="mt-4 lg:mt-6 p-3 lg:p-4 bg-blue-500/10 rounded-lg border border-blue-500/30 shadow-theme-sm">
+            <h4 className="font-semibold text-blue-600 dark:text-blue-300 mb-2 text-sm lg:text-base">📧 Want updates and expat financial tips?</h4>
+            <p className="text-blue-600 dark:text-blue-200 text-xs lg:text-sm mb-3">
               Get notified when we add new features and receive weekly tips for GCC expats.
             </p>
-            <div className="flex gap-2">
+            <div className="flex flex-col sm:flex-row gap-2">
               <input 
                 type="email" 
                 placeholder="Enter your email"
-                className="input-dark flex-1 px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
+                className="input-dark flex-1 px-3 py-3 lg:py-2 text-base lg:text-sm rounded focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
               />
-              <Button variant="secondary">
+              <Button variant="secondary" className="w-full sm:w-auto">
                 Subscribe
               </Button>
             </div>
@@ -532,32 +532,32 @@ const MonthlyRoadmapSection: React.FC<MonthlyRoadmapSectionProps> = ({ onNext, o
       </Card>
 
       {/* Continue Journey Options */}
-      <Card className="mb-8">
+      <Card className="mb-6 lg:mb-8">
         <CardHeader>
-          <CardTitle>What's Next?</CardTitle>
+          <CardTitle className="text-lg lg:text-xl">What's Next?</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid md:grid-cols-2 gap-6">
-            <div className="border border-theme rounded-lg p-6 bg-theme-card shadow-theme">
-              <h3 className="text-xl font-semibold mb-3 text-theme-primary">🛠️ Implement Yourself</h3>
-              <p className="text-theme-secondary mb-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
+            <div className="border border-theme rounded-lg p-4 lg:p-6 bg-theme-card shadow-theme">
+              <h3 className="text-lg lg:text-xl font-semibold mb-3 text-theme-primary">🛠️ Implement Yourself</h3>
+              <p className="text-theme-secondary mb-3 lg:mb-4 text-sm lg:text-base">
                 Use your Excel tracker and implement your plan independently with the comprehensive guidance provided.
               </p>
-              <ul className="space-y-2 mb-4">
-                <li className="flex items-center gap-2 text-sm">
-                  <CheckCircle className="w-4 h-4 text-green-400" />
+              <ul className="space-y-2 mb-3 lg:mb-4">
+                <li className="flex items-center gap-2 text-xs lg:text-sm">
+                  <CheckCircle className="w-3 h-3 lg:w-4 lg:h-4 text-green-400 flex-shrink-0" />
                   <span className="text-theme-secondary">Complete monthly roadmap</span>
                 </li>
-                <li className="flex items-center gap-2 text-sm">
-                  <CheckCircle className="w-4 h-4 text-green-400" />
+                <li className="flex items-center gap-2 text-xs lg:text-sm">
+                  <CheckCircle className="w-3 h-3 lg:w-4 lg:h-4 text-green-400 flex-shrink-0" />
                   <span className="text-theme-secondary">Investment phase guidance</span>
                 </li>
-                <li className="flex items-center gap-2 text-sm">
-                  <CheckCircle className="w-4 h-4 text-green-400" />
+                <li className="flex items-center gap-2 text-xs lg:text-sm">
+                  <CheckCircle className="w-3 h-3 lg:w-4 lg:h-4 text-green-400 flex-shrink-0" />
                   <span className="text-theme-secondary">Bank and platform recommendations</span>
                 </li>
-                <li className="flex items-center gap-2 text-sm">
-                  <CheckCircle className="w-4 h-4 text-green-400" />
+                <li className="flex items-center gap-2 text-xs lg:text-sm">
+                  <CheckCircle className="w-3 h-3 lg:w-4 lg:h-4 text-green-400 flex-shrink-0" />
                   <span className="text-theme-secondary">Progress tracking tools</span>
                 </li>
               </ul>
@@ -571,28 +571,28 @@ const MonthlyRoadmapSection: React.FC<MonthlyRoadmapSectionProps> = ({ onNext, o
               </Button>
             </div>
 
-            <div className="border-2 border-emerald-500/30 rounded-lg p-6 bg-emerald-500/10 shadow-theme">
-              <h3 className="text-xl font-semibold mb-3 text-theme-primary">
+            <div className="border-2 border-emerald-500/30 rounded-lg p-4 lg:p-6 bg-emerald-500/10 shadow-theme">
+              <h3 className="text-lg lg:text-xl font-semibold mb-3 text-theme-primary">
                 🤖 Continue with AI Guidance
               </h3>
-              <p className="text-emerald-600 mb-4">
+              <p className="text-emerald-600 mb-3 lg:mb-4 text-sm lg:text-base">
                 Get ongoing AI coaching, automatic optimization, and live progress tracking.
               </p>
-              <ul className="space-y-2 mb-4">
-                <li className="flex items-center gap-2 text-sm">
-                  <CheckCircle className="w-4 h-4 text-green-400" />
+              <ul className="space-y-2 mb-3 lg:mb-4">
+                <li className="flex items-center gap-2 text-xs lg:text-sm">
+                  <CheckCircle className="w-3 h-3 lg:w-4 lg:h-4 text-green-400 flex-shrink-0" />
                   <span className="text-theme-secondary">Live progress tracking dashboard</span>
                 </li>
-                <li className="flex items-center gap-2 text-sm">
-                  <CheckCircle className="w-4 h-4 text-green-400" />
+                <li className="flex items-center gap-2 text-xs lg:text-sm">
+                  <CheckCircle className="w-3 h-3 lg:w-4 lg:h-4 text-green-400 flex-shrink-0" />
                   <span className="text-theme-secondary">AI monthly coaching and optimization</span>
                 </li>
-                <li className="flex items-center gap-2 text-sm">
-                  <CheckCircle className="w-4 h-4 text-green-400" />
+                <li className="flex items-center gap-2 text-xs lg:text-sm">
+                  <CheckCircle className="w-3 h-3 lg:w-4 lg:h-4 text-green-400 flex-shrink-0" />
                   <span className="text-theme-secondary">Plan adapts to life changes</span>
                 </li>
-                <li className="flex items-center gap-2 text-sm">
-                  <CheckCircle className="w-4 h-4 text-green-400" />
+                <li className="flex items-center gap-2 text-xs lg:text-sm">
+                  <CheckCircle className="w-3 h-3 lg:w-4 lg:h-4 text-green-400 flex-shrink-0" />
                   <span className="text-theme-secondary">Achievement celebrations</span>
                 </li>
               </ul>
@@ -613,16 +613,18 @@ const MonthlyRoadmapSection: React.FC<MonthlyRoadmapSectionProps> = ({ onNext, o
       </Card>
 
       {/* Navigation */}
-      <div className="flex justify-between">
+      <div className="flex flex-col sm:flex-row sm:justify-between gap-3 sm:gap-0">
         <Button 
           onClick={onBack} 
           variant="outline"
+          className="w-full sm:w-auto"
         >
           ← Back
         </Button>
         <Button 
           onClick={onNext} 
           variant="primary"
+          className="w-full sm:w-auto"
         >
           Continue to Dashboard →
         </Button>
