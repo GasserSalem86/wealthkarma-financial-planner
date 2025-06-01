@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { usePlanner } from '../context/PlannerContext';
 import { STEPS } from '../types/plannerTypes';
 import CurrencySelector from './CurrencySelector';
@@ -17,11 +17,12 @@ import ThemeToggle from './ui/ThemeToggle';
 import Button from './ui/Button';
 
 import { UserContext } from '../services/aiService';
-import { User, Shield, Target, TrendingUp, BarChart3, Calendar, Download, CheckCircle, Circle, Sparkles, Brain } from 'lucide-react';
+import { User, Shield, Target, TrendingUp, BarChart3, Calendar, Download, CheckCircle, Circle, Sparkles, Brain, Menu, X } from 'lucide-react';
 
 const FinancialGoalsPlanner: React.FC = () => {
   const { state, dispatch } = usePlanner();
   const sectionsRef = useRef<HTMLDivElement>(null);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   // Step icons mapping
   const stepIcons = {
@@ -94,8 +95,29 @@ const FinancialGoalsPlanner: React.FC = () => {
 
   return (
     <div className="flex min-h-screen">
-      {/* Enhanced Left Sidebar - Theme Aware */}
-      <div className="w-64 nav-dark border-r border-theme fixed h-full shadow-theme-xl">
+      {/* Mobile Sidebar Overlay */}
+      {isSidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+
+      {/* Enhanced Left Sidebar - Theme Aware & Mobile Responsive */}
+      <div className={`
+        fixed lg:static inset-y-0 left-0 z-50
+        w-64 nav-dark border-r border-theme shadow-theme-xl
+        transform transition-transform duration-300 ease-in-out
+        ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+      `}>
+        {/* Mobile Close Button */}
+        <button
+          onClick={() => setIsSidebarOpen(false)}
+          className="lg:hidden absolute top-4 right-4 p-2 text-theme-secondary hover:text-theme-success transition-colors"
+        >
+          <X className="w-5 h-5" />
+        </button>
+
         {/* Header */}
         <div className="p-6 border-b border-theme nav-dark-header">
           <div className="flex items-center gap-3 mb-4">
@@ -122,7 +144,7 @@ const FinancialGoalsPlanner: React.FC = () => {
         </div>
 
         {/* Enhanced Navigation */}
-        <nav className="p-4 space-y-2">
+        <nav className="p-4 space-y-2 overflow-y-auto max-h-[calc(100vh-300px)]">
           {STEPS.map((step, index) => {
             const Icon = stepIcons[index as keyof typeof stepIcons];
             const isActive = index === state.currentStep;
@@ -132,9 +154,14 @@ const FinancialGoalsPlanner: React.FC = () => {
             return (
             <button
               key={step.id}
-                onClick={() => isAccessible && handleStepClick(index)}
+                onClick={() => {
+                  if (isAccessible) {
+                    handleStepClick(index);
+                    setIsSidebarOpen(false); // Close sidebar on mobile after selection
+                  }
+                }}
                 disabled={!isAccessible}
-                className={`group w-full text-left p-4 rounded-xl transition-all duration-300 relative overflow-hidden ${
+                className={`group w-full text-left p-3 lg:p-4 rounded-xl transition-all duration-300 relative overflow-hidden ${
                   isActive
                     ? 'bg-green-500/20 border-2 border-green-500/50 shadow-theme-lg transform scale-105'
                     : isCompleted
@@ -151,7 +178,7 @@ const FinancialGoalsPlanner: React.FC = () => {
                 
                 <div className="flex items-center relative z-10">
                   {/* Enhanced Step Indicator */}
-                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center mr-4 transition-all duration-300 ${
+                  <div className={`w-8 h-8 lg:w-10 lg:h-10 rounded-xl flex items-center justify-center mr-3 lg:mr-4 transition-all duration-300 ${
                     isActive
                       ? 'bg-green-500 text-white shadow-lg scale-110'
                       : isCompleted
@@ -161,17 +188,17 @@ const FinancialGoalsPlanner: React.FC = () => {
                       : 'bg-theme-tertiary text-theme-muted'
                   }`}>
                     {isCompleted ? (
-                      <CheckCircle className="w-5 h-5" />
+                      <CheckCircle className="w-4 h-4 lg:w-5 lg:h-5" />
                     ) : isActive ? (
-                      <Icon className="w-5 h-5" />
+                      <Icon className="w-4 h-4 lg:w-5 lg:h-5" />
                     ) : (
-                      <span className="text-sm font-semibold">{index + 1}</span>
+                      <span className="text-xs lg:text-sm font-semibold">{index + 1}</span>
                     )}
                   </div>
                   
                   {/* Step Label */}
-                  <div className="flex-1">
-                    <div className={`font-semibold transition-colors duration-300 ${
+                  <div className="flex-1 min-w-0">
+                    <div className={`font-semibold text-sm lg:text-base transition-colors duration-300 truncate ${
                       isActive
                         ? 'text-theme-success'
                         : isCompleted
@@ -198,7 +225,7 @@ const FinancialGoalsPlanner: React.FC = () => {
                   
                   {/* Progress indicator */}
                   {isActive && (
-                    <div className="w-1 h-8 bg-green-500 rounded-full animate-pulse ml-2"></div>
+                    <div className="w-1 h-6 lg:h-8 bg-green-500 rounded-full animate-pulse ml-2"></div>
                   )}
                 </div>
                 
@@ -213,10 +240,10 @@ const FinancialGoalsPlanner: React.FC = () => {
 
         {/* Enhanced Progress Bar */}
         <div className="p-4 mt-auto">
-          <div className="bg-theme-secondary rounded-xl p-4 border border-theme shadow-theme-sm">
+          <div className="bg-theme-secondary rounded-xl p-3 lg:p-4 border border-theme shadow-theme-sm">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium text-theme-secondary">Progress</span>
-              <span className="text-sm font-bold text-theme-success">
+              <span className="text-xs lg:text-sm font-medium text-theme-secondary">Progress</span>
+              <span className="text-xs lg:text-sm font-bold text-theme-success">
                 {Math.round(((state.currentStep + 1) / STEPS.length) * 100)}%
               </span>
             </div>
@@ -234,29 +261,37 @@ const FinancialGoalsPlanner: React.FC = () => {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 ml-64">
-        {/* Enhanced Top Navigation - Theme Aware */}
-        <div className="nav-dark border-b border-theme p-4 shadow-theme-sm">
+      <div className="flex-1 lg:ml-0">
+        {/* Enhanced Top Navigation - Theme Aware & Mobile Responsive */}
+        <div className="nav-dark border-b border-theme p-3 lg:p-4 shadow-theme-sm">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 lg:gap-4">
+              {/* Mobile Menu Button */}
+              <button
+                onClick={() => setIsSidebarOpen(true)}
+                className="lg:hidden p-2 text-theme-secondary hover:text-theme-success transition-colors"
+              >
+                <Menu className="w-5 h-5" />
+              </button>
+
               <div className="flex items-center gap-2">
-                <Brain className="w-5 h-5 text-theme-success" />
-                <h2 className="text-lg font-semibold text-theme-light">
+                <Brain className="w-4 h-4 lg:w-5 lg:h-5 text-theme-success" />
+                <h2 className="text-sm lg:text-lg font-semibold text-theme-light truncate">
                   {STEPS[state.currentStep]?.label}
                 </h2>
               </div>
               {state.currentStep > 0 && (
-                <div className="text-sm text-theme-secondary bg-theme-secondary px-3 py-1 rounded-full border border-theme">
+                <div className="hidden sm:block text-xs lg:text-sm text-theme-secondary bg-theme-secondary px-2 lg:px-3 py-1 rounded-full border border-theme">
                   AI-Powered Planning
                 </div>
               )}
             </div>
             
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1 lg:gap-2">
               {state.currentStep > 0 && (
                 <button
                   onClick={handleBack}
-                  className="px-4 py-2 text-theme-secondary hover:text-theme-success hover:bg-theme-tertiary rounded-lg transition-all duration-200 border border-theme hover:border-green-500"
+                  className="px-2 lg:px-4 py-1 lg:py-2 text-xs lg:text-sm text-theme-secondary hover:text-theme-success hover:bg-theme-tertiary rounded-lg transition-all duration-200 border border-theme hover:border-green-500"
                 >
                   ← Back
                 </button>
@@ -265,6 +300,8 @@ const FinancialGoalsPlanner: React.FC = () => {
                 <Button
                   onClick={handleNext}
                   variant="primary"
+                  size="sm"
+                  className="text-xs lg:text-sm px-2 lg:px-4 py-1 lg:py-2"
                 >
                   Next →
                 </Button>
@@ -274,48 +311,51 @@ const FinancialGoalsPlanner: React.FC = () => {
         </div>
 
         <div ref={sectionsRef} className="h-full">
-          <section className={`min-h-screen p-8 ${state.currentStep === 0 ? 'block' : 'hidden'}`}>
+          <section className={`min-h-screen p-4 lg:p-8 ${state.currentStep === 0 ? 'block' : 'hidden'}`}>
             <WelcomeProfileSection onNext={handleNext} />
           </section>
 
-          <section className={`min-h-screen p-8 ${state.currentStep === 1 ? 'block' : 'hidden'}`}>
+          <section className={`min-h-screen p-4 lg:p-8 ${state.currentStep === 1 ? 'block' : 'hidden'}`}>
             <EmergencyFundSection onNext={handleNext} />
           </section>
 
-          <section className={`min-h-screen p-8 ${state.currentStep === 2 ? 'block' : 'hidden'}`}>
+          <section className={`min-h-screen p-4 lg:p-8 ${state.currentStep === 2 ? 'block' : 'hidden'}`}>
             <GoalsSection onNext={handleNext} onBack={handleBack} />
           </section>
 
-          <section className={`min-h-screen p-8 ${state.currentStep === 3 ? 'block' : 'hidden'}`}>
+          <section className={`min-h-screen p-4 lg:p-8 ${state.currentStep === 3 ? 'block' : 'hidden'}`}>
             <RetirementSection onNext={handleNext} onBack={handleBack} />
           </section>
 
-          <section className={`min-h-screen p-8 ${state.currentStep === 4 ? 'block' : 'hidden'}`}>
+          <section className={`min-h-screen p-4 lg:p-8 ${state.currentStep === 4 ? 'block' : 'hidden'}`}>
             <RiskReturnsSection onNext={handleNext} onBack={handleBack} />
           </section>
 
-          <section className={`min-h-screen p-8 ${state.currentStep === 5 ? 'block' : 'hidden'}`}>
-            <BudgetProjections onNext={handleNext} onBack={handleBack} />
+          <section className={`min-h-screen p-4 lg:p-8 ${state.currentStep === 5 ? 'block' : 'hidden'}`}>
+            <BudgetProjections />
           </section>
 
-          <section className={`min-h-screen p-8 ${state.currentStep === 6 ? 'block' : 'hidden'}`}>
-            <MonthlyPlanView 
-              onContinue={handleNext}
-            />
+          <section className={`min-h-screen p-4 lg:p-8 ${state.currentStep === 6 ? 'block' : 'hidden'}`}>
+            <MonthlyRoadmapSection onNext={handleNext} onBack={handleBack} />
           </section>
 
-          <section className={`min-h-screen p-8 ${state.currentStep === 7 ? 'block' : 'hidden'}`}>
+          <section className={`min-h-screen p-4 lg:p-8 ${state.currentStep === 7 ? 'block' : 'hidden'}`}>
             <GetStartedSection onBack={handleBack} />
           </section>
         </div>
+
+        {/* AI Guidance Panel - Mobile Responsive */}
+        <div className="fixed bottom-4 right-4 z-30">
+          <AIGuidance context={aiContext} step={String(STEPS[state.currentStep]?.id || 'welcome')} />
+        </div>
+
+        {/* Debug Panel - Hidden on mobile for better UX */}
+        {process.env.NODE_ENV === 'development' && (
+          <div className="hidden lg:block">
+            <DebugPanel />
+          </div>
+        )}
       </div>
-
-      {/* AI Guidance Component - Only show after user starts filling profile */}
-      {/* Removed global AIGuidance to prevent conflicts with section-specific AIGuidance components */}
-      {/* Each section now handles its own AIGuidance with proper callbacks */}
-
-      {/* Debug Panel (development only) */}
-      <DebugPanel />
     </div>
   );
 };

@@ -57,67 +57,82 @@ const Dashboard: React.FC = () => {
     <div className="min-h-screen app-background">
       {/* Header */}
       <header className="nav-dark border-b border-theme shadow-theme-sm">
-        <div className="max-w-7xl mx-auto px-6 py-4">
+        <div className="max-w-7xl mx-auto px-4 lg:px-6 py-3 lg:py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-green-500 rounded-xl flex items-center justify-center shadow-lg">
-                  <span className="text-white font-bold text-xl">W</span>
+            <div className="flex items-center gap-2 lg:gap-4">
+              <div className="flex items-center gap-2 lg:gap-3">
+                <div className="w-8 h-8 lg:w-10 lg:h-10 bg-green-500 rounded-xl flex items-center justify-center shadow-lg">
+                  <span className="text-white font-bold text-lg lg:text-xl">W</span>
                 </div>
                 <div>
-                  <h1 className="heading-h4-sm text-theme-light">WealthKarma</h1>
-                  <p className="text-sm text-theme-secondary">Live Dashboard</p>
+                  <h1 className="text-sm lg:text-lg font-bold text-theme-light">WealthKarma</h1>
+                  <p className="text-xs lg:text-sm text-theme-secondary">Live Dashboard</p>
                 </div>
               </div>
               {user && (
-                <div className="text-sm text-theme-secondary">
+                <div className="hidden sm:block text-xs lg:text-sm text-theme-secondary">
                   Welcome back, {user.user_metadata?.name || user.email}
                 </div>
               )}
             </div>
             
-            <div className="flex items-center gap-4">
-              <CurrencySelector />
+            <div className="flex items-center gap-1 lg:gap-4">
+              <div className="hidden sm:block">
+                <CurrencySelector />
+              </div>
               <ThemeToggle showLabel={false} />
               
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1 lg:gap-2">
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={handleBackToHome}
-                  className="flex items-center gap-2"
+                  className="hidden sm:flex items-center gap-2 text-xs lg:text-sm px-2 lg:px-3 py-1 lg:py-2"
                 >
-                  <Home className="w-4 h-4" />
-                  Home
+                  <Home className="w-3 h-3 lg:w-4 lg:h-4" />
+                  <span className="hidden lg:block">Home</span>
                 </Button>
                 
                 <Button
                   variant="secondary"
                   size="sm"
                   onClick={handleBackToPlanning}
-                  className="flex items-center gap-2"
+                  className="flex items-center gap-1 lg:gap-2 text-xs lg:text-sm px-2 lg:px-3 py-1 lg:py-2"
                 >
-                  <ArrowLeft className="w-4 h-4" />
-                  Back to Planning
+                  <ArrowLeft className="w-3 h-3 lg:w-4 lg:h-4" />
+                  <span className="hidden sm:block">Back to Planning</span>
+                  <span className="sm:hidden">Plan</span>
                 </Button>
 
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={handleSignOut}
-                  className="flex items-center gap-2 text-red-600 hover:text-red-700"
+                  className="flex items-center gap-1 lg:gap-2 text-red-600 hover:text-red-700 text-xs lg:text-sm px-2 lg:px-3 py-1 lg:py-2"
                 >
-                  <LogOut className="w-4 h-4" />
-                  Sign Out
+                  <LogOut className="w-3 h-3 lg:w-4 lg:h-4" />
+                  <span className="hidden sm:block">Sign Out</span>
                 </Button>
               </div>
             </div>
+          </div>
+
+          {/* Mobile User Info - Show under header on mobile */}
+          {user && (
+            <div className="sm:hidden mt-2 text-xs text-theme-secondary border-t border-theme pt-2">
+              Welcome back, {user.user_metadata?.name || user.email}
+            </div>
+          )}
+
+          {/* Mobile Currency Selector */}
+          <div className="sm:hidden mt-2 border-t border-theme pt-2">
+            <CurrencySelector />
           </div>
         </div>
       </header>
 
       {/* Main Content */}
-      <main>
+      <main className="p-2 lg:p-0">
         <LiveDashboard 
           onOptimizePlan={() => {
             // Could trigger plan re-optimization
