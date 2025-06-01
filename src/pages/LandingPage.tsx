@@ -4,7 +4,7 @@ import {
   Target, TrendingUp, Shield, DollarSign, CheckCircle, Star, ArrowRight, Play, 
   Sparkles, Brain, Zap, Calculator, PieChart, Calendar, Download, Users, 
   Globe, Award, Clock, ChevronRight, BarChart3, Wallet, CreditCard, 
-  Building, MapPin, Phone, Mail, ExternalLink, ArrowDown, MousePointer
+  Building, MapPin, Phone, Mail, ExternalLink, ArrowDown, MousePointer, Menu, X
 } from 'lucide-react';
 import ThemeToggle from '../components/ui/ThemeToggle';
 
@@ -14,6 +14,7 @@ const LandingPage: React.FC = () => {
   const [isEmailCaptured, setIsEmailCaptured] = useState(false);
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
   const [isVisible, setIsVisible] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     setIsVisible(true);
@@ -145,12 +146,21 @@ const LandingPage: React.FC = () => {
               <div className="text-xs text-theme-muted font-medium">AI Financial Planner</div>
             </div>
           </div>
+          
+          {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-6">
             <a href="#features" className="text-theme-secondary hover:text-theme-success transition-colors">Features</a>
             <a href="#how-it-works" className="text-theme-secondary hover:text-theme-success transition-colors">How It Works</a>
             <a href="#testimonials" className="text-theme-secondary hover:text-theme-success transition-colors">Reviews</a>
             
             <ThemeToggle showLabel={false} />
+            
+            <a 
+              href="/login"
+              className="text-theme-secondary hover:text-theme-success transition-colors font-medium"
+            >
+              Login
+            </a>
             
             <button 
               onClick={handleStartPlanning}
@@ -159,7 +169,63 @@ const LandingPage: React.FC = () => {
               Start Free Plan
             </button>
           </nav>
+
+          {/* Mobile Menu Button */}
+          <button 
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            className="md:hidden p-2 text-theme-secondary hover:text-theme-success transition-colors"
+          >
+            {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+          </button>
         </div>
+
+        {/* Mobile Navigation */}
+        {isMobileMenuOpen && (
+          <div className="md:hidden absolute top-full left-0 right-0 bg-theme-card border-b border-theme shadow-theme-lg backdrop-blur-sm">
+            <nav className="px-4 py-6 space-y-4">
+              <a 
+                href="#features" 
+                className="block text-theme-secondary hover:text-theme-success transition-colors py-2"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Features
+              </a>
+              <a 
+                href="#how-it-works" 
+                className="block text-theme-secondary hover:text-theme-success transition-colors py-2"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                How It Works
+              </a>
+              <a 
+                href="#testimonials" 
+                className="block text-theme-secondary hover:text-theme-success transition-colors py-2"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Reviews
+              </a>
+              <a 
+                href="/login" 
+                className="block text-theme-secondary hover:text-theme-success transition-colors py-2 font-medium"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Login
+              </a>
+              <button 
+                onClick={() => {
+                  handleStartPlanning();
+                  setIsMobileMenuOpen(false);
+                }}
+                className="w-full bg-gradient-to-r from-green-500 to-orange-500 hover:from-green-600 hover:to-orange-600 text-gray-900 px-6 py-3 rounded-lg font-semibold transition-all duration-200 shadow-lg"
+              >
+                Start Free Plan
+              </button>
+              <div className="pt-2">
+                <ThemeToggle showLabel={true} />
+              </div>
+            </nav>
+          </div>
+        )}
       </header>
 
       {/* Hero Section */}
