@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { usePlanner } from '../../context/PlannerContext';
 import { useCurrency } from '../../context/CurrencyContext';
+import { useAuth } from '../../context/AuthContext';
+import { formatCurrency } from '../../utils/calculations';
 import { 
   User, 
   Mail, 
@@ -14,11 +16,16 @@ import {
   Gift,
   Clock,
   ArrowRight,
-  Sparkles
+  Sparkles,
+  TrendingUp,
+  ChevronRight,
+  Heart,
+  Target,
+  CreditCard,
+  Lock
 } from 'lucide-react';
 import Card, { CardHeader, CardTitle, CardContent } from '../ui/Card';
 import Button from '../ui/Button';
-import { formatCurrency } from '../../utils/calculations';
 
 interface GetStartedSectionProps {
   onNext?: () => void;
@@ -28,9 +35,11 @@ interface GetStartedSectionProps {
 const GetStartedSection: React.FC<GetStartedSectionProps> = ({ onBack }) => {
   const { state } = usePlanner();
   const { currency } = useCurrency();
+  const { signUp, user } = useAuth();
   const [isSigningUp, setIsSigningUp] = useState(false);
   const [email, setEmail] = useState('');
   const [name, setName] = useState('');
+  const [password, setPassword] = useState('');
   const [selectedPlan, setSelectedPlan] = useState<'trial' | 'monthly' | 'annual'>('annual');
   const [showSuccess, setShowSuccess] = useState(false);
 
@@ -53,9 +62,30 @@ const GetStartedSection: React.FC<GetStartedSectionProps> = ({ onBack }) => {
     }
 
     try {
-      // TODO: Integrate with Supabase Auth
-      console.log('Signup attempt:', { email, name, selectedPlan });
+      // Use Supabase Auth
+      const userData = {
+        name,
+        plan_type: selectedPlan,
+        plan_value: totalPlanValue,
+        signup_source: 'post_plan_generation'
+      };
+
+      const { error } = await signUp(email, password, userData);
       
+      if (error) {
+        console.error('Signup failed:', error);
+        alert(`Signup failed: ${error.message}`);
+        return;
+      }
+
+      // Track successful signup
+      if (window.gtag) {
+        window.gtag('event', 'signup_success', {
+          plan_type: selectedPlan,
+          plan_value: totalPlanValue
+        });
+      }
+
       if (selectedPlan !== 'trial') {
         // Handle paid plans with Stripe
         const { paymentService } = await import('../../services/paymentService');
@@ -77,20 +107,11 @@ const GetStartedSection: React.FC<GetStartedSectionProps> = ({ onBack }) => {
         } else if (result.url) {
           // In production, this would redirect to Stripe
           console.log('Would redirect to Stripe:', result.url);
-          alert(`Signup successful! Redirecting to payment for ${selectedPlan} plan.`);
+          alert(`Account created! Redirecting to payment for ${selectedPlan} plan.`);
         }
       } else {
         // Handle free trial
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        alert('Free trial activated! Welcome to WealthKarma.');
-      }
-      
-      // Track successful signup
-      if (window.gtag) {
-        window.gtag('event', 'signup_success', {
-          plan_type: selectedPlan,
-          plan_value: totalPlanValue
-        });
+        alert('Account created successfully! Welcome to WealthKarma.');
       }
 
       setShowSuccess(true);
@@ -410,6 +431,19 @@ const GetStartedSection: React.FC<GetStartedSectionProps> = ({ onBack }) => {
                       onChange={(e) => setEmail(e.target.value)}
                       className="w-full pl-12 pr-4 py-4 rounded-xl text-lg bg-theme-tertiary border-2 border-theme text-theme-primary placeholder-theme-muted focus:ring-0 focus:border-green-500 transition-all duration-300"
                       placeholder="your.email@example.com"
+                      required
+                    />
+                  </div>
+
+                  <div className="relative group">
+                    <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-theme-muted group-focus-within:text-green-500 transition-colors" />
+                    <input
+                      type="password"
+                      id="password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="w-full pl-12 pr-4 py-4 rounded-xl text-lg bg-theme-tertiary border-2 border-theme text-theme-primary placeholder-theme-muted focus:ring-0 focus:border-green-500 transition-all duration-300"
+                      placeholder="Password"
                       required
                     />
                   </div>
