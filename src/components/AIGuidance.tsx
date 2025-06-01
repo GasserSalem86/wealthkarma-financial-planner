@@ -296,19 +296,19 @@ const AIGuidance: React.FC<AIGuidanceProps> = ({ step, context, className = '', 
 
   if (!isExpanded) {
     return (
-      <div className={`fixed bottom-6 right-6 z-50 ${className}`}>
+      <div className={`fixed bottom-4 lg:bottom-6 right-4 lg:right-6 z-50 ${className}`}>
         <div className="relative group">
           {/* Pulse ring animation */}
           <div className="absolute -inset-1 bg-green-400 rounded-full blur opacity-30 group-hover:opacity-50 animate-pulse"></div>
           
           <button
             onClick={() => setIsExpanded(true)}
-            className="relative bg-green-500 hover:bg-green-600 text-theme-primary rounded-full p-4 shadow-theme-xl transition-all duration-300 flex items-center gap-3 hover:scale-105 transform"
+            className="relative bg-green-500 hover:bg-green-600 text-theme-primary rounded-full p-3 lg:p-4 shadow-theme-xl transition-all duration-300 flex items-center gap-2 lg:gap-3 hover:scale-105 transform"
           >
-            <div className="w-6 h-6 flex items-center justify-center">
-              <Bot className="w-6 h-6" />
+            <div className="w-5 h-5 lg:w-6 lg:h-6 flex items-center justify-center">
+              <Bot className="w-5 h-5 lg:w-6 lg:h-6" />
             </div>
-            <span className="hidden sm:inline font-semibold">Your Money Coach</span>
+            <span className="hidden sm:inline font-semibold text-sm lg:text-base">Your Money Coach</span>
             
             {/* Notification dot */}
             <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-300 rounded-full border-2 border-theme-primary animate-bounce"></div>
@@ -319,19 +319,19 @@ const AIGuidance: React.FC<AIGuidanceProps> = ({ step, context, className = '', 
   }
 
   return (
-    <div className={`fixed bottom-6 right-6 z-50 ${className}`}>
-      <div className="backdrop-blur-xl bg-theme-card rounded-2xl shadow-theme-xl border border-theme w-96 h-96 flex flex-col ring-1 ring-theme/20 overflow-hidden">
+    <div className={`fixed bottom-4 lg:bottom-6 right-4 lg:right-6 z-50 ${className}`}>
+      <div className="backdrop-blur-xl bg-theme-card rounded-2xl shadow-theme-xl border border-theme w-80 sm:w-96 h-80 sm:h-96 flex flex-col ring-1 ring-theme/20 overflow-hidden">
         {/* Enhanced Header with Gradient */}
-        <div className="bg-gradient-to-r from-green-500 to-green-600 text-white p-4 rounded-t-2xl flex items-center justify-between relative overflow-hidden">
+        <div className="bg-gradient-to-r from-green-500 to-green-600 text-white p-3 lg:p-4 rounded-t-2xl flex items-center justify-between relative overflow-hidden">
           {/* Animated background pattern */}
           <div className="absolute inset-0 bg-gradient-to-r from-green-400/20 to-green-500/20 animate-pulse"></div>
           
-          <div className="flex items-center gap-3 relative z-10">
-            <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
-              <Bot className="w-5 h-5" />
+          <div className="flex items-center gap-2 lg:gap-3 relative z-10">
+            <div className="w-7 h-7 lg:w-8 lg:h-8 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
+              <Bot className="w-4 h-4 lg:w-5 lg:h-5" />
             </div>
             <div>
-              <span className="font-semibold">Your Money Coach</span>
+              <span className="font-semibold text-sm lg:text-base">Your Money Coach</span>
               {isLoadingGuidance && (
                 <div className="flex items-center gap-1">
                   <Loader2 className="w-3 h-3 animate-spin" />
@@ -351,59 +351,59 @@ const AIGuidance: React.FC<AIGuidanceProps> = ({ step, context, className = '', 
             onClick={() => setIsExpanded(false)}
             className="text-green-50 hover:text-white hover:bg-white/10 rounded-full p-1 transition-all duration-200 relative z-10"
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-4 h-4 lg:w-5 lg:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
         </div>
 
         {/* Enhanced Chat Messages */}
-        <div ref={chatMessagesRef} className="flex-1 overflow-y-auto p-4 space-y-4 bg-theme-section">
+        <div ref={chatMessagesRef} className="flex-1 overflow-y-auto p-3 lg:p-4 space-y-3 lg:space-y-4 bg-theme-section">
           {isLoadingGuidance ? (
-            <div className="flex items-center gap-3 text-theme-secondary bg-theme-tertiary rounded-xl p-3 border border-theme">
-              <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
-                <Loader2 className="w-4 h-4 animate-spin text-white" />
+            <div className="flex items-center gap-2 lg:gap-3 text-theme-secondary bg-theme-tertiary rounded-xl p-2 lg:p-3 border border-theme">
+              <div className="w-6 h-6 lg:w-8 lg:h-8 bg-green-500 rounded-full flex items-center justify-center">
+                <Loader2 className="w-3 h-3 lg:w-4 lg:h-4 animate-spin text-white" />
               </div>
-              <span className="text-sm">Getting your tips...</span>
+              <span className="text-xs lg:text-sm">Getting your tips...</span>
             </div>
           ) : (
             chatMessages.map((message, index) => (
               <div
                 key={message.id}
-                className={`flex gap-3 ${message.type === 'user' ? 'justify-end' : 'justify-start'} animate-slideIn`}
+                className={`flex gap-2 lg:gap-3 ${message.type === 'user' ? 'justify-end' : 'justify-start'} animate-slideIn`}
                 style={{ animationDelay: `${index * 100}ms` }}
               >
                 {message.type === 'ai' && (
-                  <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0 shadow-theme">
-                    <Bot className="w-4 h-4 text-white" />
+                  <div className="w-6 h-6 lg:w-8 lg:h-8 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0 shadow-theme">
+                    <Bot className="w-3 h-3 lg:w-4 lg:h-4 text-white" />
                   </div>
                 )}
                 
-                <div className="flex flex-col max-w-[280px] min-w-0">
+                <div className="flex flex-col max-w-[240px] sm:max-w-[280px] min-w-0">
                   <div
-                    className={`px-4 py-3 rounded-2xl shadow-theme-sm ${
+                    className={`px-3 lg:px-4 py-2 lg:py-3 rounded-2xl shadow-theme-sm ${
                       message.type === 'user'
                         ? 'bg-gradient-to-br from-green-500 to-green-600 text-white rounded-br-md shadow-theme'
                         : 'bg-theme-card border border-theme text-theme-secondary rounded-bl-md backdrop-blur-sm'
                     }`}
                   >
-                    <div className="text-sm leading-relaxed whitespace-pre-wrap break-words overflow-wrap-anywhere">
+                    <div className="text-xs lg:text-sm leading-relaxed whitespace-pre-wrap break-words overflow-wrap-anywhere">
                       {parseMessageWithLinks(message.content)}
                     </div>
                   </div>
                   
                   {/* Enhanced Interactive buttons for AI messages */}
                   {message.type === 'ai' && message.buttons && message.buttons.length > 0 && (
-                    <div className="mt-3 space-y-2">
+                    <div className="mt-2 lg:mt-3 space-y-2">
                       {message.buttons.map((button) => (
                         <button
                           key={button.id}
                           onClick={() => handleButtonClick(button)}
                           disabled={isLoadingResponse}
-                          className="group relative w-full text-left p-4 bg-theme-tertiary border-2 border-theme rounded-xl hover:border-green-400 hover:shadow-theme transition-all duration-200 hover:-translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
+                          className="group relative w-full text-left p-3 lg:p-4 bg-theme-tertiary border-2 border-theme rounded-xl hover:border-green-400 hover:shadow-theme transition-all duration-200 hover:-translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
                         >
-                          <div className="flex items-center justify-between mb-2">
-                            <span className="text-green-300 font-semibold group-hover:text-green-200 transition-colors">
+                          <div className="flex items-center justify-between mb-1 lg:mb-2">
+                            <span className="text-green-300 font-semibold group-hover:text-green-200 transition-colors text-xs lg:text-sm">
                               {button.data.bankName}
                             </span>
                             <div className="bg-green-500 text-theme-primary text-xs px-2 py-1 rounded-full font-medium shadow-sm">
@@ -411,7 +411,7 @@ const AIGuidance: React.FC<AIGuidanceProps> = ({ step, context, className = '', 
                             </div>
                           </div>
                           
-                          <div className="text-theme-secondary text-sm mb-2 font-medium">{button.data.accountType}</div>
+                          <div className="text-theme-secondary text-xs lg:text-sm mb-1 lg:mb-2 font-medium">{button.data.accountType}</div>
                           <div className="text-theme-muted text-xs leading-relaxed">{button.data.features}</div>
                           
                           {/* Hover effect overlay */}
@@ -423,8 +423,8 @@ const AIGuidance: React.FC<AIGuidanceProps> = ({ step, context, className = '', 
                 </div>
                 
                 {message.type === 'user' && (
-                  <div className="w-8 h-8 bg-theme-tertiary rounded-full flex items-center justify-center flex-shrink-0 shadow-theme">
-                    <User className="w-4 h-4 text-theme-secondary" />
+                  <div className="w-6 h-6 lg:w-8 lg:h-8 bg-theme-tertiary rounded-full flex items-center justify-center flex-shrink-0 shadow-theme">
+                    <User className="w-3 h-3 lg:w-4 lg:h-4 text-theme-secondary" />
                   </div>
                 )}
               </div>
@@ -432,14 +432,14 @@ const AIGuidance: React.FC<AIGuidanceProps> = ({ step, context, className = '', 
           )}
           
           {isLoadingResponse && (
-            <div className="flex gap-3 animate-slideIn">
-              <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0 shadow-theme">
-                <Bot className="w-4 h-4 text-white" />
+            <div className="flex gap-2 lg:gap-3 animate-slideIn">
+              <div className="w-6 h-6 lg:w-8 lg:h-8 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0 shadow-theme">
+                <Bot className="w-3 h-3 lg:w-4 lg:h-4 text-white" />
               </div>
-              <div className="bg-theme-card border border-theme px-4 py-3 rounded-2xl rounded-bl-md backdrop-blur-sm">
+              <div className="bg-theme-card border border-theme px-3 lg:px-4 py-2 lg:py-3 rounded-2xl rounded-bl-md backdrop-blur-sm">
                 <div className="flex items-center gap-2">
-                  <Loader2 className="w-4 h-4 animate-spin text-green-400" />
-                  <span className="text-sm text-theme-secondary">Thinking...</span>
+                  <Loader2 className="w-3 h-3 lg:w-4 lg:h-4 animate-spin text-green-400" />
+                  <span className="text-xs lg:text-sm text-theme-secondary">Thinking...</span>
                 </div>
               </div>
             </div>
@@ -447,7 +447,7 @@ const AIGuidance: React.FC<AIGuidanceProps> = ({ step, context, className = '', 
         </div>
 
         {/* Enhanced Input */}
-        <div className="p-4 border-t border-theme bg-theme-secondary backdrop-blur-sm">
+        <div className="p-3 lg:p-4 border-t border-theme bg-theme-secondary backdrop-blur-sm">
           <div className="flex gap-2">
             <input
               type="text"
@@ -455,15 +455,15 @@ const AIGuidance: React.FC<AIGuidanceProps> = ({ step, context, className = '', 
               onChange={(e) => setUserQuestion(e.target.value)}
               onKeyPress={handleKeyPress}
               placeholder="Ask me anything about saving money..."
-              className="input-dark flex-1 px-4 py-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm"
+              className="input-dark flex-1 px-3 lg:px-4 py-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-xs lg:text-sm"
               disabled={isLoadingResponse}
             />
             <button
               onClick={handleSendQuestion}
               disabled={!userQuestion.trim() || isLoadingResponse}
-              className="bg-green-500 hover:bg-green-600 text-theme-primary px-4 py-2 rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-theme hover:shadow-theme-lg hover:scale-105 transform"
+              className="bg-green-500 hover:bg-green-600 text-theme-primary px-3 lg:px-4 py-2 rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-theme hover:shadow-theme-lg hover:scale-105 transform"
             >
-              <Send className="w-4 h-4" />
+              <Send className="w-3 h-3 lg:w-4 lg:h-4" />
             </button>
           </div>
         </div>

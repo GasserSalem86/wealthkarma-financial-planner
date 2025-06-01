@@ -98,25 +98,25 @@ const BudgetBanner = () => {
         }
       `}</style>
       
-      <div className="rounded-lg border border-theme overflow-hidden mb-6 shadow-theme bg-theme-card">
+      <div className="rounded-lg border border-theme overflow-hidden mb-4 lg:mb-6 shadow-theme bg-theme-card">
         {/* Header similar to other cards */}
-        <div className="bg-gradient-to-r from-green-500/10 to-orange-500/10 border-b border-theme p-6 rounded-t-xl">
-          <h3 className="heading-h3-sm text-theme-primary mb-2">
+        <div className="bg-gradient-to-r from-green-500/10 to-orange-500/10 border-b border-theme p-4 lg:p-6 rounded-t-xl">
+          <h3 className="text-lg lg:text-xl font-bold text-theme-primary mb-1 lg:mb-2">
             Your Money Plan
           </h3>
-          <p className="text-theme-secondary">Choose your savings strategy and set your monthly budget</p>
+          <p className="text-sm lg:text-base text-theme-secondary">Choose your savings strategy and set your monthly budget</p>
         </div>
 
         {/* Content with background */}
-        <div className="bg-theme-card p-4">
+        <div className="bg-theme-card p-3 lg:p-4">
           {/* Compact Funding Strategy & Budget Layout */}
-          <div className="space-y-4">
+          <div className="space-y-3 lg:space-y-4">
             {/* Funding Strategy Cards - With Descriptions */}
             <div>
-              <h3 className="text-center heading-h6 text-theme-primary mb-3">Choose Your Savings Strategy</h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <h3 className="text-center text-base lg:text-lg font-bold text-theme-primary mb-2 lg:mb-3">Choose Your Savings Strategy</h3>
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-2 lg:gap-3">
                 <div 
-                  className={`funding-card p-4 rounded-lg border cursor-pointer text-center transition-all ${
+                  className={`funding-card p-3 lg:p-4 rounded-lg border cursor-pointer text-center transition-all ${
                     state.fundingStyle === 'waterfall' 
                       ? 'border-emerald-500 bg-theme-tertiary shadow-theme ring-2 ring-emerald-500/30' 
                       : 'border-theme bg-theme-tertiary hover:border-emerald-400'
@@ -124,10 +124,10 @@ const BudgetBanner = () => {
                   onClick={() => handleFundingStyleChange('waterfall')}
                 >
                   <div className="flex items-center justify-center space-x-2 mb-2">
-                    <Layers className={`w-4 h-4 ${
+                    <Layers className={`w-3 h-3 lg:w-4 lg:h-4 ${
                       state.fundingStyle === 'waterfall' ? 'text-emerald-400' : 'text-theme-muted'
                     }`} />
-                    <span className="text-sm font-medium text-theme-primary">One at a Time</span>
+                    <span className="text-xs lg:text-sm font-medium text-theme-primary">One at a Time</span>
                     {state.fundingStyle === 'waterfall' && (
                       <CheckCircle className="w-3 h-3 text-emerald-400" />
                     )}
@@ -138,7 +138,7 @@ const BudgetBanner = () => {
                 </div>
 
                 <div 
-                  className={`funding-card p-4 rounded-lg border cursor-pointer text-center transition-all ${
+                  className={`funding-card p-3 lg:p-4 rounded-lg border cursor-pointer text-center transition-all ${
                     state.fundingStyle === 'parallel' 
                       ? 'border-emerald-500 bg-theme-tertiary shadow-theme ring-2 ring-emerald-500/30' 
                       : 'border-theme bg-theme-tertiary hover:border-emerald-400'
@@ -146,10 +146,10 @@ const BudgetBanner = () => {
                   onClick={() => handleFundingStyleChange('parallel')}
                 >
                   <div className="flex items-center justify-center space-x-2 mb-2">
-                    <Split className={`w-4 h-4 ${
+                    <Split className={`w-3 h-3 lg:w-4 lg:h-4 ${
                       state.fundingStyle === 'parallel' ? 'text-emerald-400' : 'text-theme-muted'
                     }`} />
-                    <span className="text-sm font-medium text-theme-primary">Split Evenly</span>
+                    <span className="text-xs lg:text-sm font-medium text-theme-primary">Split Evenly</span>
                     {state.fundingStyle === 'parallel' && (
                       <CheckCircle className="w-3 h-3 text-emerald-400" />
                     )}
@@ -160,7 +160,7 @@ const BudgetBanner = () => {
                 </div>
 
                 <div 
-                  className={`funding-card p-4 rounded-lg border cursor-pointer text-center transition-all ${
+                  className={`funding-card p-3 lg:p-4 rounded-lg border cursor-pointer text-center transition-all ${
                     state.fundingStyle === 'hybrid' 
                       ? 'border-emerald-500 bg-theme-tertiary shadow-theme ring-2 ring-emerald-500/30' 
                       : 'border-theme bg-theme-tertiary hover:border-emerald-400'
@@ -168,10 +168,10 @@ const BudgetBanner = () => {
                   onClick={() => handleFundingStyleChange('hybrid')}
                 >
                   <div className="flex items-center justify-center space-x-2 mb-2">
-                    <BarChart2 className={`w-4 h-4 ${
+                    <BarChart2 className={`w-3 h-3 lg:w-4 lg:h-4 ${
                       state.fundingStyle === 'hybrid' ? 'text-emerald-400' : 'text-theme-muted'
                     }`} />
-                    <span className="text-sm font-medium text-theme-primary">Smart Mix</span>
+                    <span className="text-xs lg:text-sm font-medium text-theme-primary">Smart Mix</span>
                     {state.fundingStyle === 'hybrid' && (
                       <CheckCircle className="w-3 h-3 text-emerald-400" />
                     )}
@@ -184,16 +184,16 @@ const BudgetBanner = () => {
             </div>
 
             {/* Compact Budget Section */}
-            <div className="bg-theme-tertiary rounded-lg p-4 border border-theme shadow-theme-sm">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-center">
+            <div className="bg-theme-tertiary rounded-lg p-3 lg:p-4 border border-theme shadow-theme-sm">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 lg:gap-4 items-center">
                 {/* Left: Budget Display & Input */}
                 <div className="text-center lg:text-left">
-                  <div className="flex items-center justify-center lg:justify-start space-x-3 mb-3">
-                    <div className="w-8 h-8 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg flex items-center justify-center">
-                      <TrendingUp className="w-4 h-4 text-white" />
+                  <div className="flex items-center justify-center lg:justify-start space-x-2 lg:space-x-3 mb-2 lg:mb-3">
+                    <div className="w-6 h-6 lg:w-8 lg:h-8 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg flex items-center justify-center">
+                      <TrendingUp className="w-3 h-3 lg:w-4 lg:h-4 text-white" />
                     </div>
                     <div>
-                      <div className="text-lg font-bold text-theme-primary">
+                      <div className="text-base lg:text-lg font-bold text-theme-primary">
                         {formatCurrency(state.budget, currency)}
                       </div>
                       <div className="text-xs text-theme-muted">Monthly Budget</div>
