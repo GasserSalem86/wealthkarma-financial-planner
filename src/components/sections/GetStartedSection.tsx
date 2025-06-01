@@ -12,16 +12,12 @@ import {
   BarChart3,
   Bell,
   Shield,
-  Crown,
-  Gift,
   Clock,
   ArrowRight,
   Sparkles,
   TrendingUp,
-  ChevronRight,
   Heart,
   Target,
-  CreditCard,
   Lock
 } from 'lucide-react';
 import Card, { CardHeader, CardTitle, CardContent } from '../ui/Card';
@@ -40,7 +36,6 @@ const GetStartedSection: React.FC<GetStartedSectionProps> = ({ onBack }) => {
   const [email, setEmail] = useState('');
   const [name, setName] = useState('');
   const [password, setPassword] = useState('');
-  const [selectedPlan, setSelectedPlan] = useState<'trial' | 'monthly' | 'annual'>('annual');
   const [showSuccess, setShowSuccess] = useState(false);
   const [debugStatus, setDebugStatus] = useState('');
 
@@ -64,7 +59,7 @@ const GetStartedSection: React.FC<GetStartedSectionProps> = ({ onBack }) => {
     // Track signup attempt
     if (window.gtag) {
       window.gtag('event', 'signup_attempt', {
-        plan_type: selectedPlan,
+        plan_type: 'free',
         plan_value: totalPlanValue,
         conversion_point: 'post_plan_generation'
       });
@@ -76,13 +71,13 @@ const GetStartedSection: React.FC<GetStartedSectionProps> = ({ onBack }) => {
     });
 
     try {
-      console.log('🚀 Starting signup process...', { email, selectedPlan });
+      console.log('🚀 Starting signup process...', { email });
       setDebugStatus('Connecting to authentication service...');
       
       // Use Supabase Auth with timeout
       const userData = {
         name,
-        plan_type: selectedPlan,
+        plan_type: 'free',
         plan_value: totalPlanValue,
         signup_source: 'post_plan_generation'
       };
@@ -111,118 +106,54 @@ const GetStartedSection: React.FC<GetStartedSectionProps> = ({ onBack }) => {
       console.log('✅ Signup successful, proceeding...');
       setDebugStatus('Account created! Saving your planning data...');
 
-      // Save planning data (with longer timeout and non-blocking)
+      // Save planning data (non-blocking)
       const saveDataWithTimeout = async () => {
         try {
           console.log('💾 Attempting to save planning data...');
           
-          const savePromise = (async () => {
-            const { plannerPersistence } = await import('../../services/plannerPersistence');
-            const { supabase } = await import('../../lib/supabase');
-            
-            const { data: { user: currentUser } } = await supabase.auth.getUser();
-            
-            if (currentUser) {
-              console.log('👤 Found authenticated user:', currentUser.id);
-              return await plannerPersistence.savePlanningData(currentUser.id, state);
-            }
-            return { success: false, error: 'No authenticated user found' };
-          })();
+          const { plannerPersistence } = await import('../../services/plannerPersistence');
+          const { supabase } = await import('../../lib/supabase');
           
-          // Increase timeout to 20 seconds for data saving
-          const saveTimeout = new Promise((_, reject) => {
-            setTimeout(() => reject(new Error('Data save timed out')), 20000);
-          });
+          const { data: { user: currentUser } } = await supabase.auth.getUser();
           
-          const saveResult = await Promise.race([savePromise, saveTimeout]) as any;
-          
-          if (saveResult.success) {
-            console.log('✅ Planning data saved successfully!');
-            setDebugStatus('Planning data saved successfully!');
-          } else {
-            console.warn('⚠️ Failed to save planning data:', saveResult.error);
-            setDebugStatus('Data save failed, but continuing...');
+          if (currentUser) {
+            console.log('👤 Found authenticated user:', currentUser.id);
+            const saveResult = await plannerPersistence.savePlanningData(currentUser.id, state);
+            return saveResult;
           }
+          return { success: false, error: 'No authenticated user found' };
         } catch (error) {
           console.warn('⚠️ Non-critical error saving planning data:', error);
           setDebugStatus('Data save error (non-critical)');
-          // Don't block the signup flow for data saving issues
+          return { success: false, error: 'Data save error (non-critical)' };
         }
       };
 
-      // Start data saving but don't wait for it
-      saveDataWithTimeout();
+      // Start data saving but don't wait for it to prevent blocking
+      saveDataWithTimeout().then(saveResult => {
+        if (saveResult.success) {
+          console.log('✅ Planning data saved successfully!');
+          setDebugStatus('Planning data saved successfully!');
+        } else {
+          console.warn('⚠️ Failed to save planning data:', saveResult.error);
+          setDebugStatus('Data save failed, but continuing...');
+        }
+      }).catch(error => {
+        console.warn('⚠️ Data save promise failed:', error);
+      });
 
       // Track successful signup
       if (window.gtag) {
         window.gtag('event', 'signup_success', {
-          plan_type: selectedPlan,
+          plan_type: 'free',
           plan_value: totalPlanValue
         });
       }
 
-      // Handle different plan types
-      if (selectedPlan === 'trial') {
-        console.log('✅ Free trial signup completed');
-        setDebugStatus('Free trial setup complete!');
-        alert('Account created successfully! Welcome to WealthKarma.');
-        setShowSuccess(true);
-        return;
-      }
-
-      // Handle paid plans with timeout
-      try {
-        console.log('💳 Processing payment for plan:', selectedPlan);
-        setDebugStatus('Setting up payment...');
-        
-        const paymentPromise = (async () => {
-          const { paymentService } = await import('../../services/paymentService');
-          const productId = selectedPlan === 'monthly' ? 'monthly-subscription' : 'annual-subscription';
-          
-          return await paymentService.createCheckoutSession({
-            productId,
-            customerEmail: email,
-            metadata: {
-              userName: name,
-              planValue: totalPlanValue.toString(),
-              signupSource: 'post_plan_generation'
-            }
-          });
-        })();
-        
-        const paymentTimeout = new Promise((_, reject) => {
-          setTimeout(() => reject(new Error('Payment setup timed out')), 15000);
-        });
-        
-        const result = await Promise.race([paymentPromise, paymentTimeout]) as any;
-
-        if (result.error) {
-          console.error('❌ Payment error:', result.error);
-          setDebugStatus('Payment setup failed, account created');
-          alert(`Payment setup failed: ${result.error}. Your account was created successfully, you can set up payment later.`);
-          setShowSuccess(true);
-          return;
-        }
-
-        if (result.url) {
-          console.log('🔄 Redirecting to payment:', result.url);
-          setDebugStatus('Redirecting to payment...');
-          alert(`Account created! Redirecting to payment for ${selectedPlan} plan.`);
-          // In production, redirect to Stripe
-          window.location.href = result.url;
-          return;
-        }
-      } catch (paymentError) {
-        console.error('❌ Payment service error:', paymentError);
-        setDebugStatus('Payment error, account created');
-        alert('Payment setup failed, but your account was created successfully. You can set up payment later from your dashboard.');
-        setShowSuccess(true);
-        return;
-      }
-
-      // Fallback success
-      console.log('✅ Signup process completed');
+      // Free signup completed
+      console.log('✅ Free signup completed');
       setDebugStatus('Signup completed successfully!');
+      alert('Account created successfully! Welcome to WealthKarma.');
       setShowSuccess(true);
 
     } catch (error) {
@@ -269,10 +200,10 @@ const GetStartedSection: React.FC<GetStartedSectionProps> = ({ onBack }) => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4">
+    <div className="max-w-6xl mx-auto px-4">
       
-      {/* Hero Section - Redesigned */}
-      <div className="text-center mb-20">
+      {/* Hero Section */}
+      <div className="text-center mb-16">
         <div className="inline-flex items-center gap-3 bg-gradient-to-r from-green-500/20 via-orange-500/20 to-green-500/10 border border-green-500/30 text-green-600 dark:text-green-400 px-8 py-4 rounded-2xl mb-8 shadow-lg backdrop-blur-sm">
           <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
           <span className="text-lg font-medium">Your Personalized Financial Roadmap is Ready</span>
@@ -300,7 +231,7 @@ const GetStartedSection: React.FC<GetStartedSectionProps> = ({ onBack }) => {
           </div>
           <div className="flex items-center gap-2">
             <Clock className="w-5 h-5 text-orange-500" />
-            <span>Cancel Anytime</span>
+            <span>100% Free</span>
           </div>
           <div className="flex items-center gap-2">
             <Star className="w-5 h-5 text-yellow-500" />
@@ -309,7 +240,7 @@ const GetStartedSection: React.FC<GetStartedSectionProps> = ({ onBack }) => {
         </div>
       </div>
 
-      {/* Main Content - Completely Redesigned Layout */}
+      {/* Main Content */}
       <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-start">
         
         {/* Left Column - Value Proposition */}
@@ -385,7 +316,7 @@ const GetStartedSection: React.FC<GetStartedSectionProps> = ({ onBack }) => {
           </div>
         </div>
 
-        {/* Right Column - Unified Package Selection & Signup */}
+        {/* Right Column - Signup Form */}
         <div className="lg:sticky lg:top-8">
           <Card className="bg-theme-card border-2 border-theme shadow-2xl">
             <CardContent className="p-8">
@@ -394,155 +325,35 @@ const GetStartedSection: React.FC<GetStartedSectionProps> = ({ onBack }) => {
               <div className="text-center mb-8">
                 <h2 className="text-3xl font-bold text-theme-primary mb-3">Get Started Today</h2>
                 <p className="text-theme-secondary">Join thousands of successful GCC expats</p>
+                <div className="mt-4 p-4 bg-green-500/10 rounded-xl border border-green-500/20">
+                  <div className="flex items-center justify-center gap-2 text-green-600">
+                    <CheckCircle className="w-5 h-5" />
+                    <span className="font-semibold">100% Free - No Credit Card Required</span>
+                  </div>
+                </div>
               </div>
 
               <form onSubmit={handleSignup} className="space-y-6">
                 
-                {/* Package Selection - Integrated */}
-                <div className="space-y-4">
-                  <label className="block text-sm font-semibold text-theme-primary mb-3">Choose Your Plan</label>
-                  
-                  {/* Annual Plan */}
-                  <div 
-                    onClick={() => setSelectedPlan('annual')}
-                    className={`relative p-6 rounded-2xl border-2 cursor-pointer transition-all duration-300 ${
-                      selectedPlan === 'annual'
-                        ? 'border-green-500 bg-gradient-to-r from-green-500/10 to-orange-500/10 ring-2 ring-green-500/30 transform scale-102'
-                        : 'border-theme bg-theme-tertiary hover:border-green-500/50'
-                    }`}
-                  >
-                    {selectedPlan === 'annual' && (
-                      <div className="absolute -top-2 -right-2">
-                        <span className="bg-gradient-to-r from-green-500 to-orange-500 text-white text-xs font-bold px-3 py-1 rounded-full">
-                          MOST POPULAR
-                        </span>
-                      </div>
-                    )}
-                    
-                    <div className="flex justify-between items-center mb-3">
-                      <div className="flex items-center gap-3">
-                        <Crown className="w-6 h-6 text-orange-500" />
-                        <div>
-                          <h3 className="font-bold text-theme-primary">Premium Annual</h3>
-                          <p className="text-sm text-theme-muted">Best value • Save 17%</p>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm text-red-500 line-through">$119.88</span>
-                          <span className="text-2xl font-bold text-green-600">$99</span>
-                        </div>
-                        <p className="text-xs text-theme-muted">/year • $8.25/month</p>
-                      </div>
+                {/* Features List */}
+                <div className="bg-theme-tertiary rounded-xl p-4 mb-6">
+                  <h3 className="font-semibold text-theme-primary mb-3">What you get for free:</h3>
+                  <div className="grid grid-cols-1 gap-2 text-sm text-theme-secondary">
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
+                      <span>Live progress tracking</span>
                     </div>
-                    
-                    <div className="grid grid-cols-2 gap-2 text-xs text-theme-secondary">
-                      <div className="flex items-center gap-1">
-                        <CheckCircle className="w-3 h-3 text-green-500" />
-                        <span>Live tracking</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <CheckCircle className="w-3 h-3 text-green-500" />
-                        <span>AI coaching</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <CheckCircle className="w-3 h-3 text-green-500" />
-                        <span>Tax optimization</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <CheckCircle className="w-3 h-3 text-green-500" />
-                        <span>Priority support</span>
-                      </div>
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
+                      <span>AI financial coaching</span>
                     </div>
-                  </div>
-
-                  {/* Monthly Plan */}
-                  <div 
-                    onClick={() => setSelectedPlan('monthly')}
-                    className={`relative p-6 rounded-2xl border-2 cursor-pointer transition-all duration-300 ${
-                      selectedPlan === 'monthly'
-                        ? 'border-green-500 bg-gradient-to-r from-green-500/10 to-orange-500/10 ring-2 ring-green-500/30 transform scale-102'
-                        : 'border-theme bg-theme-tertiary hover:border-green-500/50'
-                    }`}
-                  >
-                    <div className="flex justify-between items-center mb-3">
-                      <div className="flex items-center gap-3">
-                        <Crown className="w-6 h-6 text-orange-500" />
-                        <div>
-                          <h3 className="font-bold text-theme-primary">Premium Monthly</h3>
-                          <p className="text-sm text-theme-muted">Flexible • No commitment</p>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <div className="flex items-center gap-2">
-                          <span className="text-2xl font-bold text-green-600">$10</span>
-                        </div>
-                        <p className="text-xs text-theme-muted">/month</p>
-                      </div>
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
+                      <span>Goal optimization</span>
                     </div>
-                    
-                    <div className="grid grid-cols-2 gap-2 text-xs text-theme-secondary">
-                      <div className="flex items-center gap-1">
-                        <CheckCircle className="w-3 h-3 text-green-500" />
-                        <span>Live tracking</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <CheckCircle className="w-3 h-3 text-green-500" />
-                        <span>AI coaching</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <CheckCircle className="w-3 h-3 text-green-500" />
-                        <span>Tax optimization</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <CheckCircle className="w-3 h-3 text-green-500" />
-                        <span>Priority support</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Trial Plan */}
-                  <div 
-                    onClick={() => setSelectedPlan('trial')}
-                    className={`relative p-6 rounded-2xl border-2 cursor-pointer transition-all duration-300 ${
-                      selectedPlan === 'trial'
-                        ? 'border-green-500 bg-gradient-to-r from-green-500/10 to-orange-500/10 ring-2 ring-green-500/30 transform scale-102'
-                        : 'border-theme bg-theme-tertiary hover:border-green-500/50'
-                    }`}
-                  >
-                    <div className="flex justify-between items-center mb-3">
-                      <div className="flex items-center gap-3">
-                        <Gift className="w-6 h-6 text-orange-500" />
-                        <div>
-                          <h3 className="font-bold text-theme-primary">Free Trial</h3>
-                          <p className="text-sm text-theme-muted">No credit card required</p>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <div className="flex items-center gap-2">
-                          <span className="text-2xl font-bold text-green-600">$0</span>
-                        </div>
-                        <p className="text-xs text-theme-muted">/month</p>
-                      </div>
-                    </div>
-                    
-                    <div className="grid grid-cols-2 gap-2 text-xs text-theme-secondary">
-                      <div className="flex items-center gap-1">
-                        <CheckCircle className="w-3 h-3 text-green-500" />
-                        <span>Live tracking</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <CheckCircle className="w-3 h-3 text-green-500" />
-                        <span>AI coaching</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <CheckCircle className="w-3 h-3 text-green-500" />
-                        <span>Tax optimization</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <CheckCircle className="w-3 h-3 text-green-500" />
-                        <span>Priority support</span>
-                      </div>
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
+                      <span>Personalized roadmap</span>
                     </div>
                   </div>
                 </div>
@@ -556,6 +367,7 @@ const GetStartedSection: React.FC<GetStartedSectionProps> = ({ onBack }) => {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       className="w-full px-4 py-3 rounded-lg border border-theme bg-theme-tertiary focus:outline-none focus:ring-2 focus:ring-green-500"
+                      required
                     />
                     <Mail className="absolute top-3 right-3 w-5 h-5 text-theme-muted" />
                   </div>
@@ -566,16 +378,19 @@ const GetStartedSection: React.FC<GetStartedSectionProps> = ({ onBack }) => {
                       value={name}
                       onChange={(e) => setName(e.target.value)}
                       className="w-full px-4 py-3 rounded-lg border border-theme bg-theme-tertiary focus:outline-none focus:ring-2 focus:ring-green-500"
+                      required
                     />
                     <User className="absolute top-3 right-3 w-5 h-5 text-theme-muted" />
                   </div>
                   <div className="relative">
                     <input 
                       type="password"
-                      placeholder="Password"
+                      placeholder="Password (minimum 6 characters)"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       className="w-full px-4 py-3 rounded-lg border border-theme bg-theme-tertiary focus:outline-none focus:ring-2 focus:ring-green-500"
+                      minLength={6}
+                      required
                     />
                     <Lock className="absolute top-3 right-3 w-5 h-5 text-theme-muted" />
                   </div>
@@ -590,10 +405,10 @@ const GetStartedSection: React.FC<GetStartedSectionProps> = ({ onBack }) => {
                   {isSigningUp ? (
                     <div className="flex items-center justify-center gap-2">
                       <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                      {debugStatus || 'Signing up...'}
+                      {debugStatus || 'Creating Account...'}
                     </div>
                   ) : (
-                    'Sign Up'
+                    'Create Free Account'
                   )}
                 </Button>
 
@@ -609,8 +424,13 @@ const GetStartedSection: React.FC<GetStartedSectionProps> = ({ onBack }) => {
 
                 {/* Skip Button */}
                 <Button variant="outline" className="w-full" onClick={handleSkipToDashboard}>
-                  Skip Signup
+                  Skip Signup (View Demo)
                 </Button>
+
+                {/* Terms */}
+                <p className="text-xs text-theme-muted text-center">
+                  By creating an account, you agree to our Terms of Service and Privacy Policy
+                </p>
               </form>
             </CardContent>
           </Card>
@@ -620,4 +440,4 @@ const GetStartedSection: React.FC<GetStartedSectionProps> = ({ onBack }) => {
   );
 };
 
-export default GetStartedSection;
+export default GetStartedSection; 
