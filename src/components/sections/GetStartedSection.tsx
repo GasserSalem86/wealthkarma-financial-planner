@@ -4,7 +4,6 @@ import { useCurrency } from '../../context/CurrencyContext';
 import { useAuth } from '../../context/AuthContext';
 import { formatCurrency } from '../../utils/calculations';
 import { 
-  User, 
   Mail, 
   CheckCircle, 
   Star, 
@@ -34,10 +33,12 @@ const GetStartedSection: React.FC<GetStartedSectionProps> = ({ onBack }) => {
   const { signUp, user } = useAuth();
   const [isSigningUp, setIsSigningUp] = useState(false);
   const [email, setEmail] = useState('');
-  const [name, setName] = useState('');
   const [password, setPassword] = useState('');
   const [showSuccess, setShowSuccess] = useState(false);
   const [debugStatus, setDebugStatus] = useState('');
+
+  // Use the name from the profile that was already collected
+  const userName = state.userProfile.name || '';
 
   // Calculate plan value for display
   const totalPlanValue = state.allocations.reduce((sum, allocation) => 
@@ -76,7 +77,7 @@ const GetStartedSection: React.FC<GetStartedSectionProps> = ({ onBack }) => {
       
       // Use Supabase Auth with timeout
       const userData = {
-        name,
+        name: userName,
         plan_type: 'free',
         plan_value: totalPlanValue,
         signup_source: 'post_plan_generation'
@@ -323,8 +324,12 @@ const GetStartedSection: React.FC<GetStartedSectionProps> = ({ onBack }) => {
               
               {/* Form Header */}
               <div className="text-center mb-8">
-                <h2 className="text-3xl font-bold text-theme-primary mb-3">Get Started Today</h2>
-                <p className="text-theme-secondary">Join thousands of successful GCC expats</p>
+                <h2 className="text-3xl font-bold text-theme-primary mb-3">
+                  {userName ? `Ready, ${userName}?` : 'Get Started Today'}
+                </h2>
+                <p className="text-theme-secondary">
+                  {userName ? 'Create your account to save your personalized plan' : 'Join thousands of successful GCC expats'}
+                </p>
                 <div className="mt-4 p-4 bg-green-500/10 rounded-xl border border-green-500/20">
                   <div className="flex items-center justify-center gap-2 text-green-600">
                     <CheckCircle className="w-5 h-5" />
@@ -337,7 +342,9 @@ const GetStartedSection: React.FC<GetStartedSectionProps> = ({ onBack }) => {
               {showSuccess && (
                 <div className="mb-6 p-6 bg-green-500/10 border border-green-500/20 rounded-xl text-center">
                   <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
-                  <h3 className="text-xl font-bold text-green-600 mb-2">Account Created!</h3>
+                  <h3 className="text-xl font-bold text-green-600 mb-2">
+                    {userName ? `Welcome ${userName}! Account Created!` : 'Account Created!'}
+                  </h3>
                   <p className="text-theme-secondary mb-4">
                     We've sent a confirmation email to <strong>{email}</strong>
                   </p>
@@ -389,17 +396,6 @@ const GetStartedSection: React.FC<GetStartedSectionProps> = ({ onBack }) => {
                   </div>
                   <div className="relative">
                     <input 
-                      type="text"
-                      placeholder="Name"
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      className="w-full px-4 py-3 rounded-lg border border-theme bg-theme-tertiary focus:outline-none focus:ring-2 focus:ring-green-500"
-                      required
-                    />
-                    <User className="absolute top-3 right-3 w-5 h-5 text-theme-muted" />
-                  </div>
-                  <div className="relative">
-                    <input 
                       type="password"
                       placeholder="Password (minimum 6 characters)"
                       value={password}
@@ -416,7 +412,7 @@ const GetStartedSection: React.FC<GetStartedSectionProps> = ({ onBack }) => {
                 <Button 
                   type="submit" 
                   className={`w-full ${isSigningUp ? 'opacity-75 cursor-not-allowed' : ''}`}
-                  disabled={isSigningUp || !email || !name || !password}
+                  disabled={isSigningUp || !email || !password}
                 >
                   {isSigningUp ? (
                     <div className="flex items-center justify-center gap-2">
