@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { usePlanner } from '../../context/PlannerContext';
 import { useCurrency } from '../../context/CurrencyContext';
 import Button from '../ui/Button';
@@ -109,6 +109,52 @@ const RiskReturnsSection: React.FC<RiskReturnsSectionProps> = ({ onNext, onBack 
   const { state, dispatch } = usePlanner();
   const { currency } = useCurrency();
   const [editingRates, setEditingRates] = useState<string | null>(null);
+
+  // Automatically fix goals with incorrect return phases when component loads
+  useEffect(() => {
+    // Find goals that need updating due to hardcoded rates
+    const goalsNeedingUpdate = state.goals.filter(goal => {
+      const expectedRates = DEFAULT_RATES[goal.profile];
+      
+      // Check for retirement goals with single hardcoded 0.07 rate
+      if (goal.category === 'Retirement' && 
+          goal.returnPhases.length === 1 && 
+          goal.returnPhases[0].rate === 0.07) {
+        console.log(`Detected retirement goal with hardcoded 0.07 rate: ${goal.name}`);
+        return true;
+      }
+      
+      // Check for any goals with rates that don't match DEFAULT_RATES
+      const hasIncorrectRates = goal.returnPhases.some(phase => {
+        const rateExists = Object.values(expectedRates).some(expectedRate => 
+          Math.abs(expectedRate - phase.rate) < 0.001 // Allow for small floating point differences
+        );
+        return !rateExists && phase.rate !== 0.02; // 0.02 is the drawdown rate, which is valid
+      });
+      
+      if (hasIncorrectRates) {
+        console.log(`Detected goal with incorrect rates: ${goal.name}`, {
+          currentRates: goal.returnPhases.map(p => p.rate),
+          expectedRates: Object.values(expectedRates)
+        });
+        return true;
+      }
+      
+      return false;
+    });
+
+    // Update goals that need fixing
+    if (goalsNeedingUpdate.length > 0) {
+      console.log(`Auto-fixing ${goalsNeedingUpdate.length} goals with incorrect return phases`);
+      
+      goalsNeedingUpdate.forEach(goal => {
+        dispatch({
+          type: 'UPDATE_GOAL_PROFILE',
+          payload: { id: goal.id, profile: goal.profile }
+        });
+      });
+    }
+  }, [state.goals, dispatch]);
 
   const handleProfileChange = (goalId: string, profile: Profile) => {
     dispatch({
