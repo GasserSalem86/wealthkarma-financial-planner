@@ -18,13 +18,22 @@ const Dashboard: React.FC = () => {
       <div className="min-h-screen app-background flex items-center justify-center">
         <div className="max-w-md mx-auto p-8 bg-theme-card rounded-xl border border-theme shadow-theme-lg text-center">
           <h1 className="text-2xl font-bold text-theme-primary mb-4">Authentication Required</h1>
-          <p className="text-theme-secondary mb-6">Please log in to access your dashboard</p>
-          <Button
-            onClick={() => window.location.href = '/plan'}
-            className="w-full"
-          >
-            Go to Planner
-          </Button>
+          <p className="text-theme-secondary mb-6">Please sign in to access your dashboard</p>
+          <div className="space-y-3">
+            <Button
+              onClick={() => window.location.href = '/login'}
+              className="w-full"
+            >
+              Sign In
+            </Button>
+            <Button
+              onClick={() => window.location.href = '/plan'}
+              variant="outline"
+              className="w-full"
+            >
+              Create Account
+            </Button>
+          </div>
         </div>
       </div>
     );

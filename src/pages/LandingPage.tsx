@@ -600,6 +600,19 @@ const LandingPage: React.FC = () => {
               ✓ No signup required • ✓ 15 minutes to complete • ✓ Export and keep forever
             </div>
           </div>
+
+          {/* Login for existing users */}
+          <div className="mt-6 text-center">
+            <p className="text-theme-muted">
+              Already have an account?{' '}
+              <a 
+                href="/login" 
+                className="text-green-500 hover:text-green-600 font-medium hover:underline"
+              >
+                Sign in to your dashboard
+              </a>
+            </p>
+          </div>
         </div>
       </section>
 

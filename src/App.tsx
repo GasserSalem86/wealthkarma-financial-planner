@@ -7,6 +7,7 @@ import { AuthProvider } from './context/AuthContext';
 import LandingPage from './pages/LandingPage';
 import FinancialGoalsPlanner from './components/FinancialGoalsPlanner';
 import Dashboard from './pages/Dashboard';
+import Login from './pages/Login';
 
 function App() {
   return (
@@ -18,6 +19,7 @@ function App() {
               <PlannerProvider>
                 <Routes>
                   <Route path="/" element={<LandingPage />} />
+                  <Route path="/login" element={<Login />} />
                   <Route path="/plan" element={<FinancialGoalsPlanner />} />
                   <Route path="/plan/:step" element={<FinancialGoalsPlanner />} />
                   <Route path="/dashboard" element={<Dashboard />} />
