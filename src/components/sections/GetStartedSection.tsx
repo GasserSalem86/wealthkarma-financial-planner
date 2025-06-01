@@ -78,31 +78,44 @@ const GetStartedSection: React.FC<GetStartedSectionProps> = ({ onBack }) => {
         return;
       }
 
-      // Wait a moment for auth state to update, then save planning data
-      setTimeout(async () => {
-        try {
-          // Import and save planning data to Supabase
-          const { plannerPersistence } = await import('../../services/plannerPersistence');
+      // Instead of setTimeout, save data immediately after successful signup
+      try {
+        // Import and save planning data to Supabase
+        const { plannerPersistence } = await import('../../services/plannerPersistence');
+        
+        // Check if user is now authenticated
+        const { data: { user: currentUser } } = await import('../../lib/supabase').then(m => m.supabase.auth.getUser());
+        
+        if (currentUser) {
+          console.log('🔍 DEBUG: Planning state before saving:', {
+            userProfile: state.userProfile,
+            goals: state.goals,
+            budget: state.budget,
+            fundingStyle: state.fundingStyle,
+            selectedPhase: state.selectedPhase,
+            emergencyFund: state.emergencyFundCreated,
+            bufferMonths: state.bufferMonths,
+            allocations: state.allocations
+          });
           
-          // Check if user is now authenticated
-          const { data: { user: currentUser } } = await import('../../lib/supabase').then(m => m.supabase.auth.getUser());
+          console.log('💾 Saving planning data for new user:', currentUser.id);
+          const saveResult = await plannerPersistence.savePlanningData(currentUser.id, state);
           
-          if (currentUser) {
-            console.log('Saving planning data for new user:', currentUser.id);
-            const saveResult = await plannerPersistence.savePlanningData(currentUser.id, state);
-            
-            if (saveResult.success) {
-              console.log('Successfully saved planning data to Supabase!');
-            } else {
-              console.error('Failed to save planning data:', saveResult.error);
-              // Don't block the flow, but log the error
-            }
+          if (saveResult.success) {
+            console.log('✅ Successfully saved planning data to Supabase!');
+          } else {
+            console.error('❌ Failed to save planning data:', saveResult.error);
+            // Still continue with the flow but alert user
+            alert(`Warning: Unable to save your planning data. Error: ${saveResult.error}`);
           }
-        } catch (error) {
-          console.error('Error saving planning data:', error);
-          // Don't block the flow
+        } else {
+          console.error('❌ No authenticated user found after signup');
+          alert('Warning: Authentication issue detected. Please contact support.');
         }
-      }, 1000);
+      } catch (error) {
+        console.error('💥 Error saving planning data:', error);
+        alert(`Warning: Unable to save your planning data. Please contact support.`);
+      }
 
       // Track successful signup
       if (window.gtag) {
@@ -141,10 +154,6 @@ const GetStartedSection: React.FC<GetStartedSectionProps> = ({ onBack }) => {
       }
 
       setShowSuccess(true);
-      setTimeout(() => {
-        // Exit wizard and go to standalone dashboard
-        window.location.href = '/dashboard';
-      }, 2000);
     } catch (error) {
       console.error('Signup failed:', error);
       alert('Signup failed. Please try again.');
@@ -180,6 +189,41 @@ const GetStartedSection: React.FC<GetStartedSectionProps> = ({ onBack }) => {
 
     // Exit wizard and go to standalone dashboard
     window.location.href = '/dashboard';
+  };
+
+  // Test function for manual data saving
+  const handleTestDataSaving = async () => {
+    if (!user) {
+      alert('Please log in first to test data saving');
+      return;
+    }
+
+    try {
+      console.log('🧪 TESTING: Manual data save for user:', user.id);
+      console.log('🔍 Current planning state:', {
+        userProfile: state.userProfile,
+        goals: state.goals,
+        goalsCount: state.goals.length,
+        budget: state.budget,
+        fundingStyle: state.fundingStyle,
+        selectedPhase: state.selectedPhase,
+        allocations: state.allocations?.length || 0
+      });
+
+      const { plannerPersistence } = await import('../../services/plannerPersistence');
+      const saveResult = await plannerPersistence.savePlanningData(user.id, state);
+      
+      if (saveResult.success) {
+        alert('✅ Test successful! Data saved to Supabase. Check your database.');
+        console.log('✅ Test data save successful!');
+      } else {
+        alert(`❌ Test failed: ${saveResult.error}`);
+        console.error('❌ Test data save failed:', saveResult.error);
+      }
+    } catch (error) {
+      console.error('💥 Test error:', error);
+      alert(`💥 Test error: ${error}`);
+    }
   };
 
   return (
@@ -504,6 +548,17 @@ const GetStartedSection: React.FC<GetStartedSectionProps> = ({ onBack }) => {
                 <Button variant="outline" className="w-full" onClick={handleSkipToDashboard}>
                   Skip Signup
                 </Button>
+
+                {/* Test Data Saving Button - For Development/Debug */}
+                {process.env.NODE_ENV === 'development' && user && (
+                  <Button 
+                    variant="outline" 
+                    className="w-full bg-blue-500/10 border-blue-500 text-blue-600 hover:bg-blue-500/20" 
+                    onClick={handleTestDataSaving}
+                  >
+                    🧪 Test Data Saving (Debug)
+                  </Button>
+                )}
               </form>
             </CardContent>
           </Card>
