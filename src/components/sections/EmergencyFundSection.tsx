@@ -228,12 +228,13 @@ const EmergencyFundSection: React.FC<EmergencyFundSectionProps> = ({ onNext }) =
           status: `Deep searching batch ${batchIndex + 1}/${bankBatches.length} (${batch.map(b => b.bank).join(', ')}) - ${remainingTime.toFixed(1)} min left`
         });
         
-        const webSearchPrompt = `COMPREHENSIVE RETAIL BANK RATE SEARCH for ${country} - 2024/2025
+        const webSearchPrompt = `COMPREHENSIVE RETAIL BANK RATE SEARCH for ${country} - CURRENT 2025 RATES
 
-Please search the web thoroughly and comprehensively for current interest rates from these ${batch.length} RETAIL BANKS (focusing on individual/personal banking, not corporate/investment banking):
+Please search the web thoroughly for CURRENT January 2025 interest rates from these ${batch.length} RETAIL BANKS (focusing on individual/personal banking, not corporate/investment banking):
 
 ${batch.map((bank, index) => `${index + 1}. ${bank.bank}
    Website: ${bank.url}
+   Search keywords: "${bank.bank} personal savings interest rates 2025", "${bank.bank} time deposit rates current", "${bank.bank} individual banking rates January 2025"
    Look for: Personal savings accounts, individual time deposits, retail banking rates
    
    SEARCH DEEP: Check multiple pages on their website including:
@@ -245,14 +246,16 @@ ${batch.map((bank, index) => `${index + 1}. ${bank.bank}
 
 SEARCH REQUIREMENTS:
 1. Focus ONLY on RETAIL/PERSONAL banking products (not corporate or investment banking)
-2. Find CURRENT 2024-2025 rates for individual customers
-3. Look for both savings accounts AND time deposits for personal banking
-4. Include minimum deposit requirements for individuals
-5. Note any special features or requirements for retail customers
-6. Check for promotional rates for personal accounts
-7. PRIORITIZE banks with highest interest rates
-8. TAKE YOUR TIME - This is a comprehensive search, not a quick lookup
-9. Check multiple pages on each bank's website for complete rate information
+2. Find CURRENT 2025 rates for individual customers - NOT 2024 or older rates
+3. Use web search to find the most recent rate information available online
+4. Look for both savings accounts AND time deposits for personal banking
+5. Include minimum deposit requirements for individuals
+6. Note any special features or requirements for retail customers
+7. Check for promotional rates for personal accounts from 2025
+8. PRIORITIZE banks with highest interest rates
+9. TAKE YOUR TIME - This is a comprehensive web search, not a quick lookup
+10. Search multiple sources including bank websites, financial news, rate comparison sites
+11. Verify rates are current and from 2025
 
 RESPONSE FORMAT - Return comprehensive JSON ordered by HIGHEST RATES FIRST:
 [{
@@ -268,16 +271,18 @@ RESPONSE FORMAT - Return comprehensive JSON ordered by HIGHEST RATES FIRST:
     "minDeposit": "Amount with currency for individuals",
     "features": "Lock-in period, early withdrawal penalties for retail"
   },
-  "source": "Personal banking section or retail page",
-  "lastUpdated": "Date if available",
+  "source": "Website URL or source where current rates were found",
+  "lastUpdated": "Date if available - must be 2025 or very recent",
   "specialOffers": "Any current promotions for individual customers"
 }]
 
 IMPORTANT: 
-- Only include retail/personal banking rates (exclude corporate/investment banking)
+- Only include CURRENT 2025 retail/personal banking rates (exclude corporate/investment banking)
+- Use web search to find the most up-to-date information available
 - Order results by HIGHEST interest rates first
-- Only include banks where you found actual current retail rate information
-- Take time for a thorough search - quality over speed`;
+- Only include banks where you found actual current retail rate information from 2025
+- Take time for a thorough web search - quality over speed
+- Verify information is current and not from 2024 or earlier years`;
 
         try {
           console.log(`🔍 Deep comprehensive search batch ${batchIndex + 1}/${bankBatches.length} with ${batch.length} banks - allowing extra time`);

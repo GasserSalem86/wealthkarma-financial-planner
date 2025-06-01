@@ -552,7 +552,9 @@ Please help with their goal planning request. Be specific and practical in your 
 
       // Check if question needs web search for goal-specific information
       const goalWebSearchKeywords = ['university cost', 'tuition fees', 'travel cost', 'property price', 'house price', 'flight cost', 'hotel price', 'study abroad', 'education cost'];
-      const needsWebSearch = goalWebSearchKeywords.some(keyword => questionLower.includes(keyword));
+      const bankRateSearchKeywords = ['bank rate', 'interest rate', 'deposit rate', 'savings rate', 'time deposit', 'fixed deposit', 'current rates', 'live rates', 'comprehensive', 'retail bank'];
+      const needsWebSearch = goalWebSearchKeywords.some(keyword => questionLower.includes(keyword)) || 
+                            bankRateSearchKeywords.some(keyword => questionLower.includes(keyword));
 
       if (needsWebSearch && context.location) {
         const country = context.location.split(',')[1]?.trim() || context.location;
@@ -567,13 +569,17 @@ Currency: ${context.currency}
 
 User Question: ${question}
 
-Please search the web for current 2024-2025 information to help answer their goal planning question. Focus on:
+Please search the web for current 2025 information to help answer their question. Focus on:
+- Bank interest rates and deposit rates (if bank-related query)
 - Education costs (tuition, living expenses, specific universities)
 - Travel costs (flights, hotels, destination budgets)  
 - Property prices (down payments, market conditions)
 - Any other relevant cost information for their goal
 
-Provide specific, current data with realistic estimates in their currency (${context.currency}). Include sources where possible.`;
+For bank rate searches: Look for current January 2025 rates from official bank websites, financial news, and rate comparison sites.
+For other searches: Provide specific, current data with realistic estimates in their currency (${context.currency}).
+
+Include sources where possible and verify information is current and from 2025.`;
 
           const response = await this.openai.responses.create({
             model: 'gpt-4o',
@@ -594,7 +600,11 @@ Provide specific, current data with realistic estimates in their currency (${con
             console.log('🔍 Using OpenAI Chat Completions with search model...');
             
             const messages: any[] = [
-              { role: "system", content: `You are a specialized goal planning expert for GCC expats. Help users with education costs, travel planning, property purchases, and other financial goals. Use web search to get current, accurate cost information.` }
+              { role: "system", content: `You are a specialized financial planning expert for GCC expats. Help users with education costs, travel planning, property purchases, bank rate searches, and other financial goals. Use web search to get current, accurate information.
+
+For bank rate searches: Focus on current January 2025 interest rates from retail/personal banking products. Search official bank websites, financial news, and rate comparison sites.
+
+For other queries: Provide current cost information and practical financial advice.` }
             ];
 
             // Add conversation history if available
@@ -615,7 +625,7 @@ Income: ${context.monthlyIncome} ${context.currency}
 
 Question: ${question}
 
-Please search for current 2024-2025 cost information to help with their goal planning. Provide specific estimates in ${context.currency} with realistic timelines and recommendations.`
+Please search for current 2025 cost information to help with their goal planning. Provide specific estimates in ${context.currency} with realistic timelines and recommendations.`
             });
 
             const completion = await this.openai.chat.completions.create({
