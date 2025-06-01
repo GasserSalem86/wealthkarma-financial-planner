@@ -111,6 +111,11 @@ export class PaymentService {
         return { error: 'Invalid product' };
       }
 
+      // Check if we have a valid Stripe key
+      const hasValidStripeKey = STRIPE_PUBLISHABLE_KEY && 
+        STRIPE_PUBLISHABLE_KEY !== 'pk_test_...' && 
+        STRIPE_PUBLISHABLE_KEY.startsWith('pk_');
+
       // Track checkout initiation
       if (window.gtag) {
         window.gtag('event', 'begin_checkout', {
@@ -125,27 +130,28 @@ export class PaymentService {
         });
       }
 
-      // In a real implementation, this would call your backend
-      // For now, simulate the checkout flow
-      const checkoutData = {
-        priceId: product.priceId,
-        successUrl: options.successUrl || `${window.location.origin}/success`,
-        cancelUrl: options.cancelUrl || `${window.location.origin}/cancel`,
-        customerEmail: options.customerEmail,
-        metadata: options.metadata || {},
-        mode: product.id.includes('subscription') ? 'subscription' : 'payment'
-      };
+      if (!hasValidStripeKey) {
+        // Demo mode - don't redirect to Stripe
+        console.log('Demo mode: Stripe not configured');
+        console.log('Would create checkout session for:', {
+          priceId: product.priceId,
+          successUrl: options.successUrl || `${window.location.origin}/success`,
+          cancelUrl: options.cancelUrl || `${window.location.origin}/cancel`,
+          customerEmail: options.customerEmail,
+          metadata: options.metadata || {},
+          mode: product.id.includes('subscription') ? 'subscription' : 'payment'
+        });
+        
+        // Show demo message and return error to prevent redirect
+        alert(`Demo Mode: ${product.name} ($${product.price}) checkout would be processed here. Payment integration is not configured in this demo.`);
+        return { error: 'Payment processing is not configured in demo mode' };
+      }
 
-      // TODO: Replace with actual backend call
-      console.log('Creating checkout session:', checkoutData);
-      
-      // Simulate successful response
-      const mockCheckoutUrl = `https://checkout.stripe.com/pay/mock-session-${product.id}`;
-      
-      // For demo purposes, show alert
-      alert(`Redirecting to Stripe Checkout for ${product.name} ($${product.price})`);
-      
-      return { url: mockCheckoutUrl };
+      // Real Stripe integration would go here
+      // For now, return error since we don't have backend integration
+      console.log('Stripe configured but backend integration needed');
+      return { error: 'Payment backend integration required' };
+
     } catch (error) {
       console.error('Checkout error:', error);
       return { error: 'Payment processing failed' };
