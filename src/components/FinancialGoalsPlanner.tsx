@@ -332,7 +332,7 @@ const FinancialGoalsPlanner: React.FC = () => {
           </section>
 
           <section className={`min-h-screen p-4 lg:p-8 ${state.currentStep === 5 ? 'block' : 'hidden'}`}>
-            <BudgetProjections />
+            <BudgetProjections onNext={handleNext} onBack={handleBack} />
           </section>
 
           <section className={`min-h-screen p-4 lg:p-8 ${state.currentStep === 6 ? 'block' : 'hidden'}`}>
