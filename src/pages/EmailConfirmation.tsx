@@ -1,13 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
-import { CheckCircle, XCircle, Loader2 } from 'lucide-react';
+import { CheckCircle, XCircle, Loader2, Save } from 'lucide-react';
 
 const EmailConfirmation: React.FC = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
   const [message, setMessage] = useState('');
+  const [savingData, setSavingData] = useState(false);
 
   useEffect(() => {
     const handleEmailConfirmation = async () => {
@@ -39,12 +40,15 @@ const EmailConfirmation: React.FC = () => {
 
           if (data.user) {
             setStatus('success');
-            setMessage('Email confirmed successfully! Redirecting to dashboard...');
+            setMessage('Email confirmed successfully!');
+            
+            // Save planning data to Supabase
+            await savePlanningDataToSupabase(data.user.id);
             
             // Redirect to dashboard after a brief delay
             setTimeout(() => {
               navigate('/dashboard');
-            }, 2000);
+            }, 3000);
             return;
           }
         }
@@ -66,12 +70,15 @@ const EmailConfirmation: React.FC = () => {
 
           if (data.user) {
             setStatus('success');
-            setMessage('Email confirmed successfully! Redirecting to dashboard...');
+            setMessage('Email confirmed successfully!');
+            
+            // Save planning data to Supabase
+            await savePlanningDataToSupabase(data.user.id);
             
             // Redirect to dashboard after a brief delay
             setTimeout(() => {
               navigate('/dashboard');
-            }, 2000);
+            }, 3000);
             return;
           }
         }
@@ -84,6 +91,56 @@ const EmailConfirmation: React.FC = () => {
         console.error('Unexpected error during email confirmation:', error);
         setStatus('error');
         setMessage('An unexpected error occurred. Please try again.');
+      }
+    };
+
+    const savePlanningDataToSupabase = async (userId: string) => {
+      try {
+        setSavingData(true);
+        setMessage('Email confirmed! Saving your planning data...');
+        
+        // Load planning data from localStorage
+        const savedPlannerState = localStorage.getItem('planner-state');
+        if (!savedPlannerState) {
+          console.log('No planning data found in localStorage');
+          setMessage('Email confirmed successfully! Redirecting to dashboard...');
+          return;
+        }
+
+        const plannerState = JSON.parse(savedPlannerState);
+        console.log('Found planning data in localStorage:', plannerState);
+
+        // Only save if there's meaningful data (not just empty state)
+        const hasData = plannerState.goals?.length > 0 || 
+                       plannerState.userProfile?.name || 
+                       plannerState.monthlyExpenses > 0;
+
+        if (!hasData) {
+          console.log('No meaningful planning data to save');
+          setMessage('Email confirmed successfully! Redirecting to dashboard...');
+          return;
+        }
+
+        // Import and use the planning persistence service
+        const { plannerPersistence } = await import('../services/plannerPersistence');
+        const result = await plannerPersistence.savePlanningData(userId, plannerState);
+
+        if (result.success) {
+          console.log('✅ Successfully saved planning data to Supabase');
+          setMessage('Email confirmed and planning data saved! Redirecting to dashboard...');
+          
+          // Clear localStorage since data is now in Supabase
+          localStorage.removeItem('planner-state');
+        } else {
+          console.error('❌ Failed to save planning data:', result.error);
+          setMessage('Email confirmed, but failed to save planning data. You can access your data in the dashboard.');
+        }
+
+      } catch (error) {
+        console.error('Error saving planning data:', error);
+        setMessage('Email confirmed, but encountered an error saving data. You can access your data in the dashboard.');
+      } finally {
+        setSavingData(false);
       }
     };
 
@@ -114,6 +171,15 @@ const EmailConfirmation: React.FC = () => {
             <p className="text-theme-secondary mb-4">
               {message}
             </p>
+            
+            {/* Data saving indicator */}
+            {savingData && (
+              <div className="flex items-center justify-center gap-2 mb-4 p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+                <Save className="w-4 h-4 text-blue-400 animate-pulse" />
+                <span className="text-sm text-blue-400">Saving your planning data...</span>
+              </div>
+            )}
+            
             <div className="text-sm text-theme-secondary">
               You'll be redirected automatically in a few seconds...
             </div>

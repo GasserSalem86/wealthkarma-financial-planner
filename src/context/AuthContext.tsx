@@ -44,13 +44,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(session?.user ?? null);
       setLoading(false);
 
-      // Create profile when user signs in with confirmed email
+      // Create profile when user signs in (including after email confirmation)
       if (event === 'SIGNED_IN' && session?.user) {
         console.log('User signed in, checking profile...');
         await createUserProfile(session.user, session.user.user_metadata || {});
       }
 
-      // Also handle when email gets confirmed
+      // Also handle when email gets confirmed through token refresh
       if (event === 'TOKEN_REFRESHED' && session?.user && session.user.email_confirmed_at) {
         console.log('Token refreshed with confirmed email, ensuring profile exists...');
         await createUserProfile(session.user, session.user.user_metadata || {});
@@ -110,9 +110,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         options: {
           emailRedirectTo: `${window.location.origin}/confirm`,
           data: {
-            full_name: userData.fullName || '',
+            full_name: userData.name || userData.fullName || '',
             country: userData.country || '',
             nationality: userData.nationality || '',
+            plan_type: userData.plan_type || 'free',
+            plan_value: userData.plan_value || 0,
+            signup_source: userData.signup_source || ''
           },
         },
       });
