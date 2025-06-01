@@ -12,41 +12,74 @@ const EmailConfirmation: React.FC = () => {
   useEffect(() => {
     const handleEmailConfirmation = async () => {
       try {
-        // Get the tokens from URL parameters
+        // Get the tokens from URL parameters - handle both old and new formats
         const token_hash = searchParams.get('token_hash');
         const type = searchParams.get('type');
+        
+        // New format parameters
+        const access_token = searchParams.get('access_token');
+        const refresh_token = searchParams.get('refresh_token');
 
-        if (!token_hash || type !== 'email') {
-          setStatus('error');
-          setMessage('Invalid confirmation link. Please try signing up again.');
-          return;
+        console.log('Email confirmation params:', { token_hash, type, access_token, refresh_token });
+
+        // Handle new format (access_token + refresh_token)
+        if (access_token && refresh_token) {
+          console.log('Using new token format for confirmation');
+          const { data, error } = await supabase.auth.setSession({
+            access_token,
+            refresh_token
+          });
+
+          if (error) {
+            console.error('Email confirmation error (new format):', error);
+            setStatus('error');
+            setMessage(error.message || 'Failed to confirm email. Please try again.');
+            return;
+          }
+
+          if (data.user) {
+            setStatus('success');
+            setMessage('Email confirmed successfully! Redirecting to dashboard...');
+            
+            // Redirect to dashboard after a brief delay
+            setTimeout(() => {
+              navigate('/dashboard');
+            }, 2000);
+            return;
+          }
         }
 
-        // Verify the email with Supabase
-        const { data, error } = await supabase.auth.verifyOtp({
-          token_hash,
-          type: 'email'
-        });
+        // Handle old format (token_hash + type)
+        if (token_hash && type === 'email') {
+          console.log('Using old token format for confirmation');
+          const { data, error } = await supabase.auth.verifyOtp({
+            token_hash,
+            type: 'email'
+          });
 
-        if (error) {
-          console.error('Email confirmation error:', error);
-          setStatus('error');
-          setMessage(error.message || 'Failed to confirm email. Please try again.');
-          return;
+          if (error) {
+            console.error('Email confirmation error (old format):', error);
+            setStatus('error');
+            setMessage(error.message || 'Failed to confirm email. Please try again.');
+            return;
+          }
+
+          if (data.user) {
+            setStatus('success');
+            setMessage('Email confirmed successfully! Redirecting to dashboard...');
+            
+            // Redirect to dashboard after a brief delay
+            setTimeout(() => {
+              navigate('/dashboard');
+            }, 2000);
+            return;
+          }
         }
 
-        if (data.user) {
-          setStatus('success');
-          setMessage('Email confirmed successfully! Redirecting to dashboard...');
-          
-          // Redirect to dashboard after a brief delay
-          setTimeout(() => {
-            navigate('/dashboard');
-          }, 2000);
-        } else {
-          setStatus('error');
-          setMessage('Email confirmation failed. Please try signing up again.');
-        }
+        // If we get here, no valid tokens were found
+        setStatus('error');
+        setMessage('Invalid confirmation link. Please try signing up again.');
+        
       } catch (error) {
         console.error('Unexpected error during email confirmation:', error);
         setStatus('error');

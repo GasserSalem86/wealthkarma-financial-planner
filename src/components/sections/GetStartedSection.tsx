@@ -87,7 +87,7 @@ const GetStartedSection: React.FC<GetStartedSectionProps> = ({ onBack }) => {
       
       // Race between signup and timeout
       const signupPromise = signUp(email, password, userData);
-      const result = await Promise.race([signupPromise, timeoutPromise]) as { error: any };
+      const result = await Promise.race([signupPromise, timeoutPromise]) as { error: any; user?: any };
       
       if (result.error) {
         console.error('❌ Signup failed:', result.error);
@@ -150,10 +150,10 @@ const GetStartedSection: React.FC<GetStartedSectionProps> = ({ onBack }) => {
         });
       }
 
-      // Free signup completed
+      // Free signup completed - always requires email confirmation for new signups
       console.log('✅ Free signup completed');
-      setDebugStatus('Signup completed successfully!');
-      alert('Account created successfully! Welcome to WealthKarma.');
+      setDebugStatus('Please check your email for confirmation link');
+      alert('Account created! Please check your email and click the confirmation link to activate your account.');
       setShowSuccess(true);
 
     } catch (error) {
@@ -332,6 +332,22 @@ const GetStartedSection: React.FC<GetStartedSectionProps> = ({ onBack }) => {
                   </div>
                 </div>
               </div>
+
+              {/* Success Message */}
+              {showSuccess && (
+                <div className="mb-6 p-6 bg-green-500/10 border border-green-500/20 rounded-xl text-center">
+                  <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
+                  <h3 className="text-xl font-bold text-green-600 mb-2">Account Created!</h3>
+                  <p className="text-theme-secondary mb-4">
+                    We've sent a confirmation email to <strong>{email}</strong>
+                  </p>
+                  <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-3">
+                    <p className="text-sm text-yellow-700 dark:text-yellow-400">
+                      <strong>Next Step:</strong> Check your email and click the confirmation link to activate your account.
+                    </p>
+                  </div>
+                </div>
+              )}
 
               <form onSubmit={handleSignup} className="space-y-6">
                 
