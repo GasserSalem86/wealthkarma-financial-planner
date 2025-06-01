@@ -8,6 +8,7 @@ import LandingPage from './pages/LandingPage';
 import FinancialGoalsPlanner from './components/FinancialGoalsPlanner';
 import Dashboard from './pages/Dashboard';
 import Login from './pages/Login';
+import EmailConfirmation from './pages/EmailConfirmation';
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
                 <Routes>
                   <Route path="/" element={<LandingPage />} />
                   <Route path="/login" element={<Login />} />
+                  <Route path="/confirm" element={<EmailConfirmation />} />
                   <Route path="/plan" element={<FinancialGoalsPlanner />} />
                   <Route path="/plan/:step" element={<FinancialGoalsPlanner />} />
                   <Route path="/dashboard" element={<Dashboard />} />

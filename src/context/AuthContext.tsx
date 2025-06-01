@@ -42,6 +42,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
+
+      // Create profile when email is confirmed
+      if (event === 'SIGNED_IN' && session?.user && session.user.email_confirmed_at) {
+        // Check if profile already exists
+        const { data: existingProfile } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('id', session.user.id)
+          .single();
+
+        // Only create profile if it doesn't exist
+        if (!existingProfile) {
+          await createUserProfile(session.user, session.user.user_metadata);
+        }
+      }
     });
 
     return () => subscription.unsubscribe();
@@ -79,6 +94,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         email,
         password,
         options: {
+          emailRedirectTo: `${window.location.origin}/confirm`,
           data: {
             full_name: userData.fullName || '',
             country: userData.country || '',
@@ -87,8 +103,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         },
       });
 
-      // Create profile after successful signup
-      if (!error && data.user) {
+      // Create profile after successful signup (will happen after email confirmation)
+      if (!error && data.user && data.user.email_confirmed_at) {
         await createUserProfile(data.user, userData);
       }
 
