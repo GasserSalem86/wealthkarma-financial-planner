@@ -1,16 +1,30 @@
 import React from 'react';
-import { PlannerProvider } from '../context/PlannerContext';
+import { PlannerProvider, usePlanner } from '../context/PlannerContext';
 import { CurrencyProvider } from '../context/CurrencyContext';
 import { ThemeProvider } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
 import LiveDashboard from '../components/LiveDashboard';
 import ThemeToggle from '../components/ui/ThemeToggle';
 import CurrencySelector from '../components/CurrencySelector';
-import { Home, ArrowLeft, LogOut } from 'lucide-react';
+import { Home, ArrowLeft, LogOut, Loader2 } from 'lucide-react';
 import Button from '../components/ui/Button';
 
-const Dashboard: React.FC = () => {
+const DashboardContent: React.FC = () => {
   const { user, signOut } = useAuth();
+  const { state } = usePlanner();
+
+  // Show loading while data is being loaded
+  if (state.isLoading) {
+    return (
+      <div className="min-h-screen app-background flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-12 h-12 text-green-500 mx-auto mb-4 animate-spin" />
+          <h2 className="text-xl font-bold text-theme-primary mb-2">Loading Your Financial Plan</h2>
+          <p className="text-theme-secondary">Retrieving your planning data...</p>
+        </div>
+      </div>
+    );
+  }
 
   // Show login prompt if not authenticated
   if (!user) {
@@ -145,6 +159,18 @@ const Dashboard: React.FC = () => {
         />
       </main>
     </div>
+  );
+};
+
+const Dashboard: React.FC = () => {
+  return (
+    <ThemeProvider>
+      <CurrencyProvider>
+        <PlannerProvider>
+          <DashboardContent />
+        </PlannerProvider>
+      </CurrencyProvider>
+    </ThemeProvider>
   );
 };
 

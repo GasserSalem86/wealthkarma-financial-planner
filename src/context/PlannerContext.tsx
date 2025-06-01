@@ -1,6 +1,7 @@
-import React, { createContext, useContext, useReducer } from 'react';
+import React, { createContext, useContext, useReducer, useEffect } from 'react';
 import { Goal, Profile, ReturnPhase, FundingStyle } from '../types/plannerTypes';
 import { calculateRequiredPMT, calculateSequentialAllocations, GoalResult } from '../utils/calculations';
+import { useAuth } from './AuthContext';
 
 // Define the context state type
 export interface PlannerState {
@@ -21,6 +22,9 @@ export interface PlannerState {
     monthlyIncome?: number;
     currency?: string;
   };
+  // Add loading state
+  isLoading: boolean;
+  isDataLoaded: boolean;
 }
 
 // Define the initial state
@@ -34,7 +38,9 @@ const initialState: PlannerState = {
   selectedPhase: 0,
   allocations: [],
   fundingStyle: 'hybrid',
-  userProfile: {}
+  userProfile: {},
+  isLoading: true,
+  isDataLoaded: false
 };
 
 // Define action types
@@ -52,7 +58,10 @@ type PlannerAction =
   | { type: 'UPDATE_GOAL_PROFILE'; payload: { id: string; profile: Profile } }
   | { type: 'UPDATE_GOAL_RATES'; payload: { id: string; rates: { high: number; mid: number; low: number } } }
   | { type: 'SET_FUNDING_STYLE'; payload: FundingStyle }
-  | { type: 'SET_USER_PROFILE'; payload: { name?: string; nationality?: string; location?: string; monthlyIncome?: number; currency?: string } };
+  | { type: 'SET_USER_PROFILE'; payload: { name?: string; nationality?: string; location?: string; monthlyIncome?: number; currency?: string } }
+  | { type: 'LOAD_PLANNING_DATA'; payload: Partial<PlannerState> }
+  | { type: 'SET_LOADING'; payload: boolean }
+  | { type: 'SET_DATA_LOADED'; payload: boolean };
 
 // Helper function to recalculate allocations
 const recalculateAllocations = (state: PlannerState): GoalResult[] => {
@@ -325,6 +334,33 @@ const plannerReducer = (state: PlannerState, action: PlannerAction): PlannerStat
       return updatedState;
     }
 
+    case 'LOAD_PLANNING_DATA': {
+      const loadedData = action.payload;
+      newState = {
+        ...state,
+        currentStep: loadedData.currentStep ?? state.currentStep,
+        monthlyExpenses: loadedData.monthlyExpenses ?? state.monthlyExpenses,
+        bufferMonths: loadedData.bufferMonths ?? state.bufferMonths,
+        emergencyFundCreated: loadedData.emergencyFundCreated ?? state.emergencyFundCreated,
+        goals: loadedData.goals ?? state.goals,
+        budget: loadedData.budget ?? state.budget,
+        selectedPhase: loadedData.selectedPhase ?? state.selectedPhase,
+        allocations: loadedData.allocations ?? state.allocations,
+        fundingStyle: loadedData.fundingStyle ?? state.fundingStyle,
+        userProfile: loadedData.userProfile ?? state.userProfile,
+        isLoading: loadedData.isLoading ?? false,
+        isDataLoaded: loadedData.isDataLoaded ?? true
+      };
+      newState.allocations = recalculateAllocations(newState);
+      return newState;
+    }
+
+    case 'SET_LOADING':
+      return { ...state, isLoading: action.payload };
+
+    case 'SET_DATA_LOADED':
+      return { ...state, isDataLoaded: action.payload };
+
     default:
       return state;
   }
@@ -334,6 +370,7 @@ const plannerReducer = (state: PlannerState, action: PlannerAction): PlannerStat
 interface PlannerContextType {
   state: PlannerState;
   dispatch: React.Dispatch<PlannerAction>;
+  saveToSupabase: () => Promise<{ success: boolean; error?: string }>;
 }
 
 const PlannerContext = createContext<PlannerContextType | undefined>(undefined);
@@ -354,22 +391,121 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
             ...g,
             targetDate: new Date(g.targetDate),
           }));
-          return { ...init, ...parsed } as PlannerState;
+          return { ...init, ...parsed, isLoading: false, isDataLoaded: true } as PlannerState;
         }
       } catch (_) {}
-      return init;
+      return { ...init, isLoading: false };
     }
   );
 
-  // Persist on every state change
-  React.useEffect(() => {
+  // Load data from Supabase for authenticated users
+  useEffect(() => {
+    const loadDataFromSupabase = async (userId: string) => {
+      try {
+        dispatch({ type: 'SET_LOADING', payload: true });
+        
+        // Only load if we don't have data in localStorage and haven't loaded from Supabase yet
+        const hasLocalData = localStorage.getItem('planner-state');
+        if (hasLocalData || state.isDataLoaded) {
+          dispatch({ type: 'SET_LOADING', payload: false });
+          return;
+        }
+
+        console.log('Loading planning data from Supabase for user:', userId);
+        
+        // Dynamically import to avoid circular dependencies
+        const { plannerPersistence } = await import('../services/plannerPersistence');
+        const result = await plannerPersistence.loadPlanningData(userId);
+
+        if (result.success && result.data) {
+          console.log('Successfully loaded planning data from Supabase');
+          
+          // Revive Date objects in goals
+          if (result.data.goals) {
+            result.data.goals = result.data.goals.map(goal => ({
+              ...goal,
+              targetDate: new Date(goal.targetDate),
+            }));
+          }
+
+          dispatch({ 
+            type: 'LOAD_PLANNING_DATA', 
+            payload: { 
+              ...result.data, 
+              isLoading: false, 
+              isDataLoaded: true 
+            } 
+          });
+        } else {
+          console.log('No planning data found in Supabase or failed to load');
+          dispatch({ type: 'SET_LOADING', payload: false });
+          dispatch({ type: 'SET_DATA_LOADED', payload: true });
+        }
+      } catch (error) {
+        console.error('Error loading planning data from Supabase:', error);
+        dispatch({ type: 'SET_LOADING', payload: false });
+      }
+    };
+
+    // We need to get auth state - this will be called when component mounts
+    // but we need to ensure we have the user context
+    const checkAndLoadData = async () => {
+      // We'll need to import useAuth differently since we can't use hooks here
+      // Instead, we'll check for user via supabase directly
+      try {
+        const { supabase } = await import('../lib/supabase');
+        const { data: { user } } = await supabase.auth.getUser();
+        
+        if (user && !state.isDataLoaded) {
+          await loadDataFromSupabase(user.id);
+        }
+      } catch (error) {
+        console.error('Error checking auth state:', error);
+      }
+    };
+
+    // Only run if we haven't loaded data yet
+    if (!state.isDataLoaded) {
+      checkAndLoadData();
+    }
+  }, [state.isDataLoaded]);
+
+  // Persist on every state change (but not while loading)
+  useEffect(() => {
+    if (!state.isLoading) {
+      try {
+        localStorage.setItem('planner-state', JSON.stringify(state));
+      } catch (_) {}
+    }
+  }, [state, state.isLoading]);
+
+  // Save function to persist changes to Supabase
+  const saveToSupabase = async (): Promise<{ success: boolean; error?: string }> => {
     try {
-      localStorage.setItem('planner-state', JSON.stringify(state));
-    } catch (_) {}
-  }, [state]);
+      const { supabase } = await import('../lib/supabase');
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        return { success: false, error: 'User not authenticated' };
+      }
+
+      console.log('Saving planning data to Supabase...');
+      const { plannerPersistence } = await import('../services/plannerPersistence');
+      const result = await plannerPersistence.savePlanningData(user.id, state);
+      
+      if (result.success) {
+        console.log('Successfully saved planning data to Supabase');
+      }
+      
+      return result;
+    } catch (error) {
+      console.error('Error saving to Supabase:', error);
+      return { success: false, error: 'Failed to save data' };
+    }
+  };
 
   return (
-    <PlannerContext.Provider value={{ state, dispatch }}>
+    <PlannerContext.Provider value={{ state, dispatch, saveToSupabase }}>
       {children}
     </PlannerContext.Provider>
   );

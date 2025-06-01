@@ -44,10 +44,11 @@ interface AIRecommendation {
 }
 
 const LiveDashboard: React.FC<LiveDashboardProps> = ({ onOptimizePlan, onUpdateProgress }) => {
-  const { state } = usePlanner();
+  const { state, dispatch, saveToSupabase } = usePlanner();
   const { currency } = useCurrency();
   const [activeTab, setActiveTab] = useState<'overview' | 'goals' | 'insights' | 'settings'>('overview');
   const [editingGoal, setEditingGoal] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
   const [actualProgress, setActualProgress] = useState<ActualProgress[]>(
     state.goals.map(goal => ({
       goalId: goal.id,
@@ -136,6 +137,78 @@ const LiveDashboard: React.FC<LiveDashboardProps> = ({ onOptimizePlan, onUpdateP
           : p
       )
     );
+  };
+
+  // Goal editing functions
+  const updateGoalAmount = async (goalId: string, newAmount: number) => {
+    const goal = state.goals.find(g => g.id === goalId);
+    if (!goal) return;
+
+    const updatedGoal = { ...goal, amount: newAmount };
+    dispatch({ type: 'UPDATE_GOAL', payload: updatedGoal });
+    
+    // Auto-save to Supabase
+    await handleSaveChanges();
+  };
+
+  const updateGoalDate = async (goalId: string, newDate: Date) => {
+    const goal = state.goals.find(g => g.id === goalId);
+    if (!goal) return;
+
+    // Recalculate horizon months
+    const horizonMonths = Math.max(1, Math.ceil((newDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24 * 30)));
+    
+    const updatedGoal = { 
+      ...goal, 
+      targetDate: newDate,
+      horizonMonths
+    };
+    dispatch({ type: 'UPDATE_GOAL', payload: updatedGoal });
+    
+    // Auto-save to Supabase
+    await handleSaveChanges();
+  };
+
+  const updateBudget = async (newBudget: number) => {
+    dispatch({ type: 'SET_BUDGET', payload: newBudget });
+    
+    // Auto-save to Supabase
+    await handleSaveChanges();
+  };
+
+  const updateEmergencyFund = async (newExpenses: number, newBufferMonths: number) => {
+    dispatch({ type: 'SET_MONTHLY_EXPENSES', payload: newExpenses });
+    dispatch({ type: 'SET_BUFFER_MONTHS', payload: newBufferMonths });
+    
+    // Update emergency fund goal if it exists
+    const emergencyFund = state.goals.find(g => g.id === 'emergency-fund');
+    if (emergencyFund) {
+      const newAmount = newExpenses * newBufferMonths;
+      const updatedGoal = { ...emergencyFund, amount: newAmount };
+      dispatch({ type: 'UPDATE_GOAL', payload: updatedGoal });
+    }
+    
+    // Auto-save to Supabase
+    await handleSaveChanges();
+  };
+
+  // Save changes to Supabase
+  const handleSaveChanges = async () => {
+    if (saving) return; // Prevent multiple saves
+    
+    try {
+      setSaving(true);
+      const result = await saveToSupabase();
+      
+      if (!result.success) {
+        console.error('Failed to save changes:', result.error);
+        // You could add a toast notification here
+      }
+    } catch (error) {
+      console.error('Error saving changes:', error);
+    } finally {
+      setSaving(false);
+    }
   };
 
   const getRecommendationColor = (type: AIRecommendation['type']) => {
@@ -466,45 +539,226 @@ const LiveDashboard: React.FC<LiveDashboardProps> = ({ onOptimizePlan, onUpdateP
 
       {activeTab === 'settings' && (
         <div className="space-y-6">
+          {/* Budget Settings */}
           <Card>
             <CardHeader>
-              <CardTitle>Dashboard Settings</CardTitle>
+              <CardTitle>Monthly Budget</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-6">
+              <div className="grid md:grid-cols-2 gap-4">
                 <div>
-                  <h4 className="font-medium mb-3 text-theme-primary">Notifications</h4>
-                  <div className="space-y-3">
-                    <label className="flex items-center">
-                      <input type="checkbox" defaultChecked className="mr-3" />
-                      <span className="text-theme-secondary">Monthly progress reminders</span>
-                    </label>
-                    <label className="flex items-center">
-                      <input type="checkbox" defaultChecked className="mr-3" />
-                      <span className="text-theme-secondary">Goal milestone celebrations</span>
-                    </label>
-                    <label className="flex items-center">
-                      <input type="checkbox" defaultChecked className="mr-3" />
-                      <span className="text-theme-secondary">AI optimization suggestions</span>
-                    </label>
+                  <label className="block text-sm font-medium text-theme-secondary mb-2">
+                    Monthly Savings Budget
+                  </label>
+                  <div className="relative">
+                    <DollarSign className="w-5 h-5 text-theme-muted absolute left-3 top-3" />
+                    <input
+                      type="number"
+                      value={state.budget}
+                      onChange={(e) => updateBudget(parseFloat(e.target.value) || 0)}
+                      className="input-dark w-full pl-10 pr-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                      placeholder="0.00"
+                    />
                   </div>
+                  <p className="text-xs text-theme-muted mt-1">
+                    Current allocation across all goals
+                  </p>
                 </div>
-
+                
                 <div>
-                  <h4 className="font-medium mb-3 text-theme-primary">Data Export</h4>
-                  <div className="flex gap-3">
-                    <Button variant="outline">
-                      <Download className="w-4 h-4 mr-2" />
-                      Export Data
-                    </Button>
-                    <Button variant="outline">
-                      Import Bank Data
-                    </Button>
+                  <label className="block text-sm font-medium text-theme-secondary mb-2">
+                    Monthly Income
+                  </label>
+                  <div className="relative">
+                    <DollarSign className="w-5 h-5 text-theme-muted absolute left-3 top-3" />
+                    <input
+                      type="number"
+                      value={state.userProfile.monthlyIncome || 0}
+                      onChange={(e) => {
+                        const newIncome = parseFloat(e.target.value) || 0;
+                        dispatch({ 
+                          type: 'SET_USER_PROFILE', 
+                          payload: { ...state.userProfile, monthlyIncome: newIncome }
+                        });
+                        // Auto-calculate budget
+                        const newBudget = Math.max(0, newIncome - state.monthlyExpenses);
+                        updateBudget(newBudget);
+                      }}
+                      className="input-dark w-full pl-10 pr-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                      placeholder="0.00"
+                    />
                   </div>
                 </div>
               </div>
             </CardContent>
           </Card>
+
+          {/* Emergency Fund Settings */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Emergency Fund Settings</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-theme-secondary mb-2">
+                    Monthly Expenses
+                  </label>
+                  <div className="relative">
+                    <DollarSign className="w-5 h-5 text-theme-muted absolute left-3 top-3" />
+                    <input
+                      type="number"
+                      value={state.monthlyExpenses}
+                      onChange={(e) => {
+                        const newExpenses = parseFloat(e.target.value) || 0;
+                        updateEmergencyFund(newExpenses, state.bufferMonths);
+                      }}
+                      className="input-dark w-full pl-10 pr-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                      placeholder="0.00"
+                    />
+                  </div>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-theme-secondary mb-2">
+                    Buffer Months
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="12"
+                    value={state.bufferMonths}
+                    onChange={(e) => {
+                      const newBuffer = parseInt(e.target.value) || 3;
+                      updateEmergencyFund(state.monthlyExpenses, newBuffer);
+                    }}
+                    className="input-dark w-full px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    placeholder="3"
+                  />
+                  <p className="text-xs text-theme-muted mt-1">
+                    Recommended: 3-6 months of expenses
+                  </p>
+                </div>
+              </div>
+              
+              <div className="mt-4 p-3 bg-theme-section rounded-lg">
+                <p className="text-sm text-theme-secondary">
+                  Emergency Fund Target: <span className="font-semibold text-theme-primary">
+                    {formatCurrency(state.monthlyExpenses * state.bufferMonths, currency)}
+                  </span>
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Goal Management */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Goal Management</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {state.goals.filter(g => g.id !== 'emergency-fund').map((goal) => (
+                  <div key={goal.id} className="border border-theme rounded-lg p-4 bg-theme-card shadow-theme">
+                    <div className="flex justify-between items-center mb-3">
+                      <h4 className="font-semibold text-theme-primary">{goal.name}</h4>
+                      <Button 
+                        onClick={() => setEditingGoal(goal.id)}
+                        size="sm" 
+                        variant="outline"
+                      >
+                        <Edit3 className="w-4 h-4 mr-2" />
+                        Edit
+                      </Button>
+                    </div>
+                    
+                    <div className="grid md:grid-cols-3 gap-4 text-sm">
+                      <div>
+                        <p className="text-theme-secondary">Target Amount</p>
+                        <p className="font-semibold text-theme-primary">{formatCurrency(goal.amount, currency)}</p>
+                      </div>
+                      <div>
+                        <p className="text-theme-secondary">Target Date</p>
+                        <p className="font-semibold text-theme-primary">{goal.targetDate.toLocaleDateString()}</p>
+                      </div>
+                      <div>
+                        <p className="text-theme-secondary">Monthly Required</p>
+                        <p className="font-semibold text-theme-primary">{formatCurrency(goal.requiredPMT || 0, currency)}</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Save Status */}
+          {saving && (
+            <div className="flex items-center justify-center gap-2 p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+              <div className="w-4 h-4 border-2 border-blue-400/30 border-t-blue-400 rounded-full animate-spin"></div>
+              <span className="text-sm text-blue-400">Saving changes...</span>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Goal Edit Modal */}
+      {editingGoal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-theme-card rounded-lg p-6 w-full max-w-md mx-4 border border-theme shadow-theme-xl">
+            <h3 className="text-lg font-semibold text-theme-primary mb-4">Edit Goal</h3>
+            
+            {(() => {
+              const goal = state.goals.find(g => g.id === editingGoal);
+              if (!goal) return null;
+              
+              return (
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-theme-secondary mb-2">
+                      Goal Amount
+                    </label>
+                    <div className="relative">
+                      <DollarSign className="w-5 h-5 text-theme-muted absolute left-3 top-3" />
+                      <input
+                        type="number"
+                        value={goal.amount}
+                        onChange={(e) => updateGoalAmount(goal.id, parseFloat(e.target.value) || 0)}
+                        className="input-dark w-full pl-10 pr-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                        placeholder="0.00"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-theme-secondary mb-2">
+                      Target Date
+                    </label>
+                    <input
+                      type="date"
+                      value={goal.targetDate.toISOString().split('T')[0]}
+                      onChange={(e) => updateGoalDate(goal.id, new Date(e.target.value))}
+                      className="input-dark w-full px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    />
+                  </div>
+                  
+                  <div className="flex justify-end gap-3 pt-4">
+                    <Button 
+                      variant="outline" 
+                      onClick={() => setEditingGoal(null)}
+                    >
+                      Cancel
+                    </Button>
+                    <Button 
+                      onClick={() => setEditingGoal(null)}
+                    >
+                      Done
+                    </Button>
+                  </div>
+                </div>
+              );
+            })()}
+          </div>
         </div>
       )}
 
