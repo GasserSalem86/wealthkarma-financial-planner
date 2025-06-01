@@ -10,7 +10,13 @@ export interface PlannerPersistenceService {
 export const plannerPersistence: PlannerPersistenceService = {
   async savePlanningData(userId: string, plannerState: PlannerState) {
     try {
-      console.log('Saving planning data for user:', userId);
+      console.log('💾 Starting to save planning data for user:', userId);
+      console.log('📊 Planning state summary:', {
+        userProfile: plannerState.userProfile,
+        goalsCount: plannerState.goals.length,
+        budget: plannerState.budget,
+        selectedPhase: plannerState.selectedPhase
+      });
 
       // 1. Save/Update User Profile
       const profileData = {
@@ -21,22 +27,39 @@ export const plannerPersistence: PlannerPersistenceService = {
         full_name: plannerState.userProfile.name || '',
         country: plannerState.userProfile.location || '',
         nationality: plannerState.userProfile.nationality || '',
+        risk_profile: (plannerState.selectedPhase === 0 ? 'Conservative' : 
+                     plannerState.selectedPhase === 1 ? 'Balanced' : 'Growth') as 'Conservative' | 'Balanced' | 'Growth',
         updated_at: new Date().toISOString()
       };
 
+      console.log('💾 Saving profile data:', profileData);
       const profileSaved = await profileService.updateProfile(userId, profileData);
       if (!profileSaved) {
-        console.error('Failed to save profile data');
+        console.error('❌ Failed to save profile data');
         return { success: false, error: 'Failed to save profile data' };
       }
+      console.log('✅ Profile saved successfully');
 
       // 2. Save Goals
-      const goalPromises = plannerState.goals.map((goal) => goalsService.saveGoal(userId, goal));
-      const goalResults = await Promise.all(goalPromises);
-      
-      if (goalResults.some((result: boolean) => !result)) {
-        console.error('Failed to save some goals');
-        return { success: false, error: 'Failed to save some goals' };
+      if (plannerState.goals.length > 0) {
+        console.log(`💾 Saving ${plannerState.goals.length} goals...`);
+        const goalPromises = plannerState.goals.map((goal, index) => {
+          console.log(`📝 Goal ${index + 1}:`, {
+            name: goal.name,
+            amount: goal.amount,
+            category: goal.category
+          });
+          return goalsService.saveGoal(userId, goal);
+        });
+        const goalResults = await Promise.all(goalPromises);
+        
+        if (goalResults.some((result: boolean) => !result)) {
+          console.error('❌ Failed to save some goals');
+          return { success: false, error: 'Failed to save some goals' };
+        }
+        console.log('✅ All goals saved successfully');
+      } else {
+        console.log('ℹ️ No goals to save');
       }
 
       // 3. Save Financial Plan
@@ -55,17 +78,18 @@ export const plannerPersistence: PlannerPersistenceService = {
         }
       };
 
+      console.log('💾 Saving financial plan:', planData);
       const planId = await plansService.savePlan(userId, planData);
       if (!planId) {
-        console.error('Failed to save financial plan');
+        console.error('❌ Failed to save financial plan');
         return { success: false, error: 'Failed to save financial plan' };
       }
 
-      console.log('Successfully saved planning data with plan ID:', planId);
+      console.log('✅ Successfully saved all planning data with plan ID:', planId);
       return { success: true };
 
     } catch (error) {
-      console.error('Error saving planning data:', error);
+      console.error('💥 Error saving planning data:', error);
       return { success: false, error: 'Unexpected error while saving data' };
     }
   },
