@@ -1,2 +1,0 @@
-  // Chat functionality with real AI integration
-  const handleSendMessage = async () => {

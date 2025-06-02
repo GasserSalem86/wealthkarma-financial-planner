@@ -89,8 +89,8 @@ const GoalsSection: React.FC<GoalsSectionProps> = ({ onNext, onBack }) => {
   };
 
   // Chat functionality
-  const handleSendMessage = () => {
-    if (!chatInput.trim()) return;
+  const handleSendMessage = async () => {
+    if (!chatInput.trim() || isAiTyping) return;
     
     const userMessage = {
       id: `user-${Date.now()}`,
@@ -103,158 +103,24 @@ const GoalsSection: React.FC<GoalsSectionProps> = ({ onNext, onBack }) => {
     setChatInput('');
     setIsAiTyping(true);
     
-    // Simulate AI response
-    setTimeout(() => {
-      simulateAiResponse(chatInput);
-    }, 1000 + Math.random() * 1000);
+    try {
+      const conversationHistory = chatMessages.map(msg => ({ type: msg.type, content: msg.content }));
+      const response = await aiService.askQuestion(chatInput, createAIContext(), conversationHistory);
+      if (response.formFillData) { handleGoalFormFill(response.formFillData); }
+      const aiMessage = { id: `ai-${Date.now()}`, type: "ai" as const, content: response.message, timestamp: new Date() };
+      setChatMessages(prev => [...prev, aiMessage]);
+    } catch (error) {
+      console.error("Failed to get AI response:", error);
+      const errorMessage = { id: `ai-${Date.now()}`, type: "ai" as const, content: "I'm sorry, I couldn't process your question right now. Please try again.", timestamp: new Date() };
+      setChatMessages(prev => [...prev, errorMessage]);
+    } finally {
+      setIsAiTyping(false);
+    }
   };
 
   const handleQuickQuestion = (question: string) => {
     setChatInput(question);
     setTimeout(() => handleSendMessage(), 100);
-  };
-
-  const simulateAiResponse = (userQuestion: string) => {
-    let response = '';
-    const yearsToGoal = Math.max(1, targetYear - new Date().getFullYear());
-    const inflationRate = 0.03; // 3% annual inflation
-    const location = state.userProfile.location || 'your region';
-    const questionLower = userQuestion.toLowerCase();
-    
-    // Generate thoughtful, contextual responses that help users think through their goals
-    if (goalCategory === 'Education') {
-      if (questionLower.includes('think through') || questionLower.includes('costs') || questionLower.includes('requirements')) {
-        response = `Great! Let's think through your education goal systematically:
-
-🎓 **Key Considerations for Education in ${targetYear}:**
-
-1. **Program Type & Duration**
-   - What level of education? (Bachelor's, Master's, PhD, Professional certification)
-   - Full-time or part-time study?
-   - Duration: 1-4 years typically
-
-2. **Location Factors**
-   - Local vs International study
-   - Cost of living in study location
-   - Visa and travel costs if abroad
-
-3. **Major Cost Components:**
-   - Tuition fees (varies greatly by program/location)
-   - Living expenses (accommodation, food, transport)
-   - Books, materials, technology
-   - Opportunity cost (lost income during study)
-
-**💰 Inflation Impact:** With ${yearsToGoal} years to your goal, education costs typically inflate at 4-6% annually (higher than general inflation).
-
-**Quick estimates for ${targetYear}:**
-- Local Master's program: ${formatCurrency(25000 * Math.pow(1.05, yearsToGoal), currency)} - ${formatCurrency(50000 * Math.pow(1.05, yearsToGoal), currency)}
-- International Master's: ${formatCurrency(80000 * Math.pow(1.05, yearsToGoal), currency)} - ${formatCurrency(200000 * Math.pow(1.05, yearsToGoal), currency)}
-
-What type of education are you considering? This will help me give you a more precise estimate!`;
-      } else if (questionLower.includes('international')) {
-        response = `International education involves several unique considerations:
-
-🌍 **Additional Costs for International Study:**
-- Visa application fees: ${formatCurrency(500, currency)} - ${formatCurrency(2000, currency)}
-- Health insurance: ${formatCurrency(1000, currency)} - ${formatCurrency(3000, currency)}/year
-- Travel costs: ${formatCurrency(2000, currency)} - ${formatCurrency(8000, currency)}
-- Higher accommodation costs
-- Currency exchange rate risks
-
-**Popular Study Destinations (estimated total costs for ${targetYear}):**
-- UK Master's: ${formatCurrency(120000 * Math.pow(1.05, yearsToGoal), currency)} - ${formatCurrency(180000 * Math.pow(1.05, yearsToGoal), currency)}
-- US Master's: ${formatCurrency(150000 * Math.pow(1.05, yearsToGoal), currency)} - ${formatCurrency(250000 * Math.pow(1.05, yearsToGoal), currency)}
-- Canada/Australia: ${formatCurrency(100000 * Math.pow(1.05, yearsToGoal), currency)} - ${formatCurrency(160000 * Math.pow(1.05, yearsToGoal), currency)}
-
-Would you like me to help you estimate costs for a specific country or program?`;
-      } else {
-        response = `For ${goalCategory.toLowerCase()} goals in ${targetYear}, I'd estimate around ${formatCurrency(50000 * Math.pow(1.05, yearsToGoal), currency)} including inflation adjustments. This factors in ${location} pricing. What specific program are you considering?`;
-      }
-    } 
-    
-    else if (goalCategory === 'Travel') {
-      if (questionLower.includes('think through') || questionLower.includes('budget') || questionLower.includes('plan')) {
-        response = `Let's plan your travel goal thoughtfully:
-
-✈️ **Travel Planning Framework for ${targetYear}:**
-
-1. **Trip Scope**
-   - Destinations and duration
-   - Travel style (budget, mid-range, luxury)
-   - Group size (solo, couple, family)
-   - Season/timing preferences
-
-2. **Major Cost Categories:**
-   - Flights: 20-40% of budget typically
-   - Accommodation: 25-35% of budget
-   - Food & dining: 20-30% of budget
-   - Activities & tours: 10-20% of budget
-   - Local transport, visas, insurance: 5-15%
-
-**💰 Estimated budgets for ${targetYear} (from ${location}):**
-- Regional trip (1 week): ${formatCurrency(4000 * Math.pow(1.04, yearsToGoal), currency)} - ${formatCurrency(8000 * Math.pow(1.04, yearsToGoal), currency)}
-- Europe (2 weeks): ${formatCurrency(12000 * Math.pow(1.04, yearsToGoal), currency)} - ${formatCurrency(25000 * Math.pow(1.04, yearsToGoal), currency)}
-- World tour (1 month): ${formatCurrency(30000 * Math.pow(1.04, yearsToGoal), currency)} - ${formatCurrency(60000 * Math.pow(1.04, yearsToGoal), currency)}
-
-What type of travel experience are you dreaming of?`;
-      } else {
-        response = `For a ${goalCategory.toLowerCase()} goal in ${targetYear}, considering inflation and ${location} departure costs, I estimate around ${formatCurrency(15000 * Math.pow(1.04, yearsToGoal), currency)}. This includes flights, accommodation, meals, and activities. What destinations are you considering?`;
-      }
-    }
-    
-    else if (goalCategory === 'Home') {
-      if (questionLower.includes('think through') || questionLower.includes('buying') || questionLower.includes('costs')) {
-        response = `Let's think through your home buying goal comprehensively:
-
-🏠 **Home Buying in ${location} - Key Considerations:**
-
-1. **Property Type & Location**
-   - Apartment vs Villa vs Townhouse
-   - New vs resale property
-   - Prime vs emerging locations
-
-2. **Total Cost Breakdown:**
-   - Down payment: 20-25% typically
-   - Registration fees: ~4% of property value
-   - Agent commission: 2% typically
-   - Legal fees, inspection: ${formatCurrency(15000, currency)} - ${formatCurrency(25000, currency)}
-
-**Estimated costs for ${targetYear}:**
-- 1BR Apartment: ${formatCurrency(800000 * Math.pow(1.05, yearsToGoal), currency)} - ${formatCurrency(1500000 * Math.pow(1.05, yearsToGoal), currency)}
-- 3BR Apartment: ${formatCurrency(1800000 * Math.pow(1.05, yearsToGoal), currency)} - ${formatCurrency(3500000 * Math.pow(1.05, yearsToGoal), currency)}
-
-What type of property are you considering?`;
-      } else {
-        response = `For a ${goalCategory.toLowerCase()} purchase in ${location} by ${targetYear}, with property appreciation and inflation, you'd likely need around ${formatCurrency(1200000 * Math.pow(1.05, yearsToGoal), currency)}. This assumes current market conditions. What type of property interests you?`;
-      }
-    }
-    
-    else if (goalCategory === 'Gift') {
-      response = `For ${goalCategory.toLowerCase()} planning in ${targetYear}, considering cultural expectations in ${location} and inflation, budget around ${formatCurrency(8000 * Math.pow(1.03, yearsToGoal), currency)}. What's the occasion and relationship?`;
-    }
-    
-    else if (goalCategory === 'Other' && customCategoryName) {
-      response = `For your "${customCategoryName}" goal in ${targetYear}, with ${yearsToGoal} years of planning and ~3% annual inflation, expect costs to be ${Math.round((Math.pow(1.03, yearsToGoal) - 1) * 100)}% higher than today. Could you share more details about what this involves?`;
-    }
-    
-    else {
-      response = `I'd be happy to help with your ${goalCategory} goal for ${targetYear}! With ${yearsToGoal} years to plan, costs will likely be ${Math.round((Math.pow(1.03, yearsToGoal) - 1) * 100)}% higher due to inflation. What specific aspects would you like to explore?`;
-    }
-    
-    // Add cost update suggestion if we provided estimates
-    if (response.includes('$') && goalAmount < 10000) {
-      response += `\n\n💡 Would you like me to suggest updating your goal amount based on this analysis?`;
-    }
-    
-    const aiMessage = {
-      id: `ai-${Date.now()}`,
-      type: 'ai' as const,
-      content: response,
-      timestamp: new Date()
-    };
-    
-    setIsAiTyping(false);
-    setChatMessages(prev => [...prev, aiMessage]);
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
