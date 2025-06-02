@@ -366,7 +366,7 @@ const GoalsSection: React.FC<GoalsSectionProps> = ({ onNext, onBack }) => {
   const renderStep = () => {
     switch (currentStep) {
       case 'intro':
-        return (
+  return (
           <div className="space-y-6 lg:space-y-8">
             {/* Congratulations Section */}
             <Card className="border-green-500/30 bg-green-500/5">
@@ -379,8 +379,8 @@ const GoalsSection: React.FC<GoalsSectionProps> = ({ onNext, onBack }) => {
                   <p className="text-sm lg:text-base text-theme-secondary max-w-2xl mx-auto">
                     You've taken the most important step in financial planning by securing your emergency fund. 
                     Now you're financially protected against unexpected events, giving you the confidence to pursue your dreams!
-                  </p>
-                </div>
+        </p>
+      </div>
               </CardContent>
             </Card>
 
@@ -422,13 +422,13 @@ const GoalsSection: React.FC<GoalsSectionProps> = ({ onNext, onBack }) => {
 
             {/* Introduction */}
             <Card className="border-purple-500/30">
-              <CardHeader>
+        <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-purple-600 text-xl lg:text-2xl">
                   <Target className="w-6 h-6" />
                   Now Let's Plan Your Life Dreams
                 </CardTitle>
-              </CardHeader>
-              <CardContent>
+        </CardHeader>
+        <CardContent>
                 <div className="space-y-4 text-theme-secondary">
                   <p className="text-sm lg:text-base leading-relaxed">
                     With your safety net secured, you're ready to plan for the exciting things in life! 
@@ -496,7 +496,7 @@ const GoalsSection: React.FC<GoalsSectionProps> = ({ onNext, onBack }) => {
                             <div className="text-theme-secondary">
                               {getCategoryIcon(goal.category)}
                             </div>
-                            <div>
+            <div>
                               <h4 className="font-medium text-theme-primary">{goal.name}</h4>
                               <p className="text-sm text-theme-secondary">
                                 {formatCurrency(goal.amount, currency)} • {monthOptions[goal.targetDate.getMonth()]} {goal.targetDate.getFullYear()}
@@ -538,22 +538,22 @@ const GoalsSection: React.FC<GoalsSectionProps> = ({ onNext, onBack }) => {
                 </p>
                 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {availableCategories.map((category) => (
-                    <button
-                      key={category}
+                {availableCategories.map((category) => (
+                  <button
+                    key={category}
                       onClick={() => {
                         setGoalCategory(category);
                         setCurrentStep('when');
                       }}
                       className={`p-4 rounded-lg border transition-all hover:shadow-lg ${
-                        goalCategory === category
+                      goalCategory === category
                           ? 'bg-blue-600 border-blue-500 text-white shadow-lg'
                           : 'border-theme text-theme-secondary hover:border-blue-500/50 hover:bg-blue-500/5'
-                      }`}
-                    >
+                    }`}
+                  >
                       <div className="flex flex-col items-center space-y-3">
                         <div className={`text-2xl ${goalCategory === category ? 'text-white' : 'text-blue-600'}`}>
-                          {getCategoryIcon(category)}
+                    {getCategoryIcon(category)}
                         </div>
                         <h3 className="font-semibold text-base">{category}</h3>
                         <p className={`text-xs text-center ${goalCategory === category ? 'text-blue-100' : 'text-theme-muted'}`}>
@@ -564,9 +564,9 @@ const GoalsSection: React.FC<GoalsSectionProps> = ({ onNext, onBack }) => {
                           {category === 'Other' && 'Custom goal - you define it!'}
                         </p>
                       </div>
-                    </button>
-                  ))}
-                </div>
+                  </button>
+                ))}
+              </div>
 
                 {goalCategory === 'Other' && (
                   <div className="mt-6 space-y-4">
@@ -582,7 +582,7 @@ const GoalsSection: React.FC<GoalsSectionProps> = ({ onNext, onBack }) => {
                         placeholder="e.g., Start a business, Buy a car, Medical treatment..."
                         className="input-dark block w-full px-4 py-3 text-sm rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 transition-colors"
                       />
-                    </div>
+            </div>
                     <Button 
                       onClick={() => setCurrentStep('when')} 
                       disabled={!customCategoryName.trim()}
@@ -619,7 +619,7 @@ const GoalsSection: React.FC<GoalsSectionProps> = ({ onNext, onBack }) => {
                 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   {/* Month Selection */}
-                  <div>
+            <div>
                     <label className="block text-sm font-medium text-theme-secondary mb-3">Target Month</label>
                     <div className="grid grid-cols-3 gap-2">
                       {monthOptions.map((month, index) => (
@@ -711,11 +711,11 @@ const GoalsSection: React.FC<GoalsSectionProps> = ({ onNext, onBack }) => {
                       {/* Goal Name Input */}
                       <div className="mb-4">
                         <label className="block text-sm font-medium text-theme-secondary mb-2">Goal Name</label>
-                        <input
-                          type="text"
-                          value={goalName}
-                          onChange={(e) => setGoalName(e.target.value)}
-                          placeholder={`e.g., ${
+              <input
+                type="text"
+                value={goalName}
+                onChange={(e) => setGoalName(e.target.value)}
+                placeholder={`e.g., ${
                             goalCategory === 'Education' ? "Master's Degree in UK" :
                             goalCategory === 'Travel' ? 'Family Europe Trip' :
                             goalCategory === 'Gift' ? "Sister's Wedding Gift" :
@@ -724,29 +724,29 @@ const GoalsSection: React.FC<GoalsSectionProps> = ({ onNext, onBack }) => {
                             'My Goal'
                           }`}
                           className="input-dark block w-full px-4 py-3 text-sm rounded-md shadow-sm focus:ring-green-500 focus:border-green-500 transition-colors"
-                        />
-                      </div>
+              />
+            </div>
 
                       {/* Amount Input */}
-                      <div>
+            <div>
                         <label className="block text-sm font-medium text-theme-secondary mb-2">
                           Estimated Cost ({currency.code})
-                        </label>
-                        <div className="relative">
-                          <input
-                            type="number"
+              </label>
+              <div className="relative">
+                <input
+                  type="number"
                             value={goalAmount || ''}
-                            onChange={(e) => setGoalAmount(Number(e.target.value))}
+                  onChange={(e) => setGoalAmount(Number(e.target.value))}
                             placeholder="Enter estimated amount"
                             className="input-dark block w-full pl-4 pr-20 py-3 text-sm rounded-md shadow-sm focus:ring-green-500 focus:border-green-500 transition-colors"
-                          />
+                />
                           <span className="absolute right-4 top-1/2 transform -translate-y-1/2 text-theme-muted text-sm">
-                            {currency.code}
-                          </span>
+                  {currency.code}
+                </span>
                         </div>
                       </div>
-                    </div>
-                  </div>
+              </div>
+            </div>
 
                   {/* Right Side - AI Assistant Chat Window */}
                   <div className="lg:border-l lg:border-theme lg:pl-6">
@@ -907,12 +907,12 @@ const GoalsSection: React.FC<GoalsSectionProps> = ({ onNext, onBack }) => {
                             )}
                           </>
                         )}
-                      </div>
+                </div>
 
                       {/* Chat Input */}
                       <div className="border-t border-theme p-4 bg-theme-section">
                         <div className="flex gap-2">
-                          <input
+                    <input
                             type="text"
                             value={chatInput}
                             onChange={(e) => setChatInput(e.target.value)}
@@ -995,7 +995,7 @@ const GoalsSection: React.FC<GoalsSectionProps> = ({ onNext, onBack }) => {
                   </div>
 
                   {/* Payment Frequency Selection */}
-                  <div>
+              <div>
                     <label className="block text-sm font-medium text-theme-secondary mb-3">Payment Frequency</label>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                       {PAYMENT_FREQUENCIES.map((freq) => (
@@ -1020,15 +1020,15 @@ const GoalsSection: React.FC<GoalsSectionProps> = ({ onNext, onBack }) => {
                           </div>
                         </button>
                       ))}
-                    </div>
+              </div>
                   </div>
 
                   {/* Payment Period Selection (only if not "Once") */}
                   {paymentFrequency !== 'Once' && (
-                    <div>
+              <div>
                       <label className="block text-sm font-medium text-theme-secondary mb-3">
                         Payment Period (Years)
-                      </label>
+                </label>
                       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                         {[1, 2, 3, 4, 5, 10, 15, 20, 25].map((years) => (
                           <button
@@ -1043,30 +1043,30 @@ const GoalsSection: React.FC<GoalsSectionProps> = ({ onNext, onBack }) => {
                             {years} {years === 1 ? 'Year' : 'Years'}
                           </button>
                         ))}
-                      </div>
+              </div>
                       <div className="mt-4 p-3 bg-orange-500/10 border border-orange-500/30 rounded-lg">
                         <p className="text-xs text-orange-600">
                           💰 You'll pay approximately <strong>{formatCurrency(goalAmount / (paymentPeriod * (paymentFrequency === 'Monthly' ? 12 : paymentFrequency === 'Quarterly' ? 4 : paymentFrequency === 'Biannual' ? 2 : 1)), currency)}</strong> per payment
                         </p>
-                      </div>
+            </div>
                     </div>
                   )}
-                </div>
-              </CardContent>
-              <CardFooter>
+          </div>
+        </CardContent>
+        <CardFooter>
                 <div className="flex gap-3 w-full">
                   <Button variant="outline" onClick={() => setCurrentStep('amount')} className="flex-1">
                     ← Back to Amount
-                  </Button>
+                </Button>
                   <Button 
                     onClick={() => setCurrentStep('review')}
                     className="flex-1 bg-orange-600 hover:bg-orange-700"
                   >
                     Continue to Review →
-                  </Button>
-                </div>
-              </CardFooter>
-            </Card>
+                </Button>
+          </div>
+        </CardFooter>
+      </Card>
           </div>
         );
 
@@ -1074,12 +1074,12 @@ const GoalsSection: React.FC<GoalsSectionProps> = ({ onNext, onBack }) => {
         return (
           <div className="space-y-6">
             <Card className="border-purple-500/30">
-              <CardHeader>
+          <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-purple-600">
                   <span className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center text-white text-sm font-bold">6</span>
                   Review & Save Your Goal
                 </CardTitle>
-              </CardHeader>
+          </CardHeader>
               <CardContent>
                 <div className="space-y-6">
                   <p className="text-sm text-theme-secondary">
@@ -1091,36 +1091,36 @@ const GoalsSection: React.FC<GoalsSectionProps> = ({ onNext, onBack }) => {
                     <div className="flex items-start space-x-4">
                       <div className="text-2xl">
                         {getCategoryIcon(goalCategory)}
-                      </div>
+                          </div>
                       <div className="flex-1 space-y-3">
-                        <div>
+                          <div>
                           <h3 className="font-semibold text-lg text-theme-primary">
                             {goalCategory === 'Other' ? customCategoryName : goalName}
                           </h3>
                           <p className="text-sm text-theme-muted">{goalCategory} Goal</p>
-                        </div>
+                          </div>
                         
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                           <div>
                             <span className="font-medium text-theme-secondary">Target Amount:</span>
                             <p className="text-theme-primary font-semibold">{formatCurrency(goalAmount, currency)}</p>
-                          </div>
+                        </div>
                           <div>
                             <span className="font-medium text-theme-secondary">Target Date:</span>
                             <p className="text-theme-primary">{monthOptions[targetMonth - 1]} {targetYear}</p>
-                          </div>
+                        </div>
                           {shouldShowPaymentOptions(goalCategory) && (
                             <>
                               <div>
                                 <span className="font-medium text-theme-secondary">Payment Frequency:</span>
                                 <p className="text-theme-primary">{paymentFrequency}</p>
-                              </div>
+                        </div>
                               {paymentFrequency !== 'Once' && (
-                                <div>
+                          <div>
                                   <span className="font-medium text-theme-secondary">Payment Period:</span>
                                   <p className="text-theme-primary">{paymentPeriod} {paymentPeriod === 1 ? 'Year' : 'Years'}</p>
-                                </div>
-                              )}
+                              </div>
+                            )}
                             </>
                           )}
                           <div>
@@ -1165,9 +1165,9 @@ const GoalsSection: React.FC<GoalsSectionProps> = ({ onNext, onBack }) => {
                   >
                     {editMode ? 'Update Goal' : 'Save Goal'} ✅
                   </Button>
-                </div>
+          </div>
               </CardFooter>
-            </Card>
+        </Card>
           </div>
         );
 
@@ -1199,9 +1199,9 @@ const GoalsSection: React.FC<GoalsSectionProps> = ({ onNext, onBack }) => {
                           </div>
                         </div>
                       </div>
-                    </div>
-                  )}
-                  
+        </div>
+      )}
+
                   {/* Action buttons */}
                   <div className="flex flex-col sm:flex-row gap-3 justify-center max-w-md mx-auto">
                     <Button 
@@ -1247,13 +1247,13 @@ const GoalsSection: React.FC<GoalsSectionProps> = ({ onNext, onBack }) => {
       {/* Navigation */}
       {currentStep === 'intro' && (
         <div className="flex justify-between mt-8">
-          <Button variant="outline" onClick={onBack}>
+        <Button variant="outline" onClick={onBack}>
             Back
-          </Button>
+        </Button>
           <Button onClick={onNext}>
             Continue to Retirement Planning
-          </Button>
-        </div>
+        </Button>
+      </div>
       )}
 
       {/* AI Guidance Component - Only show if user profile is complete and not in amount step */}

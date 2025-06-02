@@ -248,7 +248,7 @@ const RiskReturnsSection: React.FC<RiskReturnsSectionProps> = ({ onNext, onBack 
           </h3>
           
           {/* Main Concept */}
-          <div className="bg-white/70 dark:bg-gray-800/70 rounded-lg p-4 mb-6 text-center">
+          <div className="bg-theme-card rounded-lg p-4 mb-6 text-center border border-theme">
             <p className="text-sm text-theme-secondary mb-2">
               The more time you have until your goal, the more investment risk you can handle - because you have time to recover from temporary losses.
             </p>
@@ -261,7 +261,7 @@ const RiskReturnsSection: React.FC<RiskReturnsSectionProps> = ({ onNext, onBack 
           <div className="space-y-6">
             
             {/* Short-term Goals (0-3 years) */}
-            <div className="bg-white/80 dark:bg-gray-800/80 rounded-lg p-5">
+            <div className="bg-theme-card rounded-lg p-5 border border-theme shadow-theme">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-blue-700 rounded-full flex items-center justify-center">
@@ -280,7 +280,7 @@ const RiskReturnsSection: React.FC<RiskReturnsSectionProps> = ({ onNext, onBack 
               
               {/* Visual Timeline */}
               <div className="mb-4">
-                <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded-lg overflow-hidden">
+                <div className="h-8 bg-theme-tertiary rounded-lg overflow-hidden border border-theme">
                   <div className="h-full bg-blue-600 rounded-lg flex items-center justify-center text-white text-sm font-medium">
                     🛡️ Conservative (2-4% returns) - Safe & Stable
                   </div>
@@ -292,25 +292,25 @@ const RiskReturnsSection: React.FC<RiskReturnsSectionProps> = ({ onNext, onBack 
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded border border-blue-200 dark:border-blue-800">
-                  <div className="font-medium text-blue-800 dark:text-blue-200 mb-1">🛡️ Conservative Strategy</div>
-                  <div className="text-blue-700 dark:text-blue-300 text-xs">
+                <div className="bg-theme-info/10 border border-theme-info/30 p-3 rounded shadow-theme-sm">
+                  <div className="font-medium text-theme-info mb-1">🛡️ Conservative Strategy</div>
+                  <div className="text-theme-info-muted text-xs">
                     • High-yield savings accounts<br/>
                     • Fixed deposits & bonds<br/>
                     • Capital protection priority
                   </div>
                 </div>
-                <div className="bg-red-50 dark:bg-red-900/20 p-3 rounded border border-red-200 dark:border-red-800">
-                  <div className="font-medium text-red-800 dark:text-red-200 mb-1">⚠️ Why Conservative?</div>
-                  <div className="text-red-700 dark:text-red-300 text-xs">
+                <div className="bg-theme-warning/10 border border-theme-warning/30 p-3 rounded shadow-theme-sm">
+                  <div className="font-medium text-theme-warning mb-1">⚠️ Why Conservative?</div>
+                  <div className="text-theme-warning-muted text-xs">
                     • No time to recover losses<br/>
                     • Need money soon<br/>
                     • Certainty over growth
                   </div>
                 </div>
-                <div className="bg-green-50 dark:bg-green-900/20 p-3 rounded border border-green-200 dark:border-green-800">
-                  <div className="font-medium text-green-800 dark:text-green-200 mb-1">💰 Example Result</div>
-                  <div className="text-green-700 dark:text-green-300 text-xs">
+                <div className="bg-theme-success/10 border border-theme-success/30 p-3 rounded shadow-theme-sm">
+                  <div className="font-medium text-theme-success mb-1">💰 Example Result</div>
+                  <div className="text-theme-success-muted text-xs">
                     • KWD 300/month @ 3%<br/>
                     • After 2 years: ~KWD 7,380<br/>
                     • Money safe when needed
@@ -320,7 +320,7 @@ const RiskReturnsSection: React.FC<RiskReturnsSectionProps> = ({ onNext, onBack 
             </div>
 
             {/* Medium-term Goals (3-7 years) */}
-            <div className="bg-white/80 dark:bg-gray-800/80 rounded-lg p-5">
+            <div className="bg-theme-card rounded-lg p-5 border border-theme shadow-theme">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 bg-gradient-to-r from-green-500 to-teal-600 rounded-full flex items-center justify-center">
@@ -339,7 +339,7 @@ const RiskReturnsSection: React.FC<RiskReturnsSectionProps> = ({ onNext, onBack 
               
               {/* Visual Timeline with Two Phases */}
               <div className="mb-4">
-                <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded-lg overflow-hidden flex">
+                <div className="h-8 bg-theme-tertiary rounded-lg overflow-hidden flex border border-theme">
                   <div className="h-full bg-green-600 flex-grow flex items-center justify-center text-white text-sm font-medium">
                     ⚖️ Balanced Phase (3-6%)
                   </div>
@@ -355,25 +355,25 @@ const RiskReturnsSection: React.FC<RiskReturnsSectionProps> = ({ onNext, onBack 
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                <div className="bg-green-50 dark:bg-green-900/20 p-3 rounded border border-green-200 dark:border-green-800">
-                  <div className="font-medium text-green-800 dark:text-green-200 mb-1">⚖️ Balanced Strategy</div>
-                  <div className="text-green-700 dark:text-green-300 text-xs">
+                <div className="bg-theme-success/10 border border-theme-success/30 p-3 rounded shadow-theme-sm">
+                  <div className="font-medium text-theme-success mb-1">⚖️ Balanced Strategy</div>
+                  <div className="text-theme-success-muted text-xs">
                     • Mix of stocks & bonds<br/>
                     • Moderate growth potential<br/>
                     • Reduced volatility risk
                   </div>
                 </div>
-                <div className="bg-yellow-50 dark:bg-yellow-900/20 p-3 rounded border border-yellow-200 dark:border-yellow-800">
-                  <div className="font-medium text-yellow-800 dark:text-yellow-200 mb-1">🎯 Smart Transition</div>
-                  <div className="text-yellow-700 dark:text-yellow-300 text-xs">
+                <div className="bg-theme-warning/10 border border-theme-warning/30 p-3 rounded shadow-theme-sm">
+                  <div className="font-medium text-theme-warning mb-1">🎯 Smart Transition</div>
+                  <div className="text-theme-warning-muted text-xs">
                     • Start balanced for growth<br/>
                     • Switch to safe 2 years before<br/>
                     • Best of both approaches
                   </div>
                 </div>
-                <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded border border-blue-200 dark:border-blue-800">
-                  <div className="font-medium text-blue-800 dark:text-blue-200 mb-1">💰 Example Result</div>
-                  <div className="text-blue-700 dark:text-blue-300 text-xs">
+                <div className="bg-theme-info/10 border border-theme-info/30 p-3 rounded shadow-theme-sm">
+                  <div className="font-medium text-theme-info mb-1">💰 Example Result</div>
+                  <div className="text-theme-info-muted text-xs">
                     • KWD 200/month @ 5%<br/>
                     • After 5 years: ~KWD 13,270<br/>
                     • Protected final 2 years
@@ -383,7 +383,7 @@ const RiskReturnsSection: React.FC<RiskReturnsSectionProps> = ({ onNext, onBack 
             </div>
 
             {/* Long-term Goals (7+ years) */}
-            <div className="bg-white/80 dark:bg-gray-800/80 rounded-lg p-5">
+            <div className="bg-theme-card rounded-lg p-5 border border-theme shadow-theme">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full flex items-center justify-center">
@@ -402,7 +402,7 @@ const RiskReturnsSection: React.FC<RiskReturnsSectionProps> = ({ onNext, onBack 
               
               {/* Visual Timeline with Three Phases */}
               <div className="mb-4">
-                <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded-lg overflow-hidden flex">
+                <div className="h-8 bg-theme-tertiary rounded-lg overflow-hidden flex border border-theme">
                   <div className="h-full bg-yellow-500 flex-grow flex items-center justify-center text-white text-sm font-medium">
                     🚀 Growth (5-8%)
                   </div>
@@ -422,25 +422,25 @@ const RiskReturnsSection: React.FC<RiskReturnsSectionProps> = ({ onNext, onBack 
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                <div className="bg-yellow-50 dark:bg-yellow-900/20 p-3 rounded border border-yellow-200 dark:border-yellow-800">
-                  <div className="font-medium text-yellow-800 dark:text-yellow-200 mb-1">🚀 High Growth Strategy</div>
-                  <div className="text-yellow-700 dark:text-yellow-300 text-xs">
+                <div className="bg-theme-warning/10 border border-theme-warning/30 p-3 rounded shadow-theme-sm">
+                  <div className="font-medium text-theme-warning mb-1">🚀 High Growth Strategy</div>
+                  <div className="text-theme-warning-muted text-xs">
                     • Stocks & equity investments<br/>
                     • Market volatility acceptable<br/>
                     • Maximum compound growth
                   </div>
                 </div>
-                <div className="bg-green-50 dark:bg-green-900/20 p-3 rounded border border-green-200 dark:border-green-800">
-                  <div className="font-medium text-green-800 dark:text-green-200 mb-1">🎢 Three-Phase Journey</div>
-                  <div className="text-green-700 dark:text-green-300 text-xs">
+                <div className="bg-theme-success/10 border border-theme-success/30 p-3 rounded shadow-theme-sm">
+                  <div className="font-medium text-theme-success mb-1">🎢 Three-Phase Journey</div>
+                  <div className="text-theme-success-muted text-xs">
                     • Early: Maximum growth potential<br/>
                     • Middle: Balanced for stability<br/>
                     • Final: Conservative protection
                   </div>
                 </div>
-                <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded border border-blue-200 dark:border-blue-800">
-                  <div className="font-medium text-blue-800 dark:text-blue-200 mb-1">💰 Example Result</div>
-                  <div className="text-blue-700 dark:text-blue-300 text-xs">
+                <div className="bg-theme-info/10 border border-theme-info/30 p-3 rounded shadow-theme-sm">
+                  <div className="font-medium text-theme-info mb-1">💰 Example Result</div>
+                  <div className="text-theme-info-muted text-xs">
                     • KWD 100/month @ 7%<br/>
                     • After 10 years: ~KWD 17,300<br/>
                     • After 20 years: ~KWD 52,400
@@ -452,8 +452,8 @@ const RiskReturnsSection: React.FC<RiskReturnsSectionProps> = ({ onNext, onBack 
           </div>
 
           {/* Key Principles Summary */}
-          <div className="mt-6 bg-gradient-to-r from-purple-100 to-blue-100 dark:from-purple-900/30 dark:to-blue-900/30 rounded-lg p-4 border border-purple-200 dark:border-purple-800">
-            <h5 className="font-semibold text-purple-800 dark:text-purple-200 text-center mb-3">🎯 The Golden Rule of Time & Risk</h5>
+          <div className="mt-6 bg-gradient-to-r from-purple-500/10 to-blue-500/10 rounded-lg p-4 border border-purple-500/30 shadow-theme-sm">
+            <h5 className="font-semibold text-purple-600 text-center mb-3">🎯 The Golden Rule of Time & Risk</h5>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
               <div className="space-y-2">
                 <div className="text-2xl">⏰</div>
@@ -482,25 +482,25 @@ const RiskReturnsSection: React.FC<RiskReturnsSectionProps> = ({ onNext, onBack 
             🛠️ Want Different Settings?
           </h3>
           
-          <div className="bg-white/70 dark:bg-gray-800/70 rounded-lg p-4 mb-4 text-center">
+          <div className="bg-theme-card rounded-lg p-4 mb-4 text-center border border-theme">
             <p className="text-sm text-theme-secondary mb-2">
               <strong>Our recommendations work for most people.</strong> You can change them if you have special needs or strong preferences.
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg border border-green-200 dark:border-green-800">
-              <h4 className="font-semibold text-green-800 dark:text-green-200 mb-2">✅ You might want to change if:</h4>
-              <ul className="text-sm text-green-700 dark:text-green-300 space-y-1">
+            <div className="bg-theme-success/10 border border-theme-success/30 p-4 rounded-lg shadow-theme-sm">
+              <h4 className="font-semibold text-theme-success mb-2">✅ You might want to change if:</h4>
+              <ul className="text-sm text-theme-success-muted space-y-1">
                 <li>• You prefer extra safety (even with lower returns)</li>
                 <li>• You want higher growth (and can handle ups & downs)</li>
                 <li>• You have investment experience</li>
               </ul>
             </div>
             
-            <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
-              <h4 className="font-semibold text-blue-800 dark:text-blue-200 mb-2">💡 How to customize:</h4>
-              <ul className="text-sm text-blue-700 dark:text-blue-300 space-y-1">
+            <div className="bg-theme-info/10 border border-theme-info/30 p-4 rounded-lg shadow-theme-sm">
+              <h4 className="font-semibold text-theme-info mb-2">💡 How to customize:</h4>
+              <ul className="text-sm text-theme-info-muted space-y-1">
                 <li>• Click ⚙️ <strong>Customize</strong> next to any goal</li>
                 <li>• Ask our AI assistant for advice</li>
                 <li>• Start with small changes</li>
@@ -565,8 +565,8 @@ const RiskReturnsSection: React.FC<RiskReturnsSectionProps> = ({ onNext, onBack 
               
               <CardContent>
                 {/* Explanation Banner */}
-                <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-4">
-                  <p className="text-sm text-blue-800 dark:text-blue-200">
+                <div className="bg-theme-info/10 border border-theme-info/30 rounded-lg p-4 mb-4 shadow-theme-sm">
+                  <p className="text-sm text-theme-info">
                     <strong>💡 Why this strategy:</strong> {getRecommendationExplanation()}
                   </p>
                 </div>
@@ -596,7 +596,7 @@ const RiskReturnsSection: React.FC<RiskReturnsSectionProps> = ({ onNext, onBack 
                         </div>
                       </div>
                     )}
-                    <div className="h-3 lg:h-4 bg-white dark:bg-gray-800 rounded-full overflow-hidden border-2 border-gray-300 dark:border-gray-600">
+                    <div className="h-3 lg:h-4 bg-theme-tertiary rounded-full overflow-hidden border-2 border-theme">
                       <div className="h-full bg-blue-600 rounded-full flex-shrink-0" style={{ width: '100%' }}></div>
                     </div>
                   </div>
@@ -661,10 +661,10 @@ const RiskReturnsSection: React.FC<RiskReturnsSectionProps> = ({ onNext, onBack 
                               return (
                                 <div key={index} className="flex justify-between text-sm">
                                   <span className="text-theme-secondary">{phaseName}:</span>
-                                  <span className="font-medium text-theme-primary">
+                              <span className="font-medium text-theme-primary">
                                     {formatPercentage(phase.rate)} p.a.
-                                  </span>
-                                </div>
+                              </span>
+                            </div>
                               );
                             })}
                             <div className="flex justify-between text-sm">
@@ -674,7 +674,7 @@ const RiskReturnsSection: React.FC<RiskReturnsSectionProps> = ({ onNext, onBack 
                           </div>
 
                           <div className="mt-4">
-                            <div className="h-4 bg-white dark:bg-gray-800 rounded-full overflow-hidden flex border-2 border-gray-300 dark:border-gray-600">
+                            <div className="h-4 bg-theme-tertiary rounded-full overflow-hidden flex border border-theme">
                               {goal.returnPhases.map((phase, index) => {
                                 const isDrawdown = index === goal.returnPhases.length - 1;
                                 
@@ -696,7 +696,7 @@ const RiskReturnsSection: React.FC<RiskReturnsSectionProps> = ({ onNext, onBack 
                                 return (
                                   <div
                                     key={index}
-                                    className={`h-full ${bgColor} ${index > 0 ? 'border-l border-white dark:border-gray-800' : ''}`}
+                                    className={`h-full ${bgColor} ${index > 0 ? 'border-l border-theme' : ''}`}
                                     style={{ width: `${width}%` }}
                                   ></div>
                                 );
@@ -801,7 +801,7 @@ const RiskReturnsSection: React.FC<RiskReturnsSectionProps> = ({ onNext, onBack 
                         </div>
 
                         <div className="mb-2">
-                          <div className="h-4 bg-white dark:bg-gray-800 rounded-full overflow-hidden border-2 border-gray-300 dark:border-gray-600 flex">
+                          <div className="h-4 bg-theme-tertiary rounded-full overflow-hidden border-2 border-theme flex">
                             {goal.returnPhases.map((phase, index) => {
                               // Simple equal distribution - each phase gets equal space  
                               const totalPhases = goal.returnPhases.length;
@@ -815,7 +815,7 @@ const RiskReturnsSection: React.FC<RiskReturnsSectionProps> = ({ onNext, onBack 
                               return (
                                 <div
                                   key={index}
-                                  className={`${bgColor} h-full ${index > 0 ? 'border-l border-white dark:border-gray-800' : ''}`}
+                                  className={`${bgColor} h-full ${index > 0 ? 'border-l border-theme' : ''}`}
                                   style={{ width: `${width}%` }}
                                 ></div>
                               );
