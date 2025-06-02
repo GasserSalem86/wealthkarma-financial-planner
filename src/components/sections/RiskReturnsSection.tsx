@@ -479,34 +479,32 @@ const RiskReturnsSection: React.FC<RiskReturnsSectionProps> = ({ onNext, onBack 
       <Card className="border-orange-500/30 bg-orange-500/5 mb-8">
         <CardContent className="pt-6">
           <h3 className="text-lg font-semibold text-orange-600 mb-4 text-center">
-            🛠️ Want to Customize? Here's What You Should Know
+            🛠️ Want Different Settings?
           </h3>
-          <div className="space-y-4">
-            <div className="bg-white/50 dark:bg-gray-800/50 rounded-lg p-4">
-              <h4 className="font-semibold text-theme-primary mb-2">✅ When to Consider Changing Settings:</h4>
-              <ul className="text-sm text-theme-secondary space-y-1">
-                <li>• You're very conservative and want lower risk even if it means lower returns</li>
-                <li>• You're comfortable with market volatility and want to maximize growth potential</li>
-                <li>• You have specific investment knowledge or preferences</li>
-                <li>• Your financial situation has unique requirements</li>
+          
+          <div className="bg-white/70 dark:bg-gray-800/70 rounded-lg p-4 mb-4 text-center">
+            <p className="text-sm text-theme-secondary mb-2">
+              <strong>Our recommendations work for most people.</strong> You can change them if you have special needs or strong preferences.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg border border-green-200 dark:border-green-800">
+              <h4 className="font-semibold text-green-800 dark:text-green-200 mb-2">✅ You might want to change if:</h4>
+              <ul className="text-sm text-green-700 dark:text-green-300 space-y-1">
+                <li>• You prefer extra safety (even with lower returns)</li>
+                <li>• You want higher growth (and can handle ups & downs)</li>
+                <li>• You have investment experience</li>
               </ul>
             </div>
-            <div className="bg-yellow-100/50 dark:bg-yellow-900/20 rounded-lg p-4 border border-yellow-500/30">
-              <h4 className="font-semibold text-yellow-700 dark:text-yellow-600 mb-2">⚠️ Important Reminders:</h4>
-              <ul className="text-sm text-yellow-700 dark:text-yellow-300 space-y-1">
-                <li>• Our recommendations are based on proven financial principles</li>
-                <li>• Being too conservative might mean you don't reach your goals</li>
-                <li>• Being too aggressive near your goal date increases risk of loss</li>
-                <li>• You can always ask our AI assistant for personalized advice</li>
+            
+            <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
+              <h4 className="font-semibold text-blue-800 dark:text-blue-200 mb-2">💡 How to customize:</h4>
+              <ul className="text-sm text-blue-700 dark:text-blue-300 space-y-1">
+                <li>• Click ⚙️ <strong>Customize</strong> next to any goal</li>
+                <li>• Ask our AI assistant for advice</li>
+                <li>• Start with small changes</li>
               </ul>
-            </div>
-            <div className="text-center">
-              <p className="text-sm text-theme-secondary mb-3">
-                💬 <strong>Not sure what to choose?</strong> Use the AI assistant below for personalized guidance.
-              </p>
-              <p className="text-xs text-theme-muted">
-                Click the ⚙️ <strong>Customize</strong> button next to any goal to adjust its investment strategy.
-              </p>
             </div>
           </div>
         </CardContent>
