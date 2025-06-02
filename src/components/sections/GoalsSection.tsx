@@ -549,42 +549,81 @@ const GoalsSection: React.FC<GoalsSectionProps> = ({ onNext, onBack }) => {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-purple-600">
                   <span className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center text-white text-sm font-bold">3</span>
-                  When Do You Want to Save For This Goal?
+                  When Do You Need This Goal?
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-sm text-theme-secondary mb-6">
-                  Select the target date for your goal. This will help us calculate how much you need to save each month.
+                  Select the target month and year when you'll need this goal. This helps us calculate how much time you have to save.
                 </p>
                 
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {yearOptions.map((year) => (
-                    <button
-                      key={year}
-                      onClick={() => {
-                        setTargetYear(year);
-                        setCurrentStep('amount');
-                      }}
-                      className={`p-4 rounded-lg border transition-all hover:shadow-lg ${
-                        targetYear === year
-                          ? 'bg-purple-600 border-purple-500 text-white shadow-lg'
-                          : 'border-theme text-theme-secondary hover:border-purple-500/50 hover:bg-purple-500/5'
-                      }`}
-                    >
-                      <div className="flex flex-col items-center space-y-3">
-                        <div className={`text-2xl ${targetYear === year ? 'text-white' : 'text-purple-600'}`}>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {/* Month Selection */}
+                  <div>
+                    <label className="block text-sm font-medium text-theme-secondary mb-3">Target Month</label>
+                    <div className="grid grid-cols-3 gap-2">
+                      {monthOptions.map((month, index) => (
+                        <button
+                          key={month}
+                          onClick={() => setTargetMonth(index + 1)}
+                          className={`p-3 rounded-lg border text-xs transition-all hover:shadow-md ${
+                            targetMonth === index + 1
+                              ? 'bg-purple-600 border-purple-500 text-white shadow-lg'
+                              : 'border-theme text-theme-secondary hover:border-purple-500/50 hover:bg-purple-500/5'
+                          }`}
+                        >
+                          {month.slice(0, 3)}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Year Selection */}
+                  <div>
+                    <label className="block text-sm font-medium text-theme-secondary mb-3">Target Year</label>
+                    <div className="grid grid-cols-3 gap-2 max-h-64 overflow-y-auto">
+                      {yearOptions.slice(0, 15).map((year) => (
+                        <button
+                          key={year}
+                          onClick={() => setTargetYear(year)}
+                          className={`p-3 rounded-lg border text-sm transition-all hover:shadow-md ${
+                            targetYear === year
+                              ? 'bg-purple-600 border-purple-500 text-white shadow-lg'
+                              : 'border-theme text-theme-secondary hover:border-purple-500/50 hover:bg-purple-500/5'
+                          }`}
+                        >
                           {year}
-                        </div>
-                        <h3 className="font-semibold text-base">{year}</h3>
-                      </div>
-                    </button>
-                  ))}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                 </div>
+
+                {/* Selected Date Display */}
+                {targetMonth && targetYear && (
+                  <div className="mt-6 p-4 bg-purple-500/10 border border-purple-500/30 rounded-lg text-center">
+                    <p className="text-sm text-purple-600 font-medium">
+                      🎯 Target Date: <strong>{monthOptions[targetMonth - 1]} {targetYear}</strong>
+                    </p>
+                    <p className="text-xs text-theme-muted mt-1">
+                      You have approximately {Math.round(monthDiff(new Date(), new Date(targetYear, targetMonth - 1)) / 12)} years to save for this goal
+                    </p>
+                  </div>
+                )}
               </CardContent>
               <CardFooter>
-                <Button variant="outline" onClick={() => setCurrentStep('category')} className="w-full">
-                  ← Back to Goal Type
-                </Button>
+                <div className="flex gap-3 w-full">
+                  <Button variant="outline" onClick={() => setCurrentStep('category')} className="flex-1">
+                    ← Back to Goal Type
+                  </Button>
+                  <Button 
+                    onClick={() => setCurrentStep('amount')} 
+                    disabled={!targetMonth || !targetYear}
+                    className="flex-1 bg-purple-600 hover:bg-purple-700"
+                  >
+                    Continue to Amount →
+                  </Button>
+                </div>
               </CardFooter>
             </Card>
           </div>
@@ -597,26 +636,142 @@ const GoalsSection: React.FC<GoalsSectionProps> = ({ onNext, onBack }) => {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-green-600">
                   <span className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center text-white text-sm font-bold">4</span>
-                  How Much Do You Need to Save?
+                  How Much Will This Goal Cost?
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-sm text-theme-secondary mb-6">
-                  Enter the amount you need to save for this goal. This will help us calculate how much you need to save each month.
-                </p>
-                
-                <input
-                  type="number"
-                  value={goalAmount}
-                  onChange={(e) => setGoalAmount(Number(e.target.value))}
-                  placeholder="Enter the amount"
-                  className="input-dark block w-full px-4 py-3 text-sm rounded-md shadow-sm focus:ring-green-500 focus:border-green-500 transition-colors"
-                />
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {/* Left Side - Form */}
+                  <div className="space-y-6">
+                    <div>
+                      <p className="text-sm text-theme-secondary mb-4">
+                        Enter the estimated cost for your goal. If you're unsure, use our AI assistant to help calculate realistic costs with inflation adjustments!
+                      </p>
+                      
+                      {/* Goal Name Input */}
+                      <div className="mb-4">
+                        <label className="block text-sm font-medium text-theme-secondary mb-2">Goal Name</label>
+                        <input
+                          type="text"
+                          value={goalName}
+                          onChange={(e) => setGoalName(e.target.value)}
+                          placeholder={`e.g., ${
+                            goalCategory === 'Education' ? "Master's Degree in UK" :
+                            goalCategory === 'Travel' ? 'Family Europe Trip' :
+                            goalCategory === 'Gift' ? "Sister's Wedding Gift" :
+                            goalCategory === 'Home' ? 'Dubai Apartment Down Payment' :
+                            goalCategory === 'Other' ? customCategoryName || 'Custom Goal' :
+                            'My Goal'
+                          }`}
+                          className="input-dark block w-full px-4 py-3 text-sm rounded-md shadow-sm focus:ring-green-500 focus:border-green-500 transition-colors"
+                        />
+                      </div>
+
+                      {/* Amount Input */}
+                      <div>
+                        <label className="block text-sm font-medium text-theme-secondary mb-2">
+                          Estimated Cost ({currency.code})
+                        </label>
+                        <div className="relative">
+                          <input
+                            type="number"
+                            value={goalAmount || ''}
+                            onChange={(e) => setGoalAmount(Number(e.target.value))}
+                            placeholder="Enter estimated amount"
+                            className="input-dark block w-full pl-4 pr-20 py-3 text-sm rounded-md shadow-sm focus:ring-green-500 focus:border-green-500 transition-colors"
+                          />
+                          <span className="absolute right-4 top-1/2 transform -translate-y-1/2 text-theme-muted text-sm">
+                            {currency.code}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Sample Costs for Reference */}
+                      <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-4">
+                        <h4 className="font-semibold text-green-600 mb-2">💡 Typical Cost Ranges</h4>
+                        <div className="text-xs space-y-1 text-theme-secondary">
+                          {goalCategory === 'Education' && (
+                            <>
+                              <p>• Local Masters: {formatCurrency(15000, currency)} - {formatCurrency(40000, currency)}</p>
+                              <p>• International Masters: {formatCurrency(50000, currency)} - {formatCurrency(150000, currency)}</p>
+                              <p>• Professional Certification: {formatCurrency(2000, currency)} - {formatCurrency(15000, currency)}</p>
+                            </>
+                          )}
+                          {goalCategory === 'Travel' && (
+                            <>
+                              <p>• Regional Trip (1 week): {formatCurrency(3000, currency)} - {formatCurrency(8000, currency)}</p>
+                              <p>• Europe Trip (2 weeks): {formatCurrency(8000, currency)} - {formatCurrency(20000, currency)}</p>
+                              <p>• World Tour (1 month): {formatCurrency(20000, currency)} - {formatCurrency(50000, currency)}</p>
+                            </>
+                          )}
+                          {goalCategory === 'Home' && (
+                            <>
+                              <p>• Apartment Down Payment: {formatCurrency(50000, currency)} - {formatCurrency(200000, currency)}</p>
+                              <p>• Villa Down Payment: {formatCurrency(150000, currency)} - {formatCurrency(500000, currency)}</p>
+                              <p>• Home Renovation: {formatCurrency(20000, currency)} - {formatCurrency(100000, currency)}</p>
+                            </>
+                          )}
+                          {goalCategory === 'Gift' && (
+                            <>
+                              <p>• Wedding Gift: {formatCurrency(5000, currency)} - {formatCurrency(25000, currency)}</p>
+                              <p>• Graduation Gift: {formatCurrency(2000, currency)} - {formatCurrency(10000, currency)}</p>
+                              <p>• Anniversary Gift: {formatCurrency(1000, currency)} - {formatCurrency(15000, currency)}</p>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Right Side - AI Assistant */}
+                  <div className="lg:border-l lg:border-theme lg:pl-6">
+                    <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4 mb-4">
+                      <h4 className="font-semibold text-blue-600 mb-2 flex items-center gap-2">
+                        🤖 AI Cost Calculator
+                        <span className="text-xs bg-blue-500/20 px-2 py-1 rounded-full">Recommended</span>
+                      </h4>
+                      <p className="text-xs text-theme-secondary mb-3">
+                        Get personalized cost estimates with inflation adjustments based on your location, timeline, and goal type.
+                      </p>
+                      <div className="text-xs space-y-1 text-blue-600">
+                        <p>✨ Inflation-adjusted pricing</p>
+                        <p>📍 Location-specific costs</p>
+                        <p>🎯 Goal-specific guidance</p>
+                        <p>💰 Budget recommendations</p>
+                      </div>
+                    </div>
+
+                    {/* AI Component will be positioned here */}
+                    <div className="bg-gradient-to-br from-purple-500/5 to-blue-500/5 border border-purple-500/20 rounded-lg p-4 text-center">
+                      <p className="text-sm text-theme-secondary mb-2">
+                        💬 <strong>Need help calculating costs?</strong>
+                      </p>
+                      <p className="text-xs text-theme-muted">
+                        The AI assistant (bottom right) can help you estimate realistic costs for your goal with inflation adjustments.
+                      </p>
+                    </div>
+                  </div>
+                </div>
               </CardContent>
               <CardFooter>
-                <Button variant="outline" onClick={() => setCurrentStep('when')} className="w-full">
-                  ← Back to Target Date
-                </Button>
+                <div className="flex gap-3 w-full">
+                  <Button variant="outline" onClick={() => setCurrentStep('when')} className="flex-1">
+                    ← Back to Timeline
+                  </Button>
+                  <Button 
+                    onClick={() => {
+                      if (shouldShowPaymentOptions(goalCategory)) {
+                        setCurrentStep('payment');
+                      } else {
+                        setCurrentStep('review');
+                      }
+                    }}
+                    disabled={!goalName.trim() || !goalAmount || goalAmount <= 0}
+                    className="flex-1 bg-green-600 hover:bg-green-700"
+                  >
+                    Continue to {shouldShowPaymentOptions(goalCategory) ? 'Payment Options' : 'Review'} →
+                  </Button>
+                </div>
               </CardFooter>
             </Card>
           </div>
@@ -625,46 +780,108 @@ const GoalsSection: React.FC<GoalsSectionProps> = ({ onNext, onBack }) => {
       case 'payment':
         return (
           <div className="space-y-6">
-            <Card className="border-yellow-500/30">
+            <Card className="border-orange-500/30">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-yellow-600">
-                  <span className="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center text-white text-sm font-bold">5</span>
-                  How Often Do You Want to Save?
+                <CardTitle className="flex items-center gap-2 text-orange-600">
+                  <span className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center text-white text-sm font-bold">5</span>
+                  Payment Schedule Options
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-sm text-theme-secondary mb-6">
-                  Select the frequency with which you want to save for this goal.
-                </p>
-                
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {PAYMENT_FREQUENCIES.map((freq) => (
-                    <button
-                      key={freq}
-                      onClick={() => {
-                        setPaymentFrequency(freq);
-                        setCurrentStep('amount');
-                      }}
-                      className={`p-4 rounded-lg border transition-all hover:shadow-lg ${
-                        paymentFrequency === freq
-                          ? 'bg-yellow-600 border-yellow-500 text-white shadow-lg'
-                          : 'border-theme text-theme-secondary hover:border-yellow-500/50 hover:bg-yellow-500/5'
-                      }`}
-                    >
-                      <div className="flex flex-col items-center space-y-3">
-                        <div className={`text-2xl ${paymentFrequency === freq ? 'text-white' : 'text-yellow-600'}`}>
-                          {freq}
-                        </div>
-                        <h3 className="font-semibold text-base">{freq}</h3>
+                <div className="space-y-6">
+                  <div>
+                    <p className="text-sm text-theme-secondary mb-4">
+                      {goalCategory === 'Education' 
+                        ? 'Will you pay the full amount when education starts, or spread payments over the study period?'
+                        : 'Will you pay the full amount upfront, or spread payments over time (like a mortgage)?'
+                      }
+                    </p>
+                    
+                    <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4 mb-6">
+                      <h4 className="font-semibold text-blue-600 mb-2">💡 Understanding Payment Options</h4>
+                      <div className="text-xs space-y-2 text-theme-secondary">
+                        <p><strong>Target Date:</strong> When you need this goal (when payments BEGIN)</p>
+                        {goalCategory === 'Education' && (
+                          <p><strong>Payment Period:</strong> How long you'll pay tuition fees AFTER starting (e.g., 4 years of university)</p>
+                        )}
+                        {goalCategory === 'Home' && (
+                          <p><strong>Payment Period:</strong> Mortgage duration AFTER buying the home (e.g., 20-25 years)</p>
+                        )}
                       </div>
-                    </button>
-                  ))}
+                    </div>
+                  </div>
+
+                  {/* Payment Frequency Selection */}
+                  <div>
+                    <label className="block text-sm font-medium text-theme-secondary mb-3">Payment Frequency</label>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                      {PAYMENT_FREQUENCIES.map((freq) => (
+                        <button
+                          key={freq}
+                          onClick={() => setPaymentFrequency(freq)}
+                          className={`p-4 rounded-lg border transition-all hover:shadow-md ${
+                            paymentFrequency === freq
+                              ? 'bg-orange-600 border-orange-500 text-white shadow-lg'
+                              : 'border-theme text-theme-secondary hover:border-orange-500/50 hover:bg-orange-500/5'
+                          }`}
+                        >
+                          <div className="text-center">
+                            <h3 className="font-semibold text-sm">{freq}</h3>
+                            <p className={`text-xs mt-1 ${paymentFrequency === freq ? 'text-orange-100' : 'text-theme-muted'}`}>
+                              {freq === 'Once' && 'Pay full amount upfront'}
+                              {freq === 'Monthly' && 'Monthly payments'}
+                              {freq === 'Quarterly' && 'Every 3 months'}
+                              {freq === 'Biannual' && 'Every 6 months'}
+                              {freq === 'Annual' && 'Yearly payments'}
+                            </p>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Payment Period Selection (only if not "Once") */}
+                  {paymentFrequency !== 'Once' && (
+                    <div>
+                      <label className="block text-sm font-medium text-theme-secondary mb-3">
+                        Payment Period (Years)
+                      </label>
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                        {[1, 2, 3, 4, 5, 10, 15, 20, 25].map((years) => (
+                          <button
+                            key={years}
+                            onClick={() => setPaymentPeriod(years)}
+                            className={`p-3 rounded-lg border text-sm transition-all hover:shadow-md ${
+                              paymentPeriod === years
+                                ? 'bg-orange-600 border-orange-500 text-white shadow-lg'
+                                : 'border-theme text-theme-secondary hover:border-orange-500/50 hover:bg-orange-500/5'
+                            }`}
+                          >
+                            {years} {years === 1 ? 'Year' : 'Years'}
+                          </button>
+                        ))}
+                      </div>
+                      <div className="mt-4 p-3 bg-orange-500/10 border border-orange-500/30 rounded-lg">
+                        <p className="text-xs text-orange-600">
+                          💰 You'll pay approximately <strong>{formatCurrency(goalAmount / (paymentPeriod * (paymentFrequency === 'Monthly' ? 12 : paymentFrequency === 'Quarterly' ? 4 : paymentFrequency === 'Biannual' ? 2 : 1)), currency)}</strong> per payment
+                        </p>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </CardContent>
               <CardFooter>
-                <Button variant="outline" onClick={() => setCurrentStep('amount')} className="w-full">
-                  ← Back to Amount
-                </Button>
+                <div className="flex gap-3 w-full">
+                  <Button variant="outline" onClick={() => setCurrentStep('amount')} className="flex-1">
+                    ← Back to Amount
+                  </Button>
+                  <Button 
+                    onClick={() => setCurrentStep('review')}
+                    className="flex-1 bg-orange-600 hover:bg-orange-700"
+                  >
+                    Continue to Review →
+                  </Button>
+                </div>
               </CardFooter>
             </Card>
           </div>
@@ -677,41 +894,95 @@ const GoalsSection: React.FC<GoalsSectionProps> = ({ onNext, onBack }) => {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-purple-600">
                   <span className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center text-white text-sm font-bold">6</span>
-                  Review Your Goal
+                  Review & Save Your Goal
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-sm text-theme-secondary mb-6">
-                  Please review the details of your goal before saving it.
-                </p>
-                
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <span className="font-semibold text-theme-primary">Goal Name:</span>
-                    <span className="text-theme-secondary">{goalName}</span>
+                <div className="space-y-6">
+                  <p className="text-sm text-theme-secondary">
+                    Please review your goal details before saving. You can always edit these later.
+                  </p>
+                  
+                  {/* Goal Summary */}
+                  <div className="bg-purple-500/5 border border-purple-500/30 rounded-lg p-6">
+                    <div className="flex items-start space-x-4">
+                      <div className="text-2xl">
+                        {getCategoryIcon(goalCategory)}
+                      </div>
+                      <div className="flex-1 space-y-3">
+                        <div>
+                          <h3 className="font-semibold text-lg text-theme-primary">
+                            {goalCategory === 'Other' ? customCategoryName : goalName}
+                          </h3>
+                          <p className="text-sm text-theme-muted">{goalCategory} Goal</p>
+                        </div>
+                        
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                          <div>
+                            <span className="font-medium text-theme-secondary">Target Amount:</span>
+                            <p className="text-theme-primary font-semibold">{formatCurrency(goalAmount, currency)}</p>
+                          </div>
+                          <div>
+                            <span className="font-medium text-theme-secondary">Target Date:</span>
+                            <p className="text-theme-primary">{monthOptions[targetMonth - 1]} {targetYear}</p>
+                          </div>
+                          {shouldShowPaymentOptions(goalCategory) && (
+                            <>
+                              <div>
+                                <span className="font-medium text-theme-secondary">Payment Frequency:</span>
+                                <p className="text-theme-primary">{paymentFrequency}</p>
+                              </div>
+                              {paymentFrequency !== 'Once' && (
+                                <div>
+                                  <span className="font-medium text-theme-secondary">Payment Period:</span>
+                                  <p className="text-theme-primary">{paymentPeriod} {paymentPeriod === 1 ? 'Year' : 'Years'}</p>
+                                </div>
+                              )}
+                            </>
+                          )}
+                          <div>
+                            <span className="font-medium text-theme-secondary">Time to Save:</span>
+                            <p className="text-theme-primary">
+                              {Math.floor(monthDiff(new Date(), new Date(targetYear, targetMonth - 1)) / 12)} years, {monthDiff(new Date(), new Date(targetYear, targetMonth - 1)) % 12} months
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                  <div className="flex items-center justify-between">
-                    <span className="font-semibold text-theme-primary">Goal Amount:</span>
-                    <span className="text-theme-secondary">{formatCurrency(goalAmount, currency)}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="font-semibold text-theme-primary">Goal Category:</span>
-                    <span className="text-theme-secondary">{goalCategory}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="font-semibold text-theme-primary">Target Date:</span>
-                    <span className="text-theme-secondary">{new Date(targetYear, targetMonth - 1).toLocaleDateString()}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="font-semibold text-theme-primary">Payment Frequency:</span>
-                    <span className="text-theme-secondary">{paymentFrequency}</span>
+
+                  {/* Savings Calculation Preview */}
+                  <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-4">
+                    <h4 className="font-semibold text-green-600 mb-2">💰 Monthly Savings Required</h4>
+                    <p className="text-sm text-theme-secondary mb-2">
+                      Based on your timeline and goal amount, here's what you'll need to save monthly:
+                    </p>
+                    <div className="text-lg font-bold text-green-600">
+                      Approximately {formatCurrency(goalAmount / Math.max(1, monthDiff(new Date(), new Date(targetYear, targetMonth - 1))), currency)} per month
+                    </div>
+                    <p className="text-xs text-theme-muted mt-1">
+                      *This is a basic calculation. The actual amount will be optimized in your investment strategy.
+                    </p>
                   </div>
                 </div>
               </CardContent>
               <CardFooter>
-                <Button onClick={handleSaveGoal} className="w-full bg-purple-600 hover:bg-purple-700">
-                  Save Goal
-                </Button>
+                <div className="flex gap-3 w-full">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setCurrentStep(shouldShowPaymentOptions(goalCategory) ? 'payment' : 'amount')} 
+                    className="flex-1"
+                  >
+                    ← Back to {shouldShowPaymentOptions(goalCategory) ? 'Payment Options' : 'Amount'}
+                  </Button>
+                  <Button 
+                    onClick={handleSaveGoal} 
+                    disabled={!goalName.trim() || !goalAmount || goalAmount <= 0}
+                    className="flex-1 bg-purple-600 hover:bg-purple-700"
+                  >
+                    {editMode ? 'Update Goal' : 'Save Goal'} ✅
+                  </Button>
+                </div>
               </CardFooter>
             </Card>
           </div>
