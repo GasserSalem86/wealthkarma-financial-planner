@@ -303,8 +303,8 @@ const RiskReturnsSection: React.FC<RiskReturnsSectionProps> = ({ onNext, onBack 
                 {/* Visual Timeline Bar with Two Phases */}
                 <div className="relative">
                   <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded-lg overflow-hidden flex">
-                    <div className="h-full bg-yellow-500 flex-grow flex items-center justify-center text-white text-sm font-medium">
-                      🚀 Growth Phase (5-8%)
+                    <div className="h-full bg-green-600 flex-grow flex items-center justify-center text-white text-sm font-medium">
+                      ⚖️ Balanced Phase (3-6%)
                     </div>
                     <div className="h-full bg-blue-600 w-1/3 flex items-center justify-center text-white text-sm font-medium">
                       🛡️ Safety Phase
@@ -318,20 +318,20 @@ const RiskReturnsSection: React.FC<RiskReturnsSectionProps> = ({ onNext, onBack 
                 </div>
                 
                 <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div className="bg-yellow-50 dark:bg-yellow-900/20 p-3 rounded border border-yellow-200 dark:border-yellow-800">
-                    <div className="font-medium text-yellow-800 dark:text-yellow-200">🎯 Smart Transition</div>
-                    <div className="text-yellow-700 dark:text-yellow-300 text-xs mt-1">
-                      • Start with growth for higher returns<br/>
+                  <div className="bg-green-50 dark:bg-green-900/20 p-3 rounded border border-green-200 dark:border-green-800">
+                    <div className="font-medium text-green-800 dark:text-green-200">🎯 Smart Transition</div>
+                    <div className="text-green-700 dark:text-green-300 text-xs mt-1">
+                      • Start with balanced growth approach<br/>
                       • Switch to safe 2 years before goal<br/>
-                      • Best of both worlds
+                      • Moderate risk with steady returns
                     </div>
                   </div>
-                  <div className="bg-green-50 dark:bg-green-900/20 p-3 rounded border border-green-200 dark:border-green-800">
-                    <div className="font-medium text-green-800 dark:text-green-200">📈 Expected Result</div>
-                    <div className="text-green-700 dark:text-green-300 text-xs mt-1">
-                      • Higher overall returns<br/>
+                  <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded border border-blue-200 dark:border-blue-800">
+                    <div className="font-medium text-blue-800 dark:text-blue-200">📈 Expected Result</div>
+                    <div className="text-blue-700 dark:text-blue-300 text-xs mt-1">
+                      • Solid overall returns<br/>
                       • Protected when goal is near<br/>
-                      • Balanced risk/reward
+                      • Balanced risk/reward approach
                     </div>
                   </div>
                 </div>
