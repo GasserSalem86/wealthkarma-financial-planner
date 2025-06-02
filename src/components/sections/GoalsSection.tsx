@@ -545,10 +545,10 @@ const GoalsSection: React.FC<GoalsSectionProps> = ({ onNext, onBack }) => {
       case 'when':
         return (
           <div className="space-y-6">
-            <Card className="border-purple-500/30">
+            <Card className="border-green-500/30">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-purple-600">
-                  <span className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center text-white text-sm font-bold">3</span>
+                <CardTitle className="flex items-center gap-2 text-green-600">
+                  <span className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center text-white text-sm font-bold">3</span>
                   When Do You Need This Goal?
                 </CardTitle>
               </CardHeader>
@@ -568,8 +568,8 @@ const GoalsSection: React.FC<GoalsSectionProps> = ({ onNext, onBack }) => {
                           onClick={() => setTargetMonth(index + 1)}
                           className={`p-3 rounded-lg border text-xs transition-all hover:shadow-md ${
                             targetMonth === index + 1
-                              ? 'bg-purple-600 border-purple-500 text-white shadow-lg'
-                              : 'border-theme text-theme-secondary hover:border-purple-500/50 hover:bg-purple-500/5'
+                              ? 'bg-green-600 border-green-500 text-white shadow-lg'
+                              : 'border-theme text-theme-secondary hover:border-green-500/50 hover:bg-green-500/5'
                           }`}
                         >
                           {month.slice(0, 3)}
@@ -588,8 +588,8 @@ const GoalsSection: React.FC<GoalsSectionProps> = ({ onNext, onBack }) => {
                           onClick={() => setTargetYear(year)}
                           className={`p-3 rounded-lg border text-sm transition-all hover:shadow-md ${
                             targetYear === year
-                              ? 'bg-purple-600 border-purple-500 text-white shadow-lg'
-                              : 'border-theme text-theme-secondary hover:border-purple-500/50 hover:bg-purple-500/5'
+                              ? 'bg-green-600 border-green-500 text-white shadow-lg'
+                              : 'border-theme text-theme-secondary hover:border-green-500/50 hover:bg-green-500/5'
                           }`}
                         >
                           {year}
@@ -601,8 +601,8 @@ const GoalsSection: React.FC<GoalsSectionProps> = ({ onNext, onBack }) => {
 
                 {/* Selected Date Display */}
                 {targetMonth && targetYear && (
-                  <div className="mt-6 p-4 bg-purple-500/10 border border-purple-500/30 rounded-lg text-center">
-                    <p className="text-sm text-purple-600 font-medium">
+                  <div className="mt-6 p-4 bg-green-500/10 border border-green-500/30 rounded-lg text-center">
+                    <p className="text-sm text-green-600 font-medium">
                       🎯 Target Date: <strong>{monthOptions[targetMonth - 1]} {targetYear}</strong>
                     </p>
                     <p className="text-xs text-theme-muted mt-1">
@@ -619,7 +619,7 @@ const GoalsSection: React.FC<GoalsSectionProps> = ({ onNext, onBack }) => {
                   <Button 
                     onClick={() => setCurrentStep('amount')} 
                     disabled={!targetMonth || !targetYear}
-                    className="flex-1 bg-purple-600 hover:bg-purple-700"
+                    className="flex-1 bg-green-600 hover:bg-green-700"
                   >
                     Continue to Amount →
                   </Button>
@@ -645,7 +645,7 @@ const GoalsSection: React.FC<GoalsSectionProps> = ({ onNext, onBack }) => {
                   <div className="space-y-6">
                     <div>
                       <p className="text-sm text-theme-secondary mb-4">
-                        Enter the estimated cost for your goal. If you're unsure, use our AI assistant to help calculate realistic costs with inflation adjustments!
+                        Enter the estimated cost for your goal. Use our AI assistant to help calculate realistic costs with inflation adjustments!
                       </p>
                       
                       {/* Goal Name Input */}
@@ -686,69 +686,109 @@ const GoalsSection: React.FC<GoalsSectionProps> = ({ onNext, onBack }) => {
                         </div>
                       </div>
 
-                      {/* Sample Costs for Reference */}
-                      <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-4">
-                        <h4 className="font-semibold text-green-600 mb-2">💡 Typical Cost Ranges</h4>
-                        <div className="text-xs space-y-1 text-theme-secondary">
-                          {goalCategory === 'Education' && (
-                            <>
-                              <p>• Local Masters: {formatCurrency(15000, currency)} - {formatCurrency(40000, currency)}</p>
-                              <p>• International Masters: {formatCurrency(50000, currency)} - {formatCurrency(150000, currency)}</p>
-                              <p>• Professional Certification: {formatCurrency(2000, currency)} - {formatCurrency(15000, currency)}</p>
-                            </>
-                          )}
-                          {goalCategory === 'Travel' && (
-                            <>
-                              <p>• Regional Trip (1 week): {formatCurrency(3000, currency)} - {formatCurrency(8000, currency)}</p>
-                              <p>• Europe Trip (2 weeks): {formatCurrency(8000, currency)} - {formatCurrency(20000, currency)}</p>
-                              <p>• World Tour (1 month): {formatCurrency(20000, currency)} - {formatCurrency(50000, currency)}</p>
-                            </>
-                          )}
-                          {goalCategory === 'Home' && (
-                            <>
-                              <p>• Apartment Down Payment: {formatCurrency(50000, currency)} - {formatCurrency(200000, currency)}</p>
-                              <p>• Villa Down Payment: {formatCurrency(150000, currency)} - {formatCurrency(500000, currency)}</p>
-                              <p>• Home Renovation: {formatCurrency(20000, currency)} - {formatCurrency(100000, currency)}</p>
-                            </>
-                          )}
-                          {goalCategory === 'Gift' && (
-                            <>
-                              <p>• Wedding Gift: {formatCurrency(5000, currency)} - {formatCurrency(25000, currency)}</p>
-                              <p>• Graduation Gift: {formatCurrency(2000, currency)} - {formatCurrency(10000, currency)}</p>
-                              <p>• Anniversary Gift: {formatCurrency(1000, currency)} - {formatCurrency(15000, currency)}</p>
-                            </>
-                          )}
+                      {/* AI Cost Calculator */}
+                      <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4">
+                        <h4 className="font-semibold text-blue-600 mb-3 flex items-center gap-2">
+                          🤖 AI Cost Calculator
+                          <span className="text-xs bg-blue-500/20 px-2 py-1 rounded-full">Recommended</span>
+                        </h4>
+                        <p className="text-xs text-theme-secondary mb-3">
+                          Get personalized cost estimates with inflation adjustments based on your location, timeline, and goal type.
+                        </p>
+                        
+                        {/* AI Calculator Features */}
+                        <div className="space-y-2 mb-4">
+                          <div className="flex items-center gap-2 text-xs text-blue-600">
+                            <span className="w-1.5 h-1.5 bg-blue-500 rounded-full"></span>
+                            <span>Inflation-adjusted pricing for {targetYear}</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-xs text-blue-600">
+                            <span className="w-1.5 h-1.5 bg-blue-500 rounded-full"></span>
+                            <span>Location-specific costs for {state.userProfile.location}</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-xs text-blue-600">
+                            <span className="w-1.5 h-1.5 bg-blue-500 rounded-full"></span>
+                            <span>{goalCategory} category expertise</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-xs text-blue-600">
+                            <span className="w-1.5 h-1.5 bg-blue-500 rounded-full"></span>
+                            <span>Budget optimization suggestions</span>
+                          </div>
+                        </div>
+
+                        {/* Sample Questions */}
+                        <div className="bg-white/50 rounded-lg p-3 border border-blue-500/20">
+                          <p className="text-xs font-medium text-blue-600 mb-2">💬 Try asking the AI:</p>
+                          <div className="space-y-1 text-xs text-theme-secondary">
+                            {goalCategory === 'Education' && (
+                              <>
+                                <p>"What's the cost of an MBA in London by {targetYear}?"</p>
+                                <p>"Cost of studying computer science in UAE?"</p>
+                              </>
+                            )}
+                            {goalCategory === 'Travel' && (
+                              <>
+                                <p>"How much for a 2-week Europe trip in {targetYear}?"</p>
+                                <p>"Cost of a family vacation to Japan?"</p>
+                              </>
+                            )}
+                            {goalCategory === 'Home' && (
+                              <>
+                                <p>"Down payment for apartment in {state.userProfile.location}?"</p>
+                                <p>"Cost of buying a villa in Dubai by {targetYear}?"</p>
+                              </>
+                            )}
+                            {goalCategory === 'Gift' && (
+                              <>
+                                <p>"How much should I budget for a wedding gift?"</p>
+                                <p>"Cost of a luxury graduation gift?"</p>
+                              </>
+                            )}
+                            {goalCategory === 'Other' && (
+                              <>
+                                <p>"What's a realistic budget for {customCategoryName}?"</p>
+                                <p>"Help me estimate costs with inflation adjustments"</p>
+                              </>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </div>
                   </div>
 
-                  {/* Right Side - AI Assistant */}
+                  {/* Right Side - AI Assistant Chat Window */}
                   <div className="lg:border-l lg:border-theme lg:pl-6">
-                    <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4 mb-4">
+                    <div className="bg-gradient-to-br from-blue-500/5 to-purple-500/5 border border-blue-500/20 rounded-lg p-4 mb-4">
                       <h4 className="font-semibold text-blue-600 mb-2 flex items-center gap-2">
-                        🤖 AI Cost Calculator
-                        <span className="text-xs bg-blue-500/20 px-2 py-1 rounded-full">Recommended</span>
+                        💬 AI Assistant
+                        <span className="text-xs bg-green-500/20 text-green-600 px-2 py-1 rounded-full">Live</span>
                       </h4>
                       <p className="text-xs text-theme-secondary mb-3">
-                        Get personalized cost estimates with inflation adjustments based on your location, timeline, and goal type.
+                        Chat with our AI to get personalized cost estimates and planning advice.
                       </p>
-                      <div className="text-xs space-y-1 text-blue-600">
-                        <p>✨ Inflation-adjusted pricing</p>
-                        <p>📍 Location-specific costs</p>
-                        <p>🎯 Goal-specific guidance</p>
-                        <p>💰 Budget recommendations</p>
-                      </div>
                     </div>
 
-                    {/* AI Component will be positioned here */}
-                    <div className="bg-gradient-to-br from-purple-500/5 to-blue-500/5 border border-purple-500/20 rounded-lg p-4 text-center">
-                      <p className="text-sm text-theme-secondary mb-2">
-                        💬 <strong>Need help calculating costs?</strong>
-                      </p>
-                      <p className="text-xs text-theme-muted">
-                        The AI assistant (bottom right) can help you estimate realistic costs for your goal with inflation adjustments.
-                      </p>
+                    {/* AI Component Container */}
+                    <div className="relative">
+                      {state.userProfile.name && state.userProfile.nationality && state.userProfile.location ? (
+                        <div className="h-96">
+                          <AIGuidance 
+                            step="financial-goals" 
+                            context={createAIContext()}
+                            onGoalFormFill={handleGoalFormFill}
+                            componentId="goals-section-inline"
+                          />
+                        </div>
+                      ) : (
+                        <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-4 text-center">
+                          <p className="text-sm text-yellow-600 mb-2">
+                            ⚠️ <strong>Complete your profile first</strong>
+                          </p>
+                          <p className="text-xs text-theme-muted">
+                            The AI assistant needs your profile information to provide personalized cost estimates.
+                          </p>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -1049,8 +1089,8 @@ const GoalsSection: React.FC<GoalsSectionProps> = ({ onNext, onBack }) => {
         </div>
       )}
 
-      {/* AI Guidance Component - Only show if user profile is complete */}
-      {state.userProfile.name && state.userProfile.nationality && state.userProfile.location && (
+      {/* AI Guidance Component - Only show if user profile is complete and not in amount step */}
+      {state.userProfile.name && state.userProfile.nationality && state.userProfile.location && currentStep !== 'amount' && (
         <AIGuidance 
           step="financial-goals" 
           context={createAIContext()}
