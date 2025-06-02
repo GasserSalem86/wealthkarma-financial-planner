@@ -116,24 +116,134 @@ const GoalsSection: React.FC<GoalsSectionProps> = ({ onNext, onBack }) => {
 
   const simulateAiResponse = (userQuestion: string) => {
     let response = '';
-    const currentAmount = goalAmount || 50000;
-    const inflationRate = 0.03;
-    const yearsToGoal = targetYear - new Date().getFullYear();
-    const adjustedAmount = Math.round(currentAmount * Math.pow(1 + inflationRate, yearsToGoal));
+    const yearsToGoal = Math.max(1, targetYear - new Date().getFullYear());
+    const inflationRate = 0.03; // 3% annual inflation
+    const location = state.userProfile.location || 'your region';
+    const questionLower = userQuestion.toLowerCase();
     
-    // Generate contextual responses based on category and question content
+    // Generate thoughtful, contextual responses that help users think through their goals
     if (goalCategory === 'Education') {
-      if (userQuestion.toLowerCase().includes('mba') || userQuestion.toLowerCase().includes('master')) {
-        response = `Based on current trends, an MBA program by ${targetYear} would likely cost around ${formatCurrency(adjustedAmount, currency)} (adjusted for ~3% annual inflation). This includes tuition, books, and living expenses. Would you like me to update your goal amount to ${formatCurrency(adjustedAmount, currency)}?`;
+      if (questionLower.includes('think through') || questionLower.includes('costs') || questionLower.includes('requirements')) {
+        response = `Great! Let's think through your education goal systematically:
+
+🎓 **Key Considerations for Education in ${targetYear}:**
+
+1. **Program Type & Duration**
+   - What level of education? (Bachelor's, Master's, PhD, Professional certification)
+   - Full-time or part-time study?
+   - Duration: 1-4 years typically
+
+2. **Location Factors**
+   - Local vs International study
+   - Cost of living in study location
+   - Visa and travel costs if abroad
+
+3. **Major Cost Components:**
+   - Tuition fees (varies greatly by program/location)
+   - Living expenses (accommodation, food, transport)
+   - Books, materials, technology
+   - Opportunity cost (lost income during study)
+
+**💰 Inflation Impact:** With ${yearsToGoal} years to your goal, education costs typically inflate at 4-6% annually (higher than general inflation).
+
+**Quick estimates for ${targetYear}:**
+- Local Master's program: ${formatCurrency(25000 * Math.pow(1.05, yearsToGoal), currency)} - ${formatCurrency(50000 * Math.pow(1.05, yearsToGoal), currency)}
+- International Master's: ${formatCurrency(80000 * Math.pow(1.05, yearsToGoal), currency)} - ${formatCurrency(200000 * Math.pow(1.05, yearsToGoal), currency)}
+
+What type of education are you considering? This will help me give you a more precise estimate!`;
+      } else if (questionLower.includes('international')) {
+        response = `International education involves several unique considerations:
+
+🌍 **Additional Costs for International Study:**
+- Visa application fees: ${formatCurrency(500, currency)} - ${formatCurrency(2000, currency)}
+- Health insurance: ${formatCurrency(1000, currency)} - ${formatCurrency(3000, currency)}/year
+- Travel costs: ${formatCurrency(2000, currency)} - ${formatCurrency(8000, currency)}
+- Higher accommodation costs
+- Currency exchange rate risks
+
+**Popular Study Destinations (estimated total costs for ${targetYear}):**
+- UK Master's: ${formatCurrency(120000 * Math.pow(1.05, yearsToGoal), currency)} - ${formatCurrency(180000 * Math.pow(1.05, yearsToGoal), currency)}
+- US Master's: ${formatCurrency(150000 * Math.pow(1.05, yearsToGoal), currency)} - ${formatCurrency(250000 * Math.pow(1.05, yearsToGoal), currency)}
+- Canada/Australia: ${formatCurrency(100000 * Math.pow(1.05, yearsToGoal), currency)} - ${formatCurrency(160000 * Math.pow(1.05, yearsToGoal), currency)}
+
+Would you like me to help you estimate costs for a specific country or program?`;
       } else {
-        response = `For ${goalCategory.toLowerCase()} goals in ${targetYear}, I'd estimate around ${formatCurrency(adjustedAmount, currency)} including inflation adjustments. This factors in ${state.userProfile.location || 'your location'} pricing. Shall I update your goal amount?`;
+        response = `For ${goalCategory.toLowerCase()} goals in ${targetYear}, I'd estimate around ${formatCurrency(50000 * Math.pow(1.05, yearsToGoal), currency)} including inflation adjustments. This factors in ${location} pricing. What specific program are you considering?`;
       }
-    } else if (goalCategory === 'Travel') {
-      response = `For a ${goalCategory.toLowerCase()} goal in ${targetYear}, considering inflation and ${state.userProfile.location || 'regional'} departure costs, I estimate around ${formatCurrency(adjustedAmount, currency)}. This includes flights, accommodation, meals, and activities. Should I set this as your target amount?`;
-    } else if (goalCategory === 'Home') {
-      response = `For a ${goalCategory.toLowerCase()} purchase in ${state.userProfile.location || 'your area'} by ${targetYear}, with property appreciation and inflation, you'd likely need around ${formatCurrency(adjustedAmount, currency)}. This assumes current market conditions. Want me to update your goal?`;
-    } else {
-      response = `Based on inflation projections and current market conditions, your ${goalCategory.toLowerCase()} goal would cost approximately ${formatCurrency(adjustedAmount, currency)} by ${targetYear}. This is adjusted for ~3% annual inflation. Should I update your target amount?`;
+    } 
+    
+    else if (goalCategory === 'Travel') {
+      if (questionLower.includes('think through') || questionLower.includes('budget') || questionLower.includes('plan')) {
+        response = `Let's plan your travel goal thoughtfully:
+
+✈️ **Travel Planning Framework for ${targetYear}:**
+
+1. **Trip Scope**
+   - Destinations and duration
+   - Travel style (budget, mid-range, luxury)
+   - Group size (solo, couple, family)
+   - Season/timing preferences
+
+2. **Major Cost Categories:**
+   - Flights: 20-40% of budget typically
+   - Accommodation: 25-35% of budget
+   - Food & dining: 20-30% of budget
+   - Activities & tours: 10-20% of budget
+   - Local transport, visas, insurance: 5-15%
+
+**💰 Estimated budgets for ${targetYear} (from ${location}):**
+- Regional trip (1 week): ${formatCurrency(4000 * Math.pow(1.04, yearsToGoal), currency)} - ${formatCurrency(8000 * Math.pow(1.04, yearsToGoal), currency)}
+- Europe (2 weeks): ${formatCurrency(12000 * Math.pow(1.04, yearsToGoal), currency)} - ${formatCurrency(25000 * Math.pow(1.04, yearsToGoal), currency)}
+- World tour (1 month): ${formatCurrency(30000 * Math.pow(1.04, yearsToGoal), currency)} - ${formatCurrency(60000 * Math.pow(1.04, yearsToGoal), currency)}
+
+What type of travel experience are you dreaming of?`;
+      } else {
+        response = `For a ${goalCategory.toLowerCase()} goal in ${targetYear}, considering inflation and ${location} departure costs, I estimate around ${formatCurrency(15000 * Math.pow(1.04, yearsToGoal), currency)}. This includes flights, accommodation, meals, and activities. What destinations are you considering?`;
+      }
+    }
+    
+    else if (goalCategory === 'Home') {
+      if (questionLower.includes('think through') || questionLower.includes('buying') || questionLower.includes('costs')) {
+        response = `Let's think through your home buying goal comprehensively:
+
+🏠 **Home Buying in ${location} - Key Considerations:**
+
+1. **Property Type & Location**
+   - Apartment vs Villa vs Townhouse
+   - New vs resale property
+   - Prime vs emerging locations
+
+2. **Total Cost Breakdown:**
+   - Down payment: 20-25% typically
+   - Registration fees: ~4% of property value
+   - Agent commission: 2% typically
+   - Legal fees, inspection: ${formatCurrency(15000, currency)} - ${formatCurrency(25000, currency)}
+
+**Estimated costs for ${targetYear}:**
+- 1BR Apartment: ${formatCurrency(800000 * Math.pow(1.05, yearsToGoal), currency)} - ${formatCurrency(1500000 * Math.pow(1.05, yearsToGoal), currency)}
+- 3BR Apartment: ${formatCurrency(1800000 * Math.pow(1.05, yearsToGoal), currency)} - ${formatCurrency(3500000 * Math.pow(1.05, yearsToGoal), currency)}
+
+What type of property are you considering?`;
+      } else {
+        response = `For a ${goalCategory.toLowerCase()} purchase in ${location} by ${targetYear}, with property appreciation and inflation, you'd likely need around ${formatCurrency(1200000 * Math.pow(1.05, yearsToGoal), currency)}. This assumes current market conditions. What type of property interests you?`;
+      }
+    }
+    
+    else if (goalCategory === 'Gift') {
+      response = `For ${goalCategory.toLowerCase()} planning in ${targetYear}, considering cultural expectations in ${location} and inflation, budget around ${formatCurrency(8000 * Math.pow(1.03, yearsToGoal), currency)}. What's the occasion and relationship?`;
+    }
+    
+    else if (goalCategory === 'Other' && customCategoryName) {
+      response = `For your "${customCategoryName}" goal in ${targetYear}, with ${yearsToGoal} years of planning and ~3% annual inflation, expect costs to be ${Math.round((Math.pow(1.03, yearsToGoal) - 1) * 100)}% higher than today. Could you share more details about what this involves?`;
+    }
+    
+    else {
+      response = `I'd be happy to help with your ${goalCategory} goal for ${targetYear}! With ${yearsToGoal} years to plan, costs will likely be ${Math.round((Math.pow(1.03, yearsToGoal) - 1) * 100)}% higher due to inflation. What specific aspects would you like to explore?`;
+    }
+    
+    // Add cost update suggestion if we provided estimates
+    if (response.includes('$') && goalAmount < 10000) {
+      response += `\n\n💡 Would you like me to suggest updating your goal amount based on this analysis?`;
     }
     
     const aiMessage = {
@@ -716,7 +826,7 @@ const GoalsSection: React.FC<GoalsSectionProps> = ({ onNext, onBack }) => {
                   <div className="space-y-6">
                     <div>
                       <p className="text-sm text-theme-secondary mb-4">
-                        Enter the estimated cost for your goal. Use our AI assistant to help calculate realistic costs with inflation adjustments!
+                        Enter your goal details below. Our AI assistant will help you think through the costs and provide inflation-adjusted estimates.
                       </p>
                       
                       {/* Goal Name Input */}
@@ -756,185 +866,122 @@ const GoalsSection: React.FC<GoalsSectionProps> = ({ onNext, onBack }) => {
                           </span>
                         </div>
                       </div>
-
-                      {/* AI Cost Calculator */}
-                      <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4">
-                        <h4 className="font-semibold text-blue-600 mb-3 flex items-center gap-2">
-                          🤖 AI Cost Calculator
-                          <span className="text-xs bg-blue-500/20 px-2 py-1 rounded-full">Recommended</span>
-                        </h4>
-                        <p className="text-xs text-theme-secondary mb-3">
-                          Get personalized cost estimates with inflation adjustments based on your location, timeline, and goal type.
-                        </p>
-                        
-                        {/* AI Calculator Features */}
-                        <div className="space-y-2 mb-4">
-                          <div className="flex items-center gap-2 text-xs text-blue-600">
-                            <span className="w-1.5 h-1.5 bg-blue-500 rounded-full"></span>
-                            <span>Inflation-adjusted pricing for {targetYear}</span>
-                          </div>
-                          <div className="flex items-center gap-2 text-xs text-blue-600">
-                            <span className="w-1.5 h-1.5 bg-blue-500 rounded-full"></span>
-                            <span>Location-specific costs for {state.userProfile.location}</span>
-                          </div>
-                          <div className="flex items-center gap-2 text-xs text-blue-600">
-                            <span className="w-1.5 h-1.5 bg-blue-500 rounded-full"></span>
-                            <span>{goalCategory} category expertise</span>
-                          </div>
-                          <div className="flex items-center gap-2 text-xs text-blue-600">
-                            <span className="w-1.5 h-1.5 bg-blue-500 rounded-full"></span>
-                            <span>Budget optimization suggestions</span>
-                          </div>
-                        </div>
-
-                        {/* Sample Questions */}
-                        <div className="bg-white/50 rounded-lg p-3 border border-blue-500/20">
-                          <p className="text-xs font-medium text-blue-600 mb-2">💬 Try asking the AI:</p>
-                          <div className="space-y-1 text-xs text-theme-secondary">
-                            {goalCategory === 'Education' && (
-                              <>
-                                <p>"What's the cost of an MBA in London by {targetYear}?"</p>
-                                <p>"Cost of studying computer science in UAE?"</p>
-                              </>
-                            )}
-                            {goalCategory === 'Travel' && (
-                              <>
-                                <p>"How much for a 2-week Europe trip in {targetYear}?"</p>
-                                <p>"Cost of a family vacation to Japan?"</p>
-                              </>
-                            )}
-                            {goalCategory === 'Home' && (
-                              <>
-                                <p>"Down payment for apartment in {state.userProfile.location}?"</p>
-                                <p>"Cost of buying a villa in Dubai by {targetYear}?"</p>
-                              </>
-                            )}
-                            {goalCategory === 'Gift' && (
-                              <>
-                                <p>"How much should I budget for a wedding gift?"</p>
-                                <p>"Cost of a luxury graduation gift?"</p>
-                              </>
-                            )}
-                            {goalCategory === 'Other' && (
-                              <>
-                                <p>"What's a realistic budget for {customCategoryName}?"</p>
-                                <p>"Help me estimate costs with inflation adjustments"</p>
-                              </>
-                            )}
-                          </div>
-                        </div>
-                      </div>
                     </div>
                   </div>
 
                   {/* Right Side - AI Assistant Chat Window */}
                   <div className="lg:border-l lg:border-theme lg:pl-6">
-                    <div className="bg-gradient-to-br from-blue-500/5 to-purple-500/5 border border-blue-500/20 rounded-lg overflow-hidden">
+                    <div className="bg-theme-card border border-theme rounded-lg overflow-hidden shadow-theme">
                       {/* Chat Header */}
-                      <div className="bg-blue-500/10 border-b border-blue-500/20 p-4">
-                        <h4 className="font-semibold text-blue-600 flex items-center gap-2">
-                          🤖 AI Cost Calculator
+                      <div className="bg-theme-section border-b border-theme p-4">
+                        <h4 className="font-semibold text-theme-primary flex items-center gap-2">
+                          🤖 AI Planning Assistant
                           <span className="text-xs bg-green-500/20 text-green-600 px-2 py-1 rounded-full">Live</span>
                         </h4>
                         <p className="text-xs text-theme-secondary mt-1">
-                          Get personalized cost estimates with inflation adjustments
+                          Let me help you think through your goal and calculate realistic costs
                         </p>
                       </div>
 
                       {/* Chat Messages Area */}
-                      <div className="h-64 overflow-y-auto p-4 space-y-3 bg-white/30">
+                      <div className="h-80 overflow-y-auto p-4 space-y-3 bg-theme-tertiary">
                         {chatMessages.length === 0 ? (
                           /* AI Welcome Message */
                           <div className="flex items-start gap-2">
-                            <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-white text-xs">
+                            <div className="w-7 h-7 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-xs shadow-sm">
                               🤖
                             </div>
-                            <div className="flex-1 bg-blue-500/10 rounded-lg p-3 text-sm">
-                              <p className="text-theme-primary">
-                                Hi! I'm here to help you estimate realistic costs for your <strong>{goalCategory}</strong> goal in <strong>{targetYear}</strong>. 
-                                {state.userProfile.location && ` I'll factor in ${state.userProfile.location} pricing and inflation adjustments.`}
+                            <div className="flex-1 bg-theme-card border border-theme rounded-lg p-3 text-sm shadow-theme-sm">
+                              <p className="text-theme-primary mb-2">
+                                Hi! I'm here to help you plan your <strong>{goalCategory}</strong> goal for <strong>{targetYear}</strong>. 
+                                Let me guide you through some important considerations:
                               </p>
-                              <div className="mt-2 text-xs text-blue-600">
-                                Try asking me something like:
+                              <div className="space-y-2 text-xs text-theme-secondary">
+                                <div className="bg-theme-section rounded p-2 border-l-2 border-blue-500">
+                                  <strong className="text-theme-primary">💭 Let's think through this together</strong>
+                                </div>
                               </div>
-                              <div className="mt-1 space-y-1">
+                              <div className="mt-3 text-xs text-theme-secondary">
+                                Click any question below to get started:
+                              </div>
+                              <div className="mt-2 space-y-1">
                                 {goalCategory === 'Education' && (
                                   <>
                                     <button 
-                                      onClick={() => handleQuickQuestion(`What's the cost of an MBA in London by ${targetYear}?`)}
+                                      onClick={() => handleQuickQuestion(`Help me think through the costs for studying in ${targetYear}`)}
                                       className="block text-xs text-blue-600 hover:text-blue-700 hover:underline text-left"
                                     >
-                                      "What's the cost of an MBA in London by {targetYear}?"
+                                      → Help me think through education costs and requirements
                                     </button>
                                     <button 
-                                      onClick={() => handleQuickQuestion("Cost of studying computer science in UAE?")}
+                                      onClick={() => handleQuickQuestion("What should I consider when budgeting for international education?")}
                                       className="block text-xs text-blue-600 hover:text-blue-700 hover:underline text-left"
                                     >
-                                      "Cost of studying computer science in UAE?"
+                                      → What should I consider for international education?
                                     </button>
                                   </>
                                 )}
                                 {goalCategory === 'Travel' && (
                                   <>
                                     <button 
-                                      onClick={() => handleQuickQuestion(`How much for a 2-week Europe trip in ${targetYear}?`)}
+                                      onClick={() => handleQuickQuestion(`Help me plan the budget for my travel goal in ${targetYear}`)}
                                       className="block text-xs text-blue-600 hover:text-blue-700 hover:underline text-left"
                                     >
-                                      "How much for a 2-week Europe trip in {targetYear}?"
+                                      → Help me plan my travel budget and considerations
                                     </button>
                                     <button 
-                                      onClick={() => handleQuickQuestion("Cost of a family vacation to Japan?")}
+                                      onClick={() => handleQuickQuestion("What factors affect travel costs and how should I plan?")}
                                       className="block text-xs text-blue-600 hover:text-blue-700 hover:underline text-left"
                                     >
-                                      "Cost of a family vacation to Japan?"
+                                      → What factors should I consider for travel costs?
                                     </button>
                                   </>
                                 )}
                                 {goalCategory === 'Home' && (
                                   <>
                                     <button 
-                                      onClick={() => handleQuickQuestion(`Down payment for apartment in ${state.userProfile.location}?`)}
+                                      onClick={() => handleQuickQuestion(`Help me understand home buying costs in ${state.userProfile.location} by ${targetYear}`)}
                                       className="block text-xs text-blue-600 hover:text-blue-700 hover:underline text-left"
                                     >
-                                      "Down payment for apartment in {state.userProfile.location}?"
+                                      → Help me understand home buying costs and process
                                     </button>
                                     <button 
-                                      onClick={() => handleQuickQuestion(`Cost of buying a villa in Dubai by ${targetYear}?`)}
+                                      onClick={() => handleQuickQuestion("What are all the costs involved in buying a property?")}
                                       className="block text-xs text-blue-600 hover:text-blue-700 hover:underline text-left"
                                     >
-                                      "Cost of buying a villa in Dubai by {targetYear}?"
+                                      → What are all the costs involved in property purchase?
                                     </button>
                                   </>
                                 )}
                                 {goalCategory === 'Gift' && (
                                   <>
                                     <button 
-                                      onClick={() => handleQuickQuestion("How much should I budget for a wedding gift?")}
+                                      onClick={() => handleQuickQuestion("Help me think through appropriate gift budgeting")}
                                       className="block text-xs text-blue-600 hover:text-blue-700 hover:underline text-left"
                                     >
-                                      "How much should I budget for a wedding gift?"
+                                      → Help me think through appropriate gift budgeting
                                     </button>
                                     <button 
-                                      onClick={() => handleQuickQuestion("Cost of a luxury graduation gift?")}
+                                      onClick={() => handleQuickQuestion("What factors should I consider for special occasion gifts?")}
                                       className="block text-xs text-blue-600 hover:text-blue-700 hover:underline text-left"
                                     >
-                                      "Cost of a luxury graduation gift?"
+                                      → What should I consider for special occasion gifts?
                                     </button>
                                   </>
                                 )}
                                 {goalCategory === 'Other' && customCategoryName && (
                                   <>
                                     <button 
-                                      onClick={() => handleQuickQuestion(`What's a realistic budget for ${customCategoryName}?`)}
+                                      onClick={() => handleQuickQuestion(`Help me think through the costs and planning for ${customCategoryName}`)}
                                       className="block text-xs text-blue-600 hover:text-blue-700 hover:underline text-left"
                                     >
-                                      "What's a realistic budget for {customCategoryName}?"
+                                      → Help me think through costs and planning for {customCategoryName}
                                     </button>
                                     <button 
-                                      onClick={() => handleQuickQuestion("Help me estimate costs with inflation adjustments")}
+                                      onClick={() => handleQuickQuestion("What factors should I consider and how do I estimate realistic costs?")}
                                       className="block text-xs text-blue-600 hover:text-blue-700 hover:underline text-left"
                                     >
-                                      "Help me estimate costs with inflation adjustments"
+                                      → What factors should I consider and cost estimation?
                                     </button>
                                   </>
                                 )}
@@ -946,18 +993,20 @@ const GoalsSection: React.FC<GoalsSectionProps> = ({ onNext, onBack }) => {
                           <>
                             {chatMessages.map((message) => (
                               <div key={message.id} className={`flex items-start gap-2 ${message.type === 'user' ? 'flex-row-reverse' : ''}`}>
-                                <div className={`w-6 h-6 rounded-full flex items-center justify-center text-white text-xs ${
-                                  message.type === 'user' ? 'bg-green-500' : 'bg-blue-500'
+                                <div className={`w-7 h-7 rounded-full flex items-center justify-center text-white text-xs shadow-sm ${
+                                  message.type === 'user' 
+                                    ? 'bg-gradient-to-br from-green-500 to-emerald-600' 
+                                    : 'bg-gradient-to-br from-blue-500 to-purple-600'
                                 }`}>
                                   {message.type === 'user' ? '👤' : '🤖'}
                                 </div>
-                                <div className={`flex-1 rounded-lg p-3 text-sm max-w-[80%] ${
+                                <div className={`flex-1 rounded-lg p-3 text-sm max-w-[85%] shadow-theme-sm border ${
                                   message.type === 'user' 
-                                    ? 'bg-green-500/10 ml-auto' 
-                                    : 'bg-blue-500/10'
+                                    ? 'bg-green-500/10 border-green-500/30 ml-auto' 
+                                    : 'bg-theme-card border-theme'
                                 }`}>
-                                  <p className="text-theme-primary whitespace-pre-wrap">{message.content}</p>
-                                  <div className="mt-1 text-xs text-theme-muted">
+                                  <p className="text-theme-primary whitespace-pre-wrap leading-relaxed">{message.content}</p>
+                                  <div className="mt-2 text-xs text-theme-muted">
                                     {message.timestamp.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
                                   </div>
                                 </div>
@@ -965,10 +1014,10 @@ const GoalsSection: React.FC<GoalsSectionProps> = ({ onNext, onBack }) => {
                             ))}
                             {isAiTyping && (
                               <div className="flex items-start gap-2">
-                                <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-white text-xs">
+                                <div className="w-7 h-7 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-xs shadow-sm">
                                   🤖
                                 </div>
-                                <div className="flex-1 bg-blue-500/10 rounded-lg p-3 text-sm">
+                                <div className="flex-1 bg-theme-card border border-theme rounded-lg p-3 text-sm shadow-theme-sm">
                                   <div className="flex space-x-1">
                                     <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"></div>
                                     <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
@@ -982,26 +1031,26 @@ const GoalsSection: React.FC<GoalsSectionProps> = ({ onNext, onBack }) => {
                       </div>
 
                       {/* Chat Input */}
-                      <div className="border-t border-blue-500/20 p-4">
+                      <div className="border-t border-theme p-4 bg-theme-section">
                         <div className="flex gap-2">
                           <input
                             type="text"
                             value={chatInput}
                             onChange={(e) => setChatInput(e.target.value)}
                             onKeyPress={handleKeyPress}
-                            placeholder="Ask about costs, inflation, or budget recommendations..."
-                            className="input-dark flex-1 px-3 py-2 text-sm rounded-md border border-theme focus:ring-blue-500 focus:border-blue-500"
+                            placeholder="Ask me about costs, considerations, or planning advice..."
+                            className="input-dark flex-1 px-3 py-2 text-sm rounded-md border border-theme focus:ring-blue-500 focus:border-blue-500 bg-theme-card transition-colors"
                           />
                           <button 
                             onClick={handleSendMessage}
                             disabled={!chatInput.trim()}
-                            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white text-sm rounded-md transition-colors"
+                            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-theme-muted disabled:cursor-not-allowed text-white text-sm rounded-md transition-colors shadow-theme-sm"
                           >
                             Send
                           </button>
                         </div>
                         <div className="mt-2 text-xs text-theme-muted">
-                          💡 I can help estimate costs, adjust for inflation, and suggest realistic budgets
+                          💡 I'll help you think through your goal and provide inflation-adjusted cost estimates
                         </div>
                       </div>
                     </div>
