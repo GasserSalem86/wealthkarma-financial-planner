@@ -37,8 +37,7 @@ const GoalsSection: React.FC<GoalsSectionProps> = ({ onNext, onBack }) => {
   const { currency } = useCurrency();
   
   // Main flow state
-  const [currentStep, setCurrentStep] = useState<'intro' | 'category' | 'when' | 'amount' | 'payment' | 'review'>('intro');
-  const [showAddAnother, setShowAddAnother] = useState(false);
+  const [currentStep, setCurrentStep] = useState<'intro' | 'category' | 'when' | 'amount' | 'payment' | 'review' | 'success'>('intro');
   
   // Goal creation state
   const [goalName, setGoalName] = useState('');
@@ -58,6 +57,9 @@ const GoalsSection: React.FC<GoalsSectionProps> = ({ onNext, onBack }) => {
   const [chatMessages, setChatMessages] = useState<Array<{id: string, type: 'user' | 'ai', content: string, timestamp: Date}>>([]);
   const [chatInput, setChatInput] = useState('');
   const [isAiTyping, setIsAiTyping] = useState(false);
+
+  // State to store the last saved goal for success display
+  const [lastSavedGoal, setLastSavedGoal] = useState<Goal | null>(null);
 
   const monthOptions = [
     'January', 'February', 'March', 'April', 'May', 'June',
@@ -106,7 +108,17 @@ const GoalsSection: React.FC<GoalsSectionProps> = ({ onNext, onBack }) => {
     try {
       const conversationHistory = chatMessages.map(msg => ({ type: msg.type, content: msg.content }));
       const response = await aiService.askQuestion(chatInput, createAIContext(), conversationHistory);
-      if (response.formFillData) { handleGoalFormFill(response.formFillData); }
+      if (response.formFillData) { 
+        handleGoalFormFill(response.formFillData as {
+          goalName?: string;
+          goalAmount?: number;
+          goalCategory?: GoalCategory;
+          targetMonth?: number;
+          targetYear?: number;
+          paymentFrequency?: PaymentFrequency;
+          paymentPeriod?: number;
+        }); 
+      }
       const aiMessage = { id: `ai-${Date.now()}`, type: "ai" as const, content: response.message, timestamp: new Date() };
       setChatMessages(prev => [...prev, aiMessage]);
     } catch (error) {
@@ -225,7 +237,8 @@ const GoalsSection: React.FC<GoalsSectionProps> = ({ onNext, onBack }) => {
         setCurrentStep('intro');
       } else {
         dispatch({ type: 'ADD_GOAL', payload: newGoal });
-        setShowAddAnother(true);
+        setLastSavedGoal(newGoal);
+        setCurrentStep('success');
       }
       
       resetForm();
@@ -1158,6 +1171,66 @@ const GoalsSection: React.FC<GoalsSectionProps> = ({ onNext, onBack }) => {
           </div>
         );
 
+      case 'success':
+        return (
+          <div className="space-y-6">
+            <Card className="border-green-500/30 bg-green-500/5">
+              <CardContent className="pt-6">
+                <div className="text-center space-y-6">
+                  <div className="text-5xl">🎉</div>
+                  <div className="space-y-2">
+                    <h3 className="text-2xl font-bold text-green-600">Goal Added Successfully!</h3>
+                    <p className="text-theme-secondary">
+                      Your goal has been saved to your financial plan.
+                    </p>
+                  </div>
+                  
+                  {/* Show what was just saved */}
+                  {lastSavedGoal && (
+                    <div className="bg-white/10 border border-green-500/30 rounded-lg p-4 mx-auto max-w-md">
+                      <div className="flex items-center space-x-3">
+                        <div className="text-xl">
+                          {getCategoryIcon(lastSavedGoal.category)}
+                        </div>
+                        <div className="text-left">
+                          <div className="font-semibold text-theme-primary">{lastSavedGoal.name}</div>
+                          <div className="text-sm text-theme-secondary">
+                            {formatCurrency(lastSavedGoal.amount, currency)} by {monthOptions[lastSavedGoal.targetDate.getMonth()]} {lastSavedGoal.targetDate.getFullYear()}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Action buttons */}
+                  <div className="flex flex-col sm:flex-row gap-3 justify-center max-w-md mx-auto">
+                    <Button 
+                      onClick={() => {
+                        setLastSavedGoal(null);
+                        setCurrentStep('category');
+                      }}
+                      className="bg-purple-600 hover:bg-purple-700 flex-1"
+                    >
+                      <Plus className="w-4 h-4 mr-2" />
+                      Add Another Goal
+                    </Button>
+                    <Button 
+                      variant="outline"
+                      onClick={() => {
+                        setLastSavedGoal(null);
+                        setCurrentStep('intro');
+                      }}
+                      className="flex-1"
+                    >
+                      View Goals Summary
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        );
+
       default:
         return null;
     }
@@ -1171,44 +1244,8 @@ const GoalsSection: React.FC<GoalsSectionProps> = ({ onNext, onBack }) => {
 
       {renderStep()}
 
-      {/* Add Another Goal Dialog */}
-      {showAddAnother && (
-        <Card className="border-green-500/30 bg-green-500/5 mt-6">
-          <CardContent className="pt-6">
-            <div className="text-center space-y-4">
-              <div className="text-3xl">✅</div>
-              <h3 className="text-lg font-semibold text-green-600">Goal Added Successfully!</h3>
-              <p className="text-sm text-theme-secondary">
-                Your goal has been added to your financial plan. Would you like to add another goal?
-              </p>
-              <div className="flex gap-3 justify-center">
-                <Button 
-                  onClick={() => {
-                    resetForm();
-                    setShowAddAnother(false);
-                  }}
-                  className="bg-purple-600 hover:bg-purple-700"
-                >
-                  <Plus className="w-4 h-4 mr-1" />
-                  Add Another Goal
-                </Button>
-                <Button 
-                  variant="outline"
-                  onClick={() => {
-                    setShowAddAnother(false);
-                    setCurrentStep('intro');
-                  }}
-                >
-                  Done Adding Goals
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
       {/* Navigation */}
-      {!showAddAnother && currentStep === 'intro' && (
+      {currentStep === 'intro' && (
         <div className="flex justify-between mt-8">
           <Button variant="outline" onClick={onBack}>
             Back
