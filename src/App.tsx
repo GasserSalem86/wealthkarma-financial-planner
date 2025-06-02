@@ -14,22 +14,22 @@ function App() {
   return (
     <ThemeProvider>
       <AuthProvider>
-        <div className="min-h-screen app-background">
-          <Router>
-            <CurrencyProvider>
-              <PlannerProvider>
-                <Routes>
-                  <Route path="/" element={<LandingPage />} />
+      <div className="min-h-screen app-background">
+        <Router>
+          <CurrencyProvider>
+            <PlannerProvider>
+              <Routes>
+                <Route path="/" element={<LandingPage />} />
                   <Route path="/login" element={<Login />} />
                   <Route path="/confirm" element={<EmailConfirmation />} />
-                  <Route path="/plan" element={<FinancialGoalsPlanner />} />
-                  <Route path="/plan/:step" element={<FinancialGoalsPlanner />} />
-                  <Route path="/dashboard" element={<Dashboard />} />
-                </Routes>
-              </PlannerProvider>
-            </CurrencyProvider>
-          </Router>
-        </div>
+                <Route path="/plan" element={<FinancialGoalsPlanner />} />
+                <Route path="/plan/:step" element={<FinancialGoalsPlanner />} />
+                <Route path="/dashboard" element={<Dashboard />} />
+              </Routes>
+            </PlannerProvider>
+          </CurrencyProvider>
+        </Router>
+      </div>
       </AuthProvider>
     </ThemeProvider>
   );

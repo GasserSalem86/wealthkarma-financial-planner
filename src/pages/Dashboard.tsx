@@ -167,7 +167,7 @@ const DashboardContent: React.FC = () => {
             
             <div className="flex items-center gap-1 lg:gap-4">
               <div className="hidden sm:block">
-                <CurrencySelector />
+              <CurrencySelector />
               </div>
               <ThemeToggle showLabel={false} />
               

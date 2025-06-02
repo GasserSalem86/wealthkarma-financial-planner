@@ -964,121 +964,71 @@ Include ALL banks mentioned with ANY rate information. Return only the JSON arra
   if (existing && !isEditing) {
     return (
       <div className="container mx-auto max-w-3xl px-4 lg:px-0">
-        <h2 className="text-2xl lg:text-3xl font-bold text-theme-light mb-4 lg:mb-6">✅ Your Emergency Fund Plan</h2>
-        
-        <Card className="mb-6 lg:mb-8 border-green-500/30 bg-green-500/5">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-green-600">
-              <span className="text-xl lg:text-2xl">🛡️</span>
-              Emergency Fund Summary
-            </CardTitle>
-          </CardHeader>
+        <h2 className="text-2xl lg:text-3xl font-bold text-theme-light mb-4 lg:mb-6">Your Safety Net</h2>
+        <Card className="mb-6 lg:mb-8">
           <CardContent>
-            <div className="space-y-4">
-              {/* Key metrics */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center">
-                    <span className="text-theme-secondary text-sm">Coverage:</span>
-                    <span className="font-medium text-theme-primary">{existing.bufferMonths ?? 3} months expenses</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-theme-secondary text-sm">Monthly Expenses:</span>
-                    <span className="font-medium text-theme-primary">{formatCurrency(existing.amount / (existing.bufferMonths ?? 1), currency)}</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-theme-secondary text-sm">Target Date:</span>
-                    <span className="font-medium text-theme-primary">
-                      {monthOptions[existing.targetDate.getMonth()]} {existing.targetDate.getFullYear()}
-                    </span>
+            <div className="space-y-3 lg:space-y-4">
+              <div className="flex flex-col sm:flex-row sm:justify-between gap-1 sm:gap-0">
+                <span className="text-theme-secondary text-sm lg:text-base">Buffer Months:</span>
+                <span className="text-theme-light font-medium text-sm lg:text-base">{existing.bufferMonths ?? 3} months</span>
+              </div>
+              <div className="flex flex-col sm:flex-row sm:justify-between gap-1 sm:gap-0">
+                <span className="text-theme-secondary text-sm lg:text-base">Monthly Expenses:</span>
+                <span className="text-theme-light font-medium text-sm lg:text-base">{formatCurrency(existing.amount / (existing.bufferMonths ?? 1), currency)}</span>
+              </div>
+              <div className="flex flex-col sm:flex-row sm:justify-between gap-1 sm:gap-0">
+                <span className="text-theme-secondary text-sm lg:text-base">Target Date:</span>
+                <span className="text-theme-light font-medium text-sm lg:text-base">
+                  {monthOptions[existing.targetDate.getMonth()]} {existing.targetDate.getFullYear()}
+                </span>
+              </div>
+              <div className="flex flex-col sm:flex-row sm:justify-between border-t border-theme pt-3 gap-1 sm:gap-0">
+                <span className="text-theme-light font-semibold text-sm lg:text-base">Total Required:</span>
+                <span className="text-theme-light font-bold text-lg lg:text-xl">{formatCurrency(existing.amount, currency)}</span>
+              </div>
+              <div className="flex flex-col sm:flex-row sm:justify-between pt-2 gap-2 sm:gap-0">
+                <div className="flex-1">
+                  <span className="text-theme-secondary text-sm lg:text-base">Monthly Savings:</span>
+                  <div className="text-xs text-theme-muted">
+                    {selectedBank ? `${(bankReturnRate * 100).toFixed(1)}% p.a. - ${selectedBank.bankName}` : '1% p.a.'}
                   </div>
                 </div>
-                
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center border-b border-green-500/30 pb-2">
-                    <span className="font-semibold text-theme-primary text-sm">Total Required:</span>
-                    <span className="font-bold text-xl text-green-600">{formatCurrency(existing.amount, currency)}</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <span className="text-theme-secondary text-sm">Monthly Savings:</span>
-                      <div className="text-xs text-theme-muted">
-                        {existing.selectedBank ? `${(existing.selectedBank.returnRate * 100).toFixed(1)}% p.a. - ${existing.selectedBank.bankName}` : '1% p.a.'}
-                      </div>
+                <div className="text-left sm:text-right">
+                  <span className="text-green-400 font-bold text-lg lg:text-xl">
+                  {formatCurrency(existing.requiredPMT, currency)}
+                  </span>
+                  {existing.selectedBank && (
+                    <div className="text-xs text-theme-muted mt-1">
+                      ({(existing.selectedBank.returnRate * 100).toFixed(1)}% p.a. - {existing.selectedBank.bankName})
                     </div>
-                    <span className="font-bold text-lg text-green-600">
-                      {formatCurrency(existing.requiredPMT, currency)}
-                    </span>
-                  </div>
+                  )}
                 </div>
               </div>
-
-              {/* Bank information */}
-              {existing.selectedBank ? (
-                <div className="bg-theme-section border border-green-500/30 rounded-lg p-3 mt-4">
-                  <div className="text-sm text-green-600 space-y-1">
-                    <div><strong>Selected Bank:</strong> {existing.selectedBank.bankName} - {existing.selectedBank.accountType}</div>
-                    <div><strong>Interest Rate:</strong> {existing.selectedBank.interestRate}</div>
-                    <div><strong>Features:</strong> {existing.selectedBank.features}</div>
-                    {existing.selectedBank.features.includes('Manual check required') && (
-                      <div className="mt-2 p-2 bg-theme-card border border-green-500/30 rounded">
-                        <div className="text-xs">
-                          <strong>🔗 Visit Bank Website:</strong> 
-                          <a 
-                            href={existing.selectedBank.website} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="ml-1 text-theme-primary hover:text-theme-secondary underline break-all"
-                          >
-                            {existing.selectedBank.website} →
-                          </a>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ) : (
-                <div className="bg-theme-card border border-blue-500/30 rounded-lg p-3 mt-4">
-                  <div className="text-sm text-blue-600">
-                    <strong>💡 Optimize Your Returns!</strong> Your plan currently uses a basic 1% interest rate. You could reduce your monthly savings significantly by selecting a high-yield bank account offering 2-5% p.a.
+              {!existing.selectedBank && (
+                <div className="bg-theme-card border border-blue-500/30 rounded-lg p-3 mt-3 lg:mt-4 shadow-theme-sm">
+                  <div className="text-xs lg:text-sm text-blue-300">
+                    <strong>💡 Get Better Rates!</strong> Your safety net is currently using a 1% interest rate. Select a local bank below offering 3-5% p.a., which could reduce your monthly savings significantly!
                   </div>
                 </div>
               )}
-
-              {/* Next steps reminder */}
-              <div className="bg-theme-section border border-green-500/30 rounded-lg p-3">
-                <h4 className="font-semibold text-green-600 mb-2 text-sm">🚀 Implementation Steps:</h4>
-                <ol className="space-y-1 list-decimal list-inside text-xs text-theme-secondary">
-                  <li>Open a dedicated emergency fund account{existing.selectedBank ? ` with ${existing.selectedBank.bankName}` : ''}</li>
-                  <li>Set up automatic monthly transfers of {formatCurrency(existing.requiredPMT, currency)}</li>
-                  <li>Keep the account easily accessible but separate from daily spending</li>
-                  <li>Review and adjust quarterly if your expenses change</li>
-                </ol>
-              </div>
+              {existing.selectedBank && (
+                <div className="bg-theme-card border border-green-500/30 rounded-lg p-3 mt-3 lg:mt-4 shadow-theme-sm">
+                  <div className="text-xs lg:text-sm text-green-300 space-y-1">
+                    <div><strong>Selected Bank:</strong> {existing.selectedBank.bankName} - {existing.selectedBank.accountType}</div>
+                    <div><strong>Interest Rate:</strong> {existing.selectedBank.interestRate}</div>
+                    <div><strong>Features:</strong> {existing.selectedBank.features}</div>
+                  </div>
+                </div>
+              )}
             </div>
           </CardContent>
           <CardFooter>
             <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4 w-full">
-              <Button variant="outline" onClick={() => setIsEditing(true)} fullWidth className="text-sm lg:text-base py-3 lg:py-2 border-green-500 text-green-600 hover:bg-green-500/10">
-                ✏️ Update Plan
-              </Button>
-              <Button onClick={onNext} fullWidth className="text-sm lg:text-base py-3 lg:py-2 bg-green-600 hover:bg-green-700">
-                ✅ Continue to Goals
-              </Button>
+              <Button variant="outline" onClick={() => setIsEditing(true)} fullWidth className="text-sm lg:text-base py-3 lg:py-2">Edit</Button>
+              <Button onClick={onNext} fullWidth className="text-sm lg:text-base py-3 lg:py-2">Continue to Goals</Button>
             </div>
           </CardFooter>
         </Card>
-        
-        {/* AI Money Coach */}
-        {(state.userProfile.nationality && state.userProfile.location) && (
-          <div className="mt-6">
-            <AIGuidance 
-              step="emergency-fund" 
-              context={aiContext}
-              componentId="emergency-fund-ai-coach"
-            />
-          </div>
-        )}
       </div>
     );
   }
@@ -1087,578 +1037,570 @@ Include ALL banks mentioned with ANY rate information. Return only the JSON arra
   return (
     <div className="container mx-auto max-w-3xl px-4 lg:px-0">
       <h2 className="text-2xl lg:text-3xl font-bold text-theme-light mb-3 lg:mb-4">
-        {existing ? (isEditing ? 'Update Your Emergency Fund' : 'Emergency Fund') : "Build Your Emergency Fund"}
+        {existing ? (isEditing ? 'Edit Safety Net' : 'Safety Net') : "Let's Start with Your Safety Net"}
       </h2>
 
-      {/* Progress indicator for new users */}
+      {/* Educational Section - Only show when creating new emergency fund */}
       {!existing && (
-        <div className="mb-6 lg:mb-8">
-          <div className="flex items-center justify-between text-xs text-theme-muted mb-2">
-            <span>Step 1: Why</span>
-            <span>Step 2: How Much</span>
-            <span>Step 3: By When</span>
-            <span>Step 4: Where</span>
-          </div>
-          <div className="h-2 bg-theme-tertiary rounded-full overflow-hidden">
-            <div className="h-full bg-gradient-to-r from-blue-500 to-green-500 rounded-full transition-all duration-500" 
-                 style={{ width: '100%' }}>
-            </div>
-          </div>
-        </div>
-      )}
-      
-      <div className="space-y-6 lg:space-y-8">
-        
-        {/* STEP 1: WHY - Explain the purpose */}
-        <Card className="border-blue-500/30">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-blue-600 text-lg lg:text-xl">
-              <span className="flex items-center justify-center w-8 h-8 bg-blue-600 text-white rounded-full text-sm font-bold">1</span>
-              Why Do You Need an Emergency Fund?
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4 text-theme-secondary">
-              <p className="text-sm lg:text-base leading-relaxed">
-                An emergency fund is your financial safety net for unexpected expenses. As a GCC expat, you face unique risks that make this especially critical.
-              </p>
-              
-              {/* Expat-specific risks */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="bg-theme-section p-3 rounded-lg border border-red-500/30">
-                  <h4 className="font-semibold text-red-600 mb-2 text-sm">⚠️ Expat Risks</h4>
-                  <ul className="text-xs space-y-1">
-                    <li>• Visa cancellation (30 days to leave)</li>
-                    <li>• Limited local family support</li>
-                    <li>• Repatriation costs</li>
-                    <li>• Banking restrictions when unemployed</li>
-                  </ul>
-                </div>
-                <div className="bg-theme-section p-3 rounded-lg border border-amber-500/30">
-                  <h4 className="font-semibold text-amber-600 mb-2 text-sm">💰 Common Emergencies</h4>
-                  <ul className="text-xs space-y-1">
-                    <li>• Job loss or salary delays</li>
-                    <li>• Medical emergencies</li>
-                    <li>• Car repairs or accidents</li>
-                    <li>• Family emergencies back home</li>
-                  </ul>
-                </div>
-              </div>
-              
-              <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-3">
-                <p className="text-green-600 text-sm">
-                  <strong>💡 Bottom Line:</strong> Your emergency fund gives you peace of mind and financial security to handle unexpected situations without derailing your long-term goals.
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* STEP 2: HOW MUCH - Choose buffer months */}
-        <Card className="border-emerald-500/30">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-emerald-600 text-lg lg:text-xl">
-              <span className="flex items-center justify-center w-8 h-8 bg-emerald-600 text-white rounded-full text-sm font-bold">2</span>
-              How Much Should You Save?
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              
-              {/* Monthly expenses display */}
-              <div className={`border rounded-lg p-3 lg:p-4 ${hasValidExpenses ? 'bg-theme-section border-blue-500/30' : 'bg-red-500/10 border-red-500/30'}`}>
-                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 sm:gap-0">
-                  <div>
-                    <label className={`block text-sm font-medium mb-1 ${hasValidExpenses ? 'text-theme-primary' : 'text-red-600'}`}>
-                      Your Monthly Living Expenses
-                    </label>
-                    <p className={`text-xs ${hasValidExpenses ? 'text-theme-secondary' : 'text-red-500'}`}>
-                      {hasValidExpenses 
-                        ? 'From your profile: rent, utilities, food, transport, insurance, loans'
-                        : 'Please complete your profile first to calculate your emergency fund'
-                      }
-                    </p>
-                  </div>
-                  <div className="text-left sm:text-right">
-                    <span className={`text-lg lg:text-xl font-bold ${hasValidExpenses ? 'text-theme-primary' : 'text-red-600'}`}>
-                      {hasValidExpenses ? formatCurrency(expenses, currency) : 'Not set'}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {hasValidExpenses && (
-                <>
-                  <div>
-                    <p className="text-sm text-theme-secondary mb-3">
-                      Choose how many months of expenses you want to cover. We recommend 6 months for expats due to the unique risks you face.
-                    </p>
-                    
-                    {/* Buffer months selection */}
-                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-                      {[
-                        { months: 3, label: '3 Months', desc: 'Minimum', recommended: false, risk: 'Higher Risk' },
-                        { months: 4, label: '4 Months', desc: 'Basic', recommended: false, risk: 'Moderate Risk' },
-                        { months: 5, label: '5 Months', desc: 'Better', recommended: false, risk: 'Lower Risk' },
-                        { months: 6, label: '6 Months', desc: 'Recommended', recommended: true, risk: 'Safest for Expats' }
-                      ].map(option => (
-                        <button
-                          key={option.months}
-                          onClick={() => setBufferMonths(option.months)}
-                          className={`p-3 lg:p-4 rounded-lg border-2 text-center transition-all duration-200 ${
-                            bufferMonths === option.months 
-                              ? 'bg-emerald-600 text-white border-emerald-600 shadow-lg transform scale-105' 
-                              : option.recommended
-                                ? 'bg-theme-section border-emerald-500/50 text-emerald-600 hover:bg-emerald-500/10 hover:border-emerald-500'
-                                : 'bg-theme-tertiary border-theme text-theme-secondary hover:bg-theme-section hover:border-theme-hover'
-                          }`}
-                        >
-                          <div className="font-bold text-sm lg:text-base">{option.label}</div>
-                          <div className="text-xs mt-1 opacity-90">{option.desc}</div>
-                          <div className="text-xs mt-1 font-medium">
-                            {formatCurrency(expenses * option.months, currency)}
-                          </div>
-                          {option.recommended && bufferMonths !== option.months && (
-                            <div className="text-xs mt-1 font-bold text-emerald-600">⭐ Best Choice</div>
-                          )}
-                          {bufferMonths === option.months && (
-                            <div className="text-xs mt-1 font-bold">✓ Selected</div>
-                          )}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Contextual advice based on selection */}
-                  <div className="mt-4">
-                    {bufferMonths === 3 && (
-                      <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-3">
-                        <p className="text-amber-600 text-sm">
-                          <strong>⚠️ Consider More:</strong> 3 months might be tight for expats. If you lose your job, you have only 30 days to find new employment or leave the country.
-                        </p>
-                      </div>
-                    )}
-                    {bufferMonths === 6 && (
-                      <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-3">
-                        <p className="text-green-600 text-sm">
-                          <strong>✅ Excellent Choice!</strong> 6 months gives you solid protection against expat-specific risks and time to find quality employment.
-                        </p>
-                      </div>
-                    )}
-                    {bufferMonths > 6 && (
-                      <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-3">
-                        <p className="text-blue-600 text-sm">
-                          <strong>💪 Conservative Approach:</strong> You're building a very strong safety net. Consider if this much emergency savings might delay other financial goals.
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                </>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* STEP 3: BY WHEN - Set realistic target date */}
-        {hasValidExpenses && (
-          <Card className="border-purple-500/30">
+        <div className="space-y-3 lg:space-y-4 mb-4 lg:mb-6">
+          {/* What is a Safety Net & Why Expats Need More */}
+          <Card className="border-blue-500/30 bg-theme-card">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-purple-600 text-lg lg:text-xl">
-                <span className="flex items-center justify-center w-8 h-8 bg-purple-600 text-white rounded-full text-sm font-bold">3</span>
-                By When Should You Complete It?
+              <CardTitle className="flex items-center gap-2 text-theme-primary text-lg lg:text-xl">
+                <span className="text-xl lg:text-2xl">🛡️</span>
+                Emergency Fund for GCC Expats
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                <p className="text-sm text-theme-secondary">
-                  Your emergency fund should be prioritized and built as quickly as possible. Based on your income capacity, here's a realistic timeline:
+              <div className="space-y-3 text-theme-secondary">
+                <p className="leading-relaxed text-sm lg:text-base">
+                  Money set aside for unexpected expenses. As an expat, you need 3-6 months of living expenses due to unique risks like visa cancellation (30 days to leave) and limited local support.
                 </p>
-                
-                {/* Smart timeline calculation */}
-                {state.userProfile.monthlyIncome && (
-                  <div className="bg-theme-section border border-blue-500/30 rounded-lg p-4">
-                    <div className="space-y-3">
-                      <div className="flex justify-between text-sm">
-                        <span className="text-theme-secondary">Monthly Income:</span>
-                        <span className="font-medium text-theme-primary">{formatCurrency(state.userProfile.monthlyIncome, currency)}</span>
-                      </div>
-                      <div className="flex justify-between text-sm">
-                        <span className="text-theme-secondary">Monthly Expenses:</span>
-                        <span className="font-medium text-theme-primary">{formatCurrency(expenses, currency)}</span>
-                      </div>
-                      <div className="flex justify-between text-sm border-t border-theme pt-2">
-                        <span className="text-theme-secondary">Available for Savings:</span>
-                        <span className="font-bold text-green-600">{formatCurrency(state.userProfile.monthlyIncome - expenses, currency)}</span>
-                      </div>
-                      
-                      {/* Timeline suggestions */}
-                      <div className="mt-4">
-                        <p className="text-xs text-theme-muted mb-2">Suggested timelines (allocating 70% of available savings to emergency fund):</p>
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                          {[50, 70, 90].map(percentage => {
-                            const monthlySavings = (state.userProfile.monthlyIncome! - expenses) * (percentage / 100);
-                            const months = Math.ceil(amount / monthlySavings);
-                            const isRealistic = months <= 12 && monthlySavings > 0;
-                            return (
-                              <div key={percentage} className={`text-center p-2 rounded border text-xs ${
-                                percentage === 70 ? 'border-green-500 bg-green-500/10' : 'border-theme bg-theme-section'
-                              }`}>
-                                <div className="font-bold">{percentage}% allocation</div>
-                                <div className={`${percentage === 70 ? 'text-green-600' : 'text-theme-secondary'}`}>
-                                  {formatCurrency(monthlySavings, currency)}/month
-                                </div>
-                                <div className={`font-medium ${percentage === 70 ? 'text-green-600' : 'text-theme-secondary'}`}>
-                                  {isRealistic ? `${months} months` : '12+ months'}
-                                </div>
-                                {percentage === 70 && <div className="text-green-600 font-bold">⭐ Recommended</div>}
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    </div>
+                <div className="grid grid-cols-3 gap-2 lg:gap-3">
+                  <div className="bg-theme-tertiary rounded p-2 lg:p-3 border border-blue-500/30 text-center shadow-theme-sm">
+                    <div className="text-base lg:text-lg font-bold text-blue-500 mb-1">3 Months</div>
+                    <div className="text-xs text-theme-muted">Minimum for stable jobs</div>
                   </div>
-                )}
-
-                {/* Target date selection */}
-                <div>
-                  <label className="block text-sm font-medium text-theme-secondary mb-3">
-                    Set Your Target Completion Date
-                  </label>
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 lg:gap-4">
-                    <div>
-                      <label className="block text-xs font-medium mb-1 text-theme-muted">Target Month</label>
-                      <select
-                        value={targetMonth}
-                        onChange={e => setTargetMonth(Number(e.target.value))}
-                        className="w-full px-3 py-2 lg:py-3 text-sm lg:text-base border border-theme bg-theme-card text-theme-primary rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      >
-                        {monthOptions.map((month, index) => (
-                          <option key={month} value={index + 1}>{month}</option>
-                        ))}
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-xs font-medium mb-1 text-theme-muted">Target Year</label>
-                      <select
-                        value={targetYear}
-                        onChange={e => setTargetYear(Number(e.target.value))}
-                        className="w-full px-3 py-2 lg:py-3 text-sm lg:text-base border border-theme bg-theme-card text-theme-primary rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      >
-                        {yearOptions.map(year => (
-                          <option key={year} value={year}>{year}</option>
-                        ))}
-                      </select>
-                    </div>
+                  <div className="bg-theme-tertiary rounded p-2 lg:p-3 border-2 border-green-500 text-center shadow-theme">
+                    <div className="text-base lg:text-lg font-bold text-green-500 mb-1">6 Months</div>
+                    <div className="text-xs font-semibold text-theme-secondary">Recommended for expats</div>
                   </div>
-                  
-                  {/* Timeline feedback */}
-                  <div className="mt-3 p-3 bg-theme-section border border-blue-500/30 rounded-lg">
-                    <div className="flex justify-between items-center text-sm">
-                      <span className="text-theme-secondary">Time to complete:</span>
-                      <span className="font-bold text-blue-600">{horizonMonths} months</span>
-                    </div>
-                    <div className="flex justify-between items-center text-sm mt-1">
-                      <span className="text-theme-secondary">Required monthly savings:</span>
-                      <span className="font-bold text-lg text-theme-primary">{formatCurrency(requiredPMT, currency)}</span>
-                    </div>
-                    {horizonMonths <= 6 && (
-                      <div className="mt-2 text-xs text-green-600">
-                        ✅ Excellent timeline! Building your safety net quickly is wise.
-                      </div>
-                    )}
-                    {horizonMonths > 12 && (
-                      <div className="mt-2 text-xs text-amber-600">
-                        ⚠️ Consider a shorter timeline - emergency funds should be prioritized.
-                      </div>
-                    )}
+                  <div className="bg-theme-tertiary rounded p-2 lg:p-3 border border-blue-500/30 text-center shadow-theme-sm">
+                    <div className="text-base lg:text-lg font-bold text-blue-500 mb-1">9+ Months</div>
+                    <div className="text-xs text-theme-muted">Conservative approach</div>
                   </div>
                 </div>
               </div>
             </CardContent>
           </Card>
-        )}
 
-        {/* STEP 4: WHERE - Choose where to keep the money */}
-        {hasValidExpenses && (
-          <Card className="border-indigo-500/30">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-indigo-600 text-lg lg:text-xl">
-                <span className="flex items-center justify-center w-8 h-8 bg-indigo-600 text-white rounded-full text-sm font-bold">4</span>
-                Where Should You Keep Your Emergency Fund?
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="bg-theme-section border border-amber-500/30 rounded-lg p-4">
-                  <h4 className="font-semibold text-amber-600 mb-2">⚠️ Important: Don't Keep It In Your Current Account</h4>
-                  <p className="text-sm text-theme-secondary">
-                    Your emergency fund should be easily accessible but separate from your daily spending account. This prevents you from accidentally spending it while still allowing quick access in true emergencies.
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-3">
-                    <h4 className="font-semibold text-green-600 mb-2 text-sm">✅ Best Options</h4>
-                    <ul className="text-xs space-y-1 text-theme-secondary">
-                      <li>• High-yield savings account (2-5% p.a.)</li>
-                      <li>• 3-6 month time deposits</li>
-                      <li>• Money market accounts</li>
-                      <li>• Government-insured accounts</li>
-                    </ul>
-                  </div>
-                  <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-3">
-                    <h4 className="font-semibold text-red-600 mb-2 text-sm">❌ Avoid These</h4>
-                    <ul className="text-xs space-y-1 text-theme-secondary">
-                      <li>• Your main checking/current account</li>
-                      <li>• Stock market investments</li>
-                      <li>• Long-term fixed deposits (1+ years)</li>
-                      <li>• Cryptocurrency or volatile assets</li>
-                    </ul>
-                  </div>
-                </div>
-
-                {/* Bank selection */}
-                <div>
-                  <label className="block text-sm font-medium text-theme-secondary mb-3">
-                    Choose a Bank for Your Emergency Fund
-                  </label>
-                  <p className="text-xs text-theme-muted mb-3">
-                    Select a high-yield savings account or time deposit that offers good interest rates while keeping your money accessible. We've found the best options in your country:
-                  </p>
-
-                  {bankDataLoading && (
-                    <div className="mb-4 p-3 bg-theme-section border border-blue-500/30 rounded-lg">
-                      <div className="flex items-center gap-3">
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500"></div>
-                        <div className="flex-1">
-                          <div className="text-sm text-blue-600 font-medium">
-                            {searchProgress?.status || 'Loading bank data...'}
-                          </div>
-                          {searchProgress && (
-                            <div className="text-xs text-theme-muted mt-1">
-                              Progress: {searchProgress.current}/{searchProgress.total} batches completed
-                            </div>
-                          )}
-                        </div>
-                        <button
-                          onClick={stopSearch}
-                          className="px-3 py-1 text-xs bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
-                        >
-                          Stop
-                        </button>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Bank dropdown */}
-                  <div className="space-y-3">
-                    <select
-                      value={selectedBank?.id || ''}
-                      onChange={handleBankChange}
-                      className="w-full px-3 py-3 text-sm lg:text-base border border-theme bg-theme-card text-theme-primary rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                      disabled={bankDataLoading}
-                    >
-                      <option value="">Select a bank for better interest rates...</option>
-                      {finalAvailableBanks.length > 0 && (
-                        <>
-                          {/* Live Data Savings Accounts - Highest Rates First */}
-                          <optgroup label="💰 Savings Accounts - Live Rates (🌐) - Highest First">
-                            {finalAvailableBanks
-                              .filter(bank => bank.accountType.includes('Savings Account') && bank.features.includes('Live web data'))
-                              .map((bank, index) => {
-                                const isValidOption = bank.id && bank.id.trim() !== '' && bank.bankName && bank.interestRate;
-                                if (!isValidOption) return null;
-                                return (
-                                  <option key={`savings-live-${bank.id}-${index}`} value={bank.id}>
-                                    🌐 {bank.bankName} - {bank.interestRate} ({(bank.returnRate * 100).toFixed(2)}% p.a.)
-                                  </option>
-                                );
-                              })}
-                          </optgroup>
-                          
-                          {/* Manual Check Savings Accounts */}
-                          <optgroup label="💰 Savings Accounts - Check Website (🔗) - Est. Highest First">
-                            {finalAvailableBanks
-                              .filter(bank => bank.accountType.includes('Savings Account') && bank.features.includes('Manual check required'))
-                              .map((bank, index) => {
-                                const isValidOption = bank.id && bank.id.trim() !== '' && bank.bankName && bank.interestRate;
-                                if (!isValidOption) return null;
-                                return (
-                                  <option key={`savings-manual-${bank.id}-${index}`} value={bank.id}>
-                                    🔗 {bank.bankName} - {bank.interestRate} (Est. {(bank.returnRate * 100).toFixed(2)}% p.a.)
-                                  </option>
-                                );
-                              })}
-                          </optgroup>
-                          
-                          {/* Live Data Time Deposits */}
-                          <optgroup label="🏦 Time Deposits - Live Rates (🌐) - Highest First">
-                            {finalAvailableBanks
-                              .filter(bank => bank.accountType.includes('Time Deposit') && bank.features.includes('Live web data'))
-                              .map((bank, index) => {
-                                const isValidOption = bank.id && bank.id.trim() !== '' && bank.bankName && bank.interestRate;
-                                if (!isValidOption) return null;
-                                return (
-                                  <option key={`time-live-${bank.id}-${index}`} value={bank.id}>
-                                    🌐 {bank.bankName} - {bank.interestRate} ({(bank.returnRate * 100).toFixed(2)}% p.a.)
-                                  </option>
-                                );
-                              })}
-                          </optgroup>
-                          
-                          {/* Manual Check Time Deposits */}
-                          <optgroup label="🏦 Time Deposits - Check Website (🔗) - Est. Highest First">
-                            {finalAvailableBanks
-                              .filter(bank => bank.accountType.includes('Time Deposit') && bank.features.includes('Manual check required'))
-                              .map((bank, index) => {
-                                const isValidOption = bank.id && bank.id.trim() !== '' && bank.bankName && bank.interestRate;
-                                if (!isValidOption) return null;
-                                return (
-                                  <option key={`time-manual-${bank.id}-${index}`} value={bank.id}>
-                                    🔗 {bank.bankName} - {bank.interestRate} (Est. {(bank.returnRate * 100).toFixed(2)}% p.a.)
-                                  </option>
-                                );
-                              })}
-                          </optgroup>
-                        </>
-                      )}
-                    </select>
-
-                    {/* Selected bank details */}
-                    {selectedBank && (
-                      <div className="p-4 bg-green-500/10 border border-green-500/30 rounded-lg">
-                        <div className="font-semibold text-green-600 mb-2">✅ Selected: {selectedBank.bankName}</div>
-                        <div className="space-y-1 text-sm text-theme-secondary">
-                          <div><strong>Account Type:</strong> {selectedBank.accountType}</div>
-                          <div><strong>Interest Rate:</strong> {selectedBank.interestRate}</div>
-                          <div><strong>Features:</strong> {selectedBank.features}</div>
-                        </div>
-                        {selectedBank.features.includes('Manual check required') && (
-                          <div className="mt-3 p-2 bg-theme-card border border-green-500/30 rounded">
-                            <div className="text-xs text-green-600">
-                              <strong>🔗 Visit Bank Website:</strong> 
-                              <a 
-                                href={selectedBank.website} 
-                                target="_blank" 
-                                rel="noopener noreferrer"
-                                className="ml-1 text-theme-primary hover:text-theme-secondary underline break-all"
-                              >
-                                {selectedBank.website} →
-                              </a>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    )}
-
-                    {/* Bank optimization tip */}
-                    {!selectedBank && finalAvailableBanks.length > 0 && (
-                      <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-3">
-                        <div className="text-sm text-blue-600">
-                          <strong>💡 Optimize Your Returns!</strong> Your calculation uses a basic 1% interest rate. Selecting a bank above offering 2-5% p.a. could reduce your monthly savings requirement by up to 20%!
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Summary and Action */}
-        {hasValidExpenses && (
-          <Card className="border-green-500/30 bg-green-500/5">
+          {/* Quick Guide */}
+          <Card className="border-green-500/30 bg-theme-card">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-green-600 text-lg lg:text-xl">
                 <span className="text-xl lg:text-2xl">🎯</span>
-                Your Emergency Fund Plan
+                Quick Setup Guide
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-                  <div className="space-y-2">
-                    <div className="flex justify-between">
-                      <span className="text-theme-secondary">Target Amount:</span>
-                      <span className="font-bold text-green-600">{formatCurrency(amount, currency)}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-theme-secondary">Coverage:</span>
-                      <span className="font-medium text-theme-primary">{bufferMonths} months expenses</span>
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <div className="flex justify-between">
-                      <span className="text-theme-secondary">Timeline:</span>
-                      <span className="font-medium text-theme-primary">{horizonMonths} months</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-theme-secondary">Monthly Savings:</span>
-                      <span className="font-bold text-lg text-theme-primary">{formatCurrency(requiredPMT, currency)}</span>
-                    </div>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 lg:gap-4 text-theme-secondary">
+                <div>
+                  <h4 className="font-semibold mb-2 text-theme-primary text-sm lg:text-base">✅ For emergencies:</h4>
+                  <div className="text-xs lg:text-sm space-y-1">
+                    <div>• Job loss, medical bills</div>
+                    <div>• Car/home repairs</div>
+                    <div>• Repatriation costs</div>
                   </div>
                 </div>
+                <div>
+                  <h4 className="font-semibold mb-2 text-theme-primary text-sm lg:text-base">🏦 Where to keep it:</h4>
+                  <div className="text-xs lg:text-sm space-y-1">
+                    <div>• High-yield savings (2-5% p.a.)</div>
+                    <div>• Easily accessible, separate account</div>
+                    <div>• Government insured/guaranteed</div>
+                  </div>
+                </div>
+              </div>
+              <div className="mt-3 p-2 lg:p-3 bg-theme-section rounded border border-green-500/30 shadow-theme-sm">
+                <div className="text-xs lg:text-sm text-green-600">
+                  <strong>💡 Expat Tip:</strong> Keep some funds in home currency for flights and repatriation costs.
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+      
+      <Card className="mb-6 lg:mb-8">
+        <CardHeader><CardTitle className="text-lg lg:text-xl">Emergency fund calculator</CardTitle></CardHeader>
+        <CardContent>
+          <div className="space-y-4 lg:space-y-6">
+
+            {/* Monthly expenses display */}
+            <div className={`border rounded-lg p-3 lg:p-4 shadow-theme-sm ${hasValidExpenses ? 'bg-theme-section border-blue-500/30' : 'bg-theme-section border-red-500/30'}`}>
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 sm:gap-0">
+            <div>
+                  <label className={`block text-sm font-medium mb-1 ${hasValidExpenses ? 'text-blue-600' : 'text-red-600'}`}>
+                    Monthly Living Expenses (from your profile)
+              </label>
+                  <p className={`text-xs ${hasValidExpenses ? 'text-theme-secondary' : 'text-red-500'}`}>
+                    {hasValidExpenses 
+                      ? 'Includes rent, utilities, food, transport, insurance, loans.'
+                      : 'Not set - please complete your profile first.'
+                    }
+                  </p>
+                </div>
+                <div className="text-left sm:text-right">
+                  <span className={`text-base lg:text-lg font-bold ${hasValidExpenses ? 'text-blue-600' : 'text-red-600'}`}>
+                    {hasValidExpenses ? formatCurrency(expenses, currency) : 'Not set'}
+                </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Buffer months */}
+            <div>
+              <label className="block text-sm font-medium text-theme-secondary mb-2">
+                Buffer Months (3-6 months recommended for expats)
+              </label>
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
+                {[
+                  { months: 3, label: '3 mo', desc: 'Minimum', recommended: false },
+                  { months: 4, label: '4 mo', desc: 'Conservative', recommended: false },
+                  { months: 5, label: '5 mo', desc: 'Safer', recommended: false },
+                  { months: 6, label: '6 mo', desc: 'Recommended', recommended: true }
+                ].map(option => (
+                  <button
+                    key={option.months}
+                    onClick={() => setBufferMonths(option.months)}
+                    className={`p-2 lg:p-3 rounded-lg border-2 text-center transition-all shadow-theme-sm hover:shadow-theme ${
+                      bufferMonths === option.months 
+                        ? 'bg-blue-600 text-white border-blue-600 shadow-theme-lg' 
+                        : option.recommended
+                          ? 'bg-theme-section border-green-500/50 text-green-600 hover:bg-theme-tertiary hover:border-green-500'
+                          : 'bg-theme-tertiary border-theme text-theme-secondary hover:bg-theme-section hover:border-theme-hover'
+                    }`}
+                  >
+                    <div className="font-semibold text-sm lg:text-base">{option.label}</div>
+                    <div className="text-xs mt-1">{option.desc}</div>
+                    {option.recommended && bufferMonths !== option.months && (
+                      <div className="text-xs mt-1 font-medium">✨ Best for expats</div>
+                    )}
+                  </button>
+                ))}
+              </div>
+              {bufferMonths === 3 && (
+                <div className="mt-2 p-2 bg-theme-section border border-amber-500/30 rounded text-xs text-amber-600 shadow-theme-sm">
+                  ⚠️ Consider 6 months for better expat protection
+                </div>
+              )}
+              {bufferMonths === 6 && (
+                <div className="mt-2 p-2 bg-theme-section border border-green-500/30 rounded text-xs text-green-600 shadow-theme-sm">
+                  ✅ Excellent choice for expats!
+                </div>
+              )}
+              {bufferMonths > 6 && (
+                <div className="mt-2 p-2 bg-theme-section border border-blue-500/30 rounded text-xs text-blue-600 shadow-theme-sm">
+                  💪 Conservative approach
+                </div>
+              )}
+            </div>
+
+            {/* Target date */}
+            <div>
+              <label className="block text-sm font-medium text-theme-secondary mb-2">
+                Target Completion Date (6-12 months recommended)
+              </label>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 lg:gap-4">
+              <div>
+                  <label className="block text-xs font-medium mb-1 text-theme-muted">Target Month</label>
+                <select
+                  value={targetMonth}
+                  onChange={e => setTargetMonth(Number(e.target.value))}
+                    className="input-dark w-full rounded px-3 py-3 lg:py-2 text-base lg:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                >
+                  {monthOptions.map((m,i) => (
+                    <option key={m} value={i+1}>{m}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                  <label className="block text-xs font-medium mb-1 text-theme-muted">Target Year</label>
+                <select
+                  value={targetYear}
+                  onChange={e => setTargetYear(Number(e.target.value))}
+                    className="input-dark w-full rounded px-3 py-3 lg:py-2 text-base lg:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                >
+                  {yearOptions.map(y => (
+                    <option key={y} value={y}>{y}</option>
+                  ))}
+                </select>
+              </div>
+              </div>
+              {horizonMonths <= 6 && (
+                <div className="mt-2 p-2 bg-theme-section border border-green-500/30 rounded text-xs text-green-600 shadow-theme-sm">
+                  🚀 Great timeline for quick protection
+                </div>
+              )}
+              {horizonMonths > 12 && (
+                <div className="mt-2 p-2 bg-theme-section border border-amber-500/30 rounded text-xs text-amber-600 shadow-theme-sm">
+                  ⏰ Consider faster timeline for urgent protection
+                </div>
+              )}
+              {horizonMonths >= 7 && horizonMonths <= 12 && (
+                <div className="mt-2 p-2 bg-theme-section border border-blue-500/30 rounded text-xs text-blue-600 shadow-theme-sm">
+                  👍 Good balance of time and savings
+                </div>
+              )}
+            </div>
+
+            {/* Comprehensive Search Progress */}
+            {hasValidExpenses && searchProgress && (
+              <div className="mb-4 p-3 lg:p-4 bg-theme-section border border-blue-500/30 rounded-lg shadow-theme">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-2 lg:mb-3 gap-2 sm:gap-0">
+                  <div className="font-semibold text-theme-primary text-sm lg:text-base">🔍 Deep Bank Rate Search</div>
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                    <div className="text-theme-secondary text-xs lg:text-sm">
+                      {searchProgress.current}/{searchProgress.total} batches
+                    </div>
+                    <button
+                      onClick={stopSearch}
+                      className="px-2 py-1 bg-orange-600 hover:bg-orange-700 text-white rounded text-xs font-medium shadow-theme-sm w-full sm:w-auto"
+                    >
+                      🛑 Stop Search
+                    </button>
+                  </div>
+                </div>
+                <div className="w-full bg-theme-card rounded-full h-2 mb-2 shadow-inner">
+                  <div 
+                    className="bg-blue-500 h-2 rounded-full transition-all duration-300"
+                    style={{ width: `${(searchProgress.current / searchProgress.total) * 100}%` }}
+                  ></div>
+                </div>
+                <div className="text-theme-secondary text-xs mb-2">{searchProgress.status}</div>
+                <div className="text-theme-primary text-xs bg-theme-card p-2 lg:p-3 rounded border border-blue-500/20 shadow-theme-sm">
+                  <strong>🎯 Smart Search System:</strong> We search in batches with a 3-minute timeout to get comprehensive results while ensuring you're not waiting forever. You can stop early and use the results found so far plus manual check options for remaining banks.
+                </div>
+              </div>
+            )}
+
+            {/* Cache Status for Users */}
+            {hasValidExpenses && finalAvailableBanks.length > 0 && !bankDataLoading && (
+              <div className="mb-3 p-2 lg:p-3 bg-theme-section border border-green-500/30 rounded text-xs shadow-theme-sm">
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 sm:gap-0">
+                  <div className="flex-1">
+                    <div className="font-semibold text-theme-primary mb-1">📊 Data Freshness</div>
+                    <div className="text-theme-secondary text-xs lg:text-sm">
+                      {getCacheInfo(userCountry).includes('Cached') 
+                        ? `${getCacheInfo(userCountry)} - Data stays consistent for 24 hours`
+                        : 'Fresh data just fetched - Will remain stable for 24 hours'
+                      }
+                    </div>
+                  </div>
+                  <button
+                    onClick={refreshBankData}
+                    disabled={bankDataLoading}
+                    className="px-2 py-1 bg-green-600 hover:bg-green-700 text-white rounded text-xs disabled:opacity-50 disabled:cursor-not-allowed shadow-theme-sm w-full sm:w-auto"
+                  >
+                    🔄 Refresh
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Bank Selection Dropdown - Always show if valid expenses */}
+            {hasValidExpenses && (
+              <div>
+                <label className="block text-sm font-medium text-theme-secondary mb-1">
+                  Choose Bank Account ({userCountry} Retail Banks - Top {totalRetailBanks} Banks Listed by Highest Rates)
+                  {bankDataLoading && (
+                    <span className="block sm:inline sm:ml-2 text-xs text-theme-light mt-1 sm:mt-0">
+                      🔄 Fetching latest rates...
+                    </span>
+                  )}
+                </label>
+                <p className="text-xs text-theme-muted mb-3">
+                  {bankDataLoading 
+                    ? 'Deep-searching current retail banking rates from bank websites (this may take 2-3 minutes for comprehensive results)...'
+                    : finalAvailableBanks.length > 0
+                      ? '✅ Retail banks only: Live rates (🌐) + Manual check options (🔗) - Sorted by highest rates first'
+                      : '⏳ Loading retail bank data...'
+                  }
+                </p>
                 
-                {selectedBank && (
-                  <div className="border-t border-green-500/30 pt-3">
-                    <div className="text-sm text-green-600">
-                      <strong>📊 With {selectedBank.bankName}:</strong> Earning {(bankReturnRate * 100).toFixed(1)}% p.a. interest
+                {/* Show loading or empty state */}
+                {finalAvailableBanks.length === 0 && !bankDataLoading && (
+                  <div className="mb-3 p-3 lg:p-4 bg-theme-card border border-orange-500/30 rounded text-sm">
+                    <div className="font-semibold text-orange-300 mb-2">🔄 Comprehensive Bank Data Search</div>
+                    <div className="text-theme-secondary text-xs lg:text-sm">
+                      We're conducting thorough searches across {totalRetailBanks} retail banks in {userCountry}. This includes deep searches of bank websites for the most current rates. The process takes 2-3 minutes but ensures you get the best available rates.
                     </div>
                   </div>
                 )}
+                
+                {/* Simple Status */}
+                {!bankDataLoading && finalAvailableBanks.length > 0 && (
+                  <div className="mb-3 p-2 bg-theme-section border border-green-500/30 rounded text-xs shadow-theme-sm">
+                    <div className="text-theme-primary font-medium">
+                      ✅ {finalAvailableBanks.length} retail banks available - sorted by highest rates first
+                    </div>
+                  </div>
+                )}
+                
+                {/* Account Type Guidance */}
+                <div className="mb-3 p-3 bg-theme-section border border-blue-500/30 rounded text-xs shadow-theme-sm">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div>
+                      <div className="font-semibold text-theme-primary mb-1">💰 Savings Accounts</div>
+                      <div className="text-theme-secondary text-xs lg:text-sm">
+                        • Instant access to funds<br/>
+                        • Perfect for emergency funds<br/>
+                        • Lower rates but maximum flexibility
+                      </div>
+                    </div>
+                    <div>
+                      <div className="font-semibold text-theme-primary mb-1">🏦 Time Deposits</div>
+                      <div className="text-theme-secondary text-xs lg:text-sm">
+                        • Higher interest rates<br/>
+                        • Funds locked for specific period<br/>
+                        • Consider for part of emergency fund
+                      </div>
+                    </div>
+                  </div>
+                </div>
 
-                <div className="bg-theme-section border border-green-500/30 rounded-lg p-3">
-                  <h4 className="font-semibold text-green-600 mb-2 text-sm">🚀 Next Steps After Creating Your Plan:</h4>
-                  <ol className="space-y-1 list-decimal list-inside text-xs text-theme-secondary">
-                    <li>Open a dedicated emergency fund account with your selected bank</li>
-                    <li>Set up automatic monthly transfers of {formatCurrency(requiredPMT, currency)}</li>
-                    <li>Keep the account easily accessible but separate from daily spending</li>
-                    <li>Review and adjust quarterly if your expenses change</li>
+                {bankDataError && (
+                  <div className="mb-3 p-2 bg-theme-card border border-amber-500/30 rounded text-xs text-amber-300">
+                    ⚠️ {bankDataError}
+                  </div>
+                )}
+                <select
+                  value={selectedBank?.id || ''}
+                  onChange={(e) => {
+                    console.log('🔥 DROPDOWN CHANGE EVENT:', {
+                      value: e.target.value,
+                      selectedIndex: e.target.selectedIndex,
+                      optionText: e.target.options[e.target.selectedIndex]?.text,
+                      totalOptions: e.target.options.length
+                    });
+                    handleBankChange(e);
+                  }}
+                  disabled={bankDataLoading || finalAvailableBanks.length === 0}
+                  className={`input-dark w-full rounded px-3 py-3 lg:py-2 text-base lg:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
+                    (bankDataLoading || finalAvailableBanks.length === 0) ? 'opacity-50 cursor-not-allowed' : ''
+                  }`}
+                >
+                  <option value="">
+                    {bankDataLoading 
+                      ? 'Loading comprehensive bank data...' 
+                      : finalAvailableBanks.length === 0
+                        ? 'Preparing bank list...'
+                        : 'Select a bank option...'
+                    }
+                  </option>
+                  
+                  {finalAvailableBanks.length > 0 && (
+                    <>
+                      {/* Live Data Savings Accounts - Highest Rates First */}
+                      <optgroup label="💰 Savings Accounts - Live Rates (🌐) - Highest First">
+                        {finalAvailableBanks
+                          .filter(bank => bank.accountType.includes('Savings Account') && bank.features.includes('Live web data'))
+                          .map((bank, index) => {
+                            // Validate the option before rendering
+                            const isValidOption = bank.id && bank.id.trim() !== '' && bank.bankName && bank.interestRate;
+                            console.log(`🔍 Rendering savings live option ${index}:`, { 
+                              id: bank.id, 
+                              name: bank.bankName, 
+                              valid: isValidOption,
+                              rate: bank.interestRate 
+                            });
+                            
+                            if (!isValidOption) {
+                              console.warn('❌ Invalid savings live option:', bank);
+                              return null;
+                            }
+                            
+                            return (
+                              <option key={`savings-live-${bank.id}-${index}`} value={bank.id}>
+                                🌐 {bank.bankName} - {bank.interestRate} ({(bank.returnRate * 100).toFixed(2)}% p.a.)
+                              </option>
+                            );
+                          })}
+                      </optgroup>
+                      
+                      {/* Manual Check Savings Accounts - Sorted by Estimated Rate */}
+                      <optgroup label="💰 Savings Accounts - Check Website (🔗) - Est. Highest First">
+                        {finalAvailableBanks
+                          .filter(bank => bank.accountType.includes('Savings Account') && bank.features.includes('Manual check required'))
+                          .map((bank, index) => {
+                            // Validate the option before rendering
+                            const isValidOption = bank.id && bank.id.trim() !== '' && bank.bankName && bank.interestRate;
+                            console.log(`🔍 Rendering savings manual option ${index}:`, { 
+                              id: bank.id, 
+                              name: bank.bankName, 
+                              valid: isValidOption,
+                              rate: bank.interestRate 
+                            });
+                            
+                            if (!isValidOption) {
+                              console.warn('❌ Invalid savings manual option:', bank);
+                              return null;
+                            }
+                            
+                            return (
+                              <option key={`savings-manual-${bank.id}-${index}`} value={bank.id}>
+                                🔗 {bank.bankName} - {bank.interestRate} (Est. {(bank.returnRate * 100).toFixed(2)}% p.a.)
+                              </option>
+                            );
+                          })}
+                      </optgroup>
+                      
+                      {/* Live Data Time Deposits - Highest Rates First */}
+                      <optgroup label="🏦 Time Deposits - Live Rates (🌐) - Highest First">
+                        {finalAvailableBanks
+                          .filter(bank => bank.accountType.includes('Time Deposit') && bank.features.includes('Live web data'))
+                          .map((bank, index) => {
+                            // Validate the option before rendering
+                            const isValidOption = bank.id && bank.id.trim() !== '' && bank.bankName && bank.interestRate;
+                            console.log(`🔍 Rendering time live option ${index}:`, { 
+                              id: bank.id, 
+                              name: bank.bankName, 
+                              valid: isValidOption,
+                              rate: bank.interestRate 
+                            });
+                            
+                            if (!isValidOption) {
+                              console.warn('❌ Invalid time live option:', bank);
+                              return null;
+                            }
+                            
+                            return (
+                              <option key={`time-live-${bank.id}-${index}`} value={bank.id}>
+                                🌐 {bank.bankName} - {bank.interestRate} ({(bank.returnRate * 100).toFixed(2)}% p.a.)
+                              </option>
+                            );
+                          })}
+                      </optgroup>
+                      
+                      {/* Manual Check Time Deposits - Sorted by Estimated Rate */}
+                      <optgroup label="🏦 Time Deposits - Check Website (🔗) - Est. Highest First">
+                        {finalAvailableBanks
+                          .filter(bank => bank.accountType.includes('Time Deposit') && bank.features.includes('Manual check required'))
+                          .map((bank, index) => {
+                            // Validate the option before rendering
+                            const isValidOption = bank.id && bank.id.trim() !== '' && bank.bankName && bank.interestRate;
+                            console.log(`🔍 Rendering time manual option ${index}:`, { 
+                              id: bank.id, 
+                              name: bank.bankName, 
+                              valid: isValidOption,
+                              rate: bank.interestRate 
+                            });
+                            
+                            if (!isValidOption) {
+                              console.warn('❌ Invalid time manual option:', bank);
+                              return null;
+                            }
+                            
+                            return (
+                              <option key={`time-manual-${bank.id}-${index}`} value={bank.id}>
+                                🔗 {bank.bankName} - {bank.interestRate} (Est. {(bank.returnRate * 100).toFixed(2)}% p.a.)
+                              </option>
+                            );
+                          })}
+                      </optgroup>
+                    </>
+                  )}
+                </select>
+                {selectedBank && (
+                  <div className="mt-2 lg:mt-3 p-3 bg-theme-section border border-green-500/30 rounded text-xs lg:text-sm text-green-600 shadow-theme-sm">
+                    <div className="font-semibold mb-1">Selected: {selectedBank.bankName} - {selectedBank.accountType}</div>
+                    <div className="mb-1"><strong>Interest Rate:</strong> {selectedBank.interestRate}</div>
+                    <div className="mb-2 lg:mb-0"><strong>Features:</strong> {selectedBank.features}</div>
+                    {selectedBank.features.includes('Manual check required') && (
+                      <div className="mt-2 p-2 bg-theme-card border border-green-500/30 rounded shadow-theme-sm">
+                        <div className="text-xs text-green-600">
+                          <strong>🔗 Visit Bank Website:</strong> 
+                          <a 
+                            href={selectedBank.website} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="ml-1 text-theme-primary hover:text-theme-secondary underline transition-colors break-all"
+                          >
+                            {selectedBank.website} →
+                          </a>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+
+          </div>
+        </CardContent>
+        <CardFooter>
+          <div className="space-y-4 w-full">
+            {/* Summary calculation */}
+            <div className="border-t pt-4">
+              <h4 className="font-semibold text-theme-secondary mb-3 text-sm lg:text-base">Your Safety Net Plan:</h4>
+              <div className="space-y-2">
+                <div className="flex flex-col sm:flex-row sm:justify-between gap-1 sm:gap-0">
+                  <span className="text-theme-secondary text-sm lg:text-base">Monthly expenses:</span>
+                  <span className="font-medium text-theme-light text-sm lg:text-base">{formatCurrency(expenses, currency)}</span>
+            </div>
+                <div className="flex flex-col sm:flex-row sm:justify-between gap-1 sm:gap-0">
+                  <span className="text-theme-secondary text-sm lg:text-base">Buffer months:</span>
+                  <span className="font-medium text-theme-light text-sm lg:text-base">{bufferMonths} months</span>
+                </div>
+                <div className="flex flex-col sm:flex-row sm:justify-between border-t border-theme pt-2 gap-1 sm:gap-0">
+                  <span className="font-semibold text-theme-light text-sm lg:text-base">Total safety net needed:</span>
+                  <span className="font-bold text-lg lg:text-xl text-theme-light">{formatCurrency(amount, currency)}</span>
+                </div>
+                <div className="flex flex-col sm:flex-row sm:justify-between gap-1 sm:gap-0">
+                  <span className="text-theme-secondary text-sm lg:text-base">Timeline to complete:</span>
+                  <span className="font-medium text-theme-light text-sm lg:text-base">{horizonMonths} months</span>
+                </div>
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center bg-theme-section p-3 rounded border border-green-500/30 shadow-theme-sm gap-2 sm:gap-0">
+                  <div>
+                    <span className="font-semibold text-theme-primary text-sm lg:text-base">Monthly savings needed:</span>
+                    <div className="text-xs text-theme-secondary">
+                      {selectedBank ? `${(bankReturnRate * 100).toFixed(1)}% p.a. - ${selectedBank.bankName}` : '1% p.a. (basic rate)'}
+                    </div>
+                  </div>
+                  <span className="text-green-600 font-bold text-xl lg:text-2xl">
+                {formatCurrency(requiredPMT, currency)}
+              </span>
+            </div>
+                </div>
+              </div>
+
+            {/* Bank selection guidance */}
+            {!selectedBank && hasValidExpenses && finalAvailableBanks.length > 0 && (
+              <div className="bg-theme-section border border-blue-500/30 rounded-lg p-3 lg:p-4 shadow-theme-sm">
+                <div className="flex flex-col sm:flex-row sm:items-start gap-3">
+                  <span className="text-2xl flex-shrink-0">💡</span>
+                  <div className="flex-1">
+                    <div className="font-semibold text-theme-primary mb-1 text-sm lg:text-base">Optimize Your Savings Rate!</div>
+                    <div className="text-sm text-theme-secondary">
+                      Your calculation uses a basic 1% interest rate. Select a local bank above offering 2-5% p.a., which could reduce your monthly savings by up to 20%!
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Action guidance */}
+            {hasValidExpenses && (
+              <div className="bg-theme-section border border-indigo-500/30 rounded-lg p-3 lg:p-4 shadow-theme-sm">
+                <div className="text-sm text-theme-secondary">
+                  <div className="font-semibold mb-2 text-theme-primary text-sm lg:text-base">🎯 Next Steps After Creating Your Safety Net:</div>
+                  <ol className="space-y-1 list-decimal list-inside text-xs lg:text-sm">
+                    <li>Open a dedicated emergency fund account (separate from checking)</li>
+                    <li>Set up automatic transfers of {formatCurrency(requiredPMT, currency)} monthly</li>
+                    <li>Keep funds easily accessible but not too tempting to spend</li>
+                    <li>Review and adjust quarterly based on expense changes</li>
                   </ol>
                 </div>
               </div>
-            </CardContent>
-            <CardFooter>
-              <Button onClick={handleSave} fullWidth className="text-sm lg:text-base py-3 lg:py-4 bg-green-600 hover:bg-green-700">
-                {existing 
-                  ? '✅ Update My Emergency Fund Plan' 
-                  : '🎯 Create My Emergency Fund Plan'
-                }
-              </Button>
-            </CardFooter>
-          </Card>
-        )}
+            )}
 
-        {/* Profile completion reminder */}
-        {!hasValidExpenses && (
-          <Card className="border-red-500/30 bg-red-500/5">
-            <CardContent>
-              <div className="text-center py-6">
-                <div className="text-4xl mb-3">📋</div>
-                <h3 className="text-lg font-semibold text-red-600 mb-2">Complete Your Profile First</h3>
-                <p className="text-sm text-theme-secondary mb-4">
-                  To calculate your emergency fund, we need to know your monthly expenses. Please go back and complete your profile information.
-                </p>
-                <Button variant="outline" onClick={() => window.history.back()} className="border-red-500 text-red-600 hover:bg-red-500/10">
-                  ← Complete Profile
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-      </div>
+            <Button onClick={handleSave} fullWidth disabled={!hasValidExpenses} className="text-sm lg:text-base py-3 lg:py-4">
+              {existing 
+                ? 'Update Safety Net Plan' 
+                : 'Create My Safety Net Plan'
+              }
+            </Button>
+          </div>
+        </CardFooter>
+      </Card>
       
       {/* AI Money Coach - Show when user has valid profile data */}
       {(state.userProfile.nationality && state.userProfile.location) && (
-        <div className="mt-8">
-          <AIGuidance 
-            step="emergency-fund" 
-            context={aiContext}
-            componentId="emergency-fund-ai-coach"
-          />
-        </div>
+      <AIGuidance 
+        step="emergency-fund" 
+          context={aiContext}
+          componentId="emergency-fund-ai-coach"
+        />
       )}
     </div>
   );

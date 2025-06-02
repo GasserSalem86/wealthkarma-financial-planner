@@ -549,7 +549,7 @@ const LiveDashboard: React.FC<LiveDashboardProps> = ({ onOptimizePlan, onUpdateP
                 <div>
                   <label className="block text-sm font-medium text-theme-secondary mb-2">
                     Monthly Savings Budget
-                  </label>
+                    </label>
                   <div className="relative">
                     <DollarSign className="w-5 h-5 text-theme-muted absolute left-3 top-3" />
                     <input
@@ -564,7 +564,7 @@ const LiveDashboard: React.FC<LiveDashboardProps> = ({ onOptimizePlan, onUpdateP
                     Current allocation across all goals
                   </p>
                 </div>
-                
+
                 <div>
                   <label className="block text-sm font-medium text-theme-secondary mb-2">
                     Monthly Income

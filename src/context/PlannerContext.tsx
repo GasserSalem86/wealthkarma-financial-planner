@@ -521,9 +521,9 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
   // Persist on every state change (but not while loading)
   useEffect(() => {
     if (!state.isLoading) {
-      try {
-        localStorage.setItem('planner-state', JSON.stringify(state));
-      } catch (_) {}
+    try {
+      localStorage.setItem('planner-state', JSON.stringify(state));
+    } catch (_) {}
     }
   }, [state, state.isLoading]);
 

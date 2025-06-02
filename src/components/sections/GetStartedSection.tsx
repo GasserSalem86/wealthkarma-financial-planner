@@ -101,7 +101,7 @@ const GetStartedSection: React.FC<GetStartedSectionProps> = ({ onBack }) => {
           setDebugStatus(`Signup failed: ${result.error.message}`);
           alert(`Signup failed: ${result.error.message}`);
         }
-        return;
+          return;
       }
 
       console.log('✅ Signup successful, proceeding...');
@@ -135,14 +135,14 @@ const GetStartedSection: React.FC<GetStartedSectionProps> = ({ onBack }) => {
         if (saveResult.success) {
           console.log('✅ Planning data saved successfully!');
           setDebugStatus('Planning data saved successfully!');
-        } else {
+      } else {
           console.warn('⚠️ Failed to save planning data:', saveResult.error);
           setDebugStatus('Data save failed, but continuing...');
-        }
+      }
       }).catch(error => {
         console.warn('⚠️ Data save promise failed:', error);
       });
-
+      
       // Track successful signup
       if (window.gtag) {
         window.gtag('event', 'signup_success', {
@@ -362,7 +362,7 @@ const GetStartedSection: React.FC<GetStartedSectionProps> = ({ onBack }) => {
                 <div className="bg-theme-tertiary rounded-xl p-4 mb-6">
                   <h3 className="font-semibold text-theme-primary mb-3">What you get for free:</h3>
                   <div className="grid grid-cols-1 gap-2 text-sm text-theme-secondary">
-                    <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2">
                       <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
                       <span>Live progress tracking</span>
                     </div>
@@ -384,7 +384,7 @@ const GetStartedSection: React.FC<GetStartedSectionProps> = ({ onBack }) => {
                 {/* Signup Form */}
                 <div className="space-y-4">
                   <div className="relative">
-                    <input 
+                    <input
                       type="email"
                       placeholder="Email"
                       value={email}
@@ -409,8 +409,8 @@ const GetStartedSection: React.FC<GetStartedSectionProps> = ({ onBack }) => {
                 </div>
 
                 {/* Submit Button */}
-                <Button 
-                  type="submit" 
+                <Button
+                  type="submit"
                   className={`w-full ${isSigningUp ? 'opacity-75 cursor-not-allowed' : ''}`}
                   disabled={isSigningUp || !email || !password}
                 >

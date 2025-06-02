@@ -134,14 +134,14 @@ export class PaymentService {
         // Demo mode - don't redirect to Stripe
         console.log('Demo mode: Stripe not configured');
         console.log('Would create checkout session for:', {
-          priceId: product.priceId,
-          successUrl: options.successUrl || `${window.location.origin}/success`,
-          cancelUrl: options.cancelUrl || `${window.location.origin}/cancel`,
-          customerEmail: options.customerEmail,
-          metadata: options.metadata || {},
-          mode: product.id.includes('subscription') ? 'subscription' : 'payment'
+        priceId: product.priceId,
+        successUrl: options.successUrl || `${window.location.origin}/success`,
+        cancelUrl: options.cancelUrl || `${window.location.origin}/cancel`,
+        customerEmail: options.customerEmail,
+        metadata: options.metadata || {},
+        mode: product.id.includes('subscription') ? 'subscription' : 'payment'
         });
-        
+
         // Show demo message and return error to prevent redirect
         alert(`Demo Mode: ${product.name} ($${product.price}) checkout would be processed here. Payment integration is not configured in this demo.`);
         return { error: 'Payment processing is not configured in demo mode' };
