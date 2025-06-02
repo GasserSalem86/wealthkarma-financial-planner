@@ -54,6 +54,11 @@ const GoalsSection: React.FC<GoalsSectionProps> = ({ onNext, onBack }) => {
   const [editMode, setEditMode] = useState(false);
   const [editingGoalId, setEditingGoalId] = useState<string | null>(null);
 
+  // Chat state for AI assistant
+  const [chatMessages, setChatMessages] = useState<Array<{id: string, type: 'user' | 'ai', content: string, timestamp: Date}>>([]);
+  const [chatInput, setChatInput] = useState('');
+  const [isAiTyping, setIsAiTyping] = useState(false);
+
   const monthOptions = [
     'January', 'February', 'March', 'April', 'May', 'June',
     'July', 'August', 'September', 'October', 'November', 'December'
@@ -81,6 +86,72 @@ const GoalsSection: React.FC<GoalsSectionProps> = ({ onNext, onBack }) => {
     setEditMode(false);
     setEditingGoalId(null);
     setCurrentStep('category');
+  };
+
+  // Chat functionality
+  const handleSendMessage = () => {
+    if (!chatInput.trim()) return;
+    
+    const userMessage = {
+      id: `user-${Date.now()}`,
+      type: 'user' as const,
+      content: chatInput,
+      timestamp: new Date()
+    };
+    
+    setChatMessages(prev => [...prev, userMessage]);
+    setChatInput('');
+    setIsAiTyping(true);
+    
+    // Simulate AI response
+    setTimeout(() => {
+      simulateAiResponse(chatInput);
+    }, 1000 + Math.random() * 1000);
+  };
+
+  const handleQuickQuestion = (question: string) => {
+    setChatInput(question);
+    setTimeout(() => handleSendMessage(), 100);
+  };
+
+  const simulateAiResponse = (userQuestion: string) => {
+    let response = '';
+    const currentAmount = goalAmount || 50000;
+    const inflationRate = 0.03;
+    const yearsToGoal = targetYear - new Date().getFullYear();
+    const adjustedAmount = Math.round(currentAmount * Math.pow(1 + inflationRate, yearsToGoal));
+    
+    // Generate contextual responses based on category and question content
+    if (goalCategory === 'Education') {
+      if (userQuestion.toLowerCase().includes('mba') || userQuestion.toLowerCase().includes('master')) {
+        response = `Based on current trends, an MBA program by ${targetYear} would likely cost around ${formatCurrency(adjustedAmount, currency)} (adjusted for ~3% annual inflation). This includes tuition, books, and living expenses. Would you like me to update your goal amount to ${formatCurrency(adjustedAmount, currency)}?`;
+      } else {
+        response = `For ${goalCategory.toLowerCase()} goals in ${targetYear}, I'd estimate around ${formatCurrency(adjustedAmount, currency)} including inflation adjustments. This factors in ${state.userProfile.location || 'your location'} pricing. Shall I update your goal amount?`;
+      }
+    } else if (goalCategory === 'Travel') {
+      response = `For a ${goalCategory.toLowerCase()} goal in ${targetYear}, considering inflation and ${state.userProfile.location || 'regional'} departure costs, I estimate around ${formatCurrency(adjustedAmount, currency)}. This includes flights, accommodation, meals, and activities. Should I set this as your target amount?`;
+    } else if (goalCategory === 'Home') {
+      response = `For a ${goalCategory.toLowerCase()} purchase in ${state.userProfile.location || 'your area'} by ${targetYear}, with property appreciation and inflation, you'd likely need around ${formatCurrency(adjustedAmount, currency)}. This assumes current market conditions. Want me to update your goal?`;
+    } else {
+      response = `Based on inflation projections and current market conditions, your ${goalCategory.toLowerCase()} goal would cost approximately ${formatCurrency(adjustedAmount, currency)} by ${targetYear}. This is adjusted for ~3% annual inflation. Should I update your target amount?`;
+    }
+    
+    const aiMessage = {
+      id: `ai-${Date.now()}`,
+      type: 'ai' as const,
+      content: response,
+      timestamp: new Date()
+    };
+    
+    setIsAiTyping(false);
+    setChatMessages(prev => [...prev, aiMessage]);
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSendMessage();
+    }
   };
 
   // Handle goal creation/update
@@ -758,37 +829,181 @@ const GoalsSection: React.FC<GoalsSectionProps> = ({ onNext, onBack }) => {
 
                   {/* Right Side - AI Assistant Chat Window */}
                   <div className="lg:border-l lg:border-theme lg:pl-6">
-                    <div className="bg-gradient-to-br from-blue-500/5 to-purple-500/5 border border-blue-500/20 rounded-lg p-4 mb-4">
-                      <h4 className="font-semibold text-blue-600 mb-2 flex items-center gap-2">
-                        💬 AI Assistant
-                        <span className="text-xs bg-green-500/20 text-green-600 px-2 py-1 rounded-full">Live</span>
-                      </h4>
-                      <p className="text-xs text-theme-secondary mb-3">
-                        Chat with our AI to get personalized cost estimates and planning advice.
-                      </p>
-                    </div>
+                    <div className="bg-gradient-to-br from-blue-500/5 to-purple-500/5 border border-blue-500/20 rounded-lg overflow-hidden">
+                      {/* Chat Header */}
+                      <div className="bg-blue-500/10 border-b border-blue-500/20 p-4">
+                        <h4 className="font-semibold text-blue-600 flex items-center gap-2">
+                          🤖 AI Cost Calculator
+                          <span className="text-xs bg-green-500/20 text-green-600 px-2 py-1 rounded-full">Live</span>
+                        </h4>
+                        <p className="text-xs text-theme-secondary mt-1">
+                          Get personalized cost estimates with inflation adjustments
+                        </p>
+                      </div>
 
-                    {/* AI Component Container */}
-                    <div className="relative">
-                      {state.userProfile.name && state.userProfile.nationality && state.userProfile.location ? (
-                        <div className="h-96">
-                          <AIGuidance 
-                            step="financial-goals" 
-                            context={createAIContext()}
-                            onGoalFormFill={handleGoalFormFill}
-                            componentId="goals-section-inline"
+                      {/* Chat Messages Area */}
+                      <div className="h-64 overflow-y-auto p-4 space-y-3 bg-white/30">
+                        {chatMessages.length === 0 ? (
+                          /* AI Welcome Message */
+                          <div className="flex items-start gap-2">
+                            <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-white text-xs">
+                              🤖
+                            </div>
+                            <div className="flex-1 bg-blue-500/10 rounded-lg p-3 text-sm">
+                              <p className="text-theme-primary">
+                                Hi! I'm here to help you estimate realistic costs for your <strong>{goalCategory}</strong> goal in <strong>{targetYear}</strong>. 
+                                {state.userProfile.location && ` I'll factor in ${state.userProfile.location} pricing and inflation adjustments.`}
+                              </p>
+                              <div className="mt-2 text-xs text-blue-600">
+                                Try asking me something like:
+                              </div>
+                              <div className="mt-1 space-y-1">
+                                {goalCategory === 'Education' && (
+                                  <>
+                                    <button 
+                                      onClick={() => handleQuickQuestion(`What's the cost of an MBA in London by ${targetYear}?`)}
+                                      className="block text-xs text-blue-600 hover:text-blue-700 hover:underline text-left"
+                                    >
+                                      "What's the cost of an MBA in London by {targetYear}?"
+                                    </button>
+                                    <button 
+                                      onClick={() => handleQuickQuestion("Cost of studying computer science in UAE?")}
+                                      className="block text-xs text-blue-600 hover:text-blue-700 hover:underline text-left"
+                                    >
+                                      "Cost of studying computer science in UAE?"
+                                    </button>
+                                  </>
+                                )}
+                                {goalCategory === 'Travel' && (
+                                  <>
+                                    <button 
+                                      onClick={() => handleQuickQuestion(`How much for a 2-week Europe trip in ${targetYear}?`)}
+                                      className="block text-xs text-blue-600 hover:text-blue-700 hover:underline text-left"
+                                    >
+                                      "How much for a 2-week Europe trip in {targetYear}?"
+                                    </button>
+                                    <button 
+                                      onClick={() => handleQuickQuestion("Cost of a family vacation to Japan?")}
+                                      className="block text-xs text-blue-600 hover:text-blue-700 hover:underline text-left"
+                                    >
+                                      "Cost of a family vacation to Japan?"
+                                    </button>
+                                  </>
+                                )}
+                                {goalCategory === 'Home' && (
+                                  <>
+                                    <button 
+                                      onClick={() => handleQuickQuestion(`Down payment for apartment in ${state.userProfile.location}?`)}
+                                      className="block text-xs text-blue-600 hover:text-blue-700 hover:underline text-left"
+                                    >
+                                      "Down payment for apartment in {state.userProfile.location}?"
+                                    </button>
+                                    <button 
+                                      onClick={() => handleQuickQuestion(`Cost of buying a villa in Dubai by ${targetYear}?`)}
+                                      className="block text-xs text-blue-600 hover:text-blue-700 hover:underline text-left"
+                                    >
+                                      "Cost of buying a villa in Dubai by {targetYear}?"
+                                    </button>
+                                  </>
+                                )}
+                                {goalCategory === 'Gift' && (
+                                  <>
+                                    <button 
+                                      onClick={() => handleQuickQuestion("How much should I budget for a wedding gift?")}
+                                      className="block text-xs text-blue-600 hover:text-blue-700 hover:underline text-left"
+                                    >
+                                      "How much should I budget for a wedding gift?"
+                                    </button>
+                                    <button 
+                                      onClick={() => handleQuickQuestion("Cost of a luxury graduation gift?")}
+                                      className="block text-xs text-blue-600 hover:text-blue-700 hover:underline text-left"
+                                    >
+                                      "Cost of a luxury graduation gift?"
+                                    </button>
+                                  </>
+                                )}
+                                {goalCategory === 'Other' && customCategoryName && (
+                                  <>
+                                    <button 
+                                      onClick={() => handleQuickQuestion(`What's a realistic budget for ${customCategoryName}?`)}
+                                      className="block text-xs text-blue-600 hover:text-blue-700 hover:underline text-left"
+                                    >
+                                      "What's a realistic budget for {customCategoryName}?"
+                                    </button>
+                                    <button 
+                                      onClick={() => handleQuickQuestion("Help me estimate costs with inflation adjustments")}
+                                      className="block text-xs text-blue-600 hover:text-blue-700 hover:underline text-left"
+                                    >
+                                      "Help me estimate costs with inflation adjustments"
+                                    </button>
+                                  </>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        ) : (
+                          /* Chat Messages */
+                          <>
+                            {chatMessages.map((message) => (
+                              <div key={message.id} className={`flex items-start gap-2 ${message.type === 'user' ? 'flex-row-reverse' : ''}`}>
+                                <div className={`w-6 h-6 rounded-full flex items-center justify-center text-white text-xs ${
+                                  message.type === 'user' ? 'bg-green-500' : 'bg-blue-500'
+                                }`}>
+                                  {message.type === 'user' ? '👤' : '🤖'}
+                                </div>
+                                <div className={`flex-1 rounded-lg p-3 text-sm max-w-[80%] ${
+                                  message.type === 'user' 
+                                    ? 'bg-green-500/10 ml-auto' 
+                                    : 'bg-blue-500/10'
+                                }`}>
+                                  <p className="text-theme-primary whitespace-pre-wrap">{message.content}</p>
+                                  <div className="mt-1 text-xs text-theme-muted">
+                                    {message.timestamp.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                            {isAiTyping && (
+                              <div className="flex items-start gap-2">
+                                <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-white text-xs">
+                                  🤖
+                                </div>
+                                <div className="flex-1 bg-blue-500/10 rounded-lg p-3 text-sm">
+                                  <div className="flex space-x-1">
+                                    <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"></div>
+                                    <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
+                                    <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+                          </>
+                        )}
+                      </div>
+
+                      {/* Chat Input */}
+                      <div className="border-t border-blue-500/20 p-4">
+                        <div className="flex gap-2">
+                          <input
+                            type="text"
+                            value={chatInput}
+                            onChange={(e) => setChatInput(e.target.value)}
+                            onKeyPress={handleKeyPress}
+                            placeholder="Ask about costs, inflation, or budget recommendations..."
+                            className="input-dark flex-1 px-3 py-2 text-sm rounded-md border border-theme focus:ring-blue-500 focus:border-blue-500"
                           />
+                          <button 
+                            onClick={handleSendMessage}
+                            disabled={!chatInput.trim()}
+                            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white text-sm rounded-md transition-colors"
+                          >
+                            Send
+                          </button>
                         </div>
-                      ) : (
-                        <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-4 text-center">
-                          <p className="text-sm text-yellow-600 mb-2">
-                            ⚠️ <strong>Complete your profile first</strong>
-                          </p>
-                          <p className="text-xs text-theme-muted">
-                            The AI assistant needs your profile information to provide personalized cost estimates.
-                          </p>
+                        <div className="mt-2 text-xs text-theme-muted">
+                          💡 I can help estimate costs, adjust for inflation, and suggest realistic budgets
                         </div>
-                      )}
+                      </div>
                     </div>
                   </div>
                 </div>
