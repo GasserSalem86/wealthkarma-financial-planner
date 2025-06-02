@@ -475,30 +475,6 @@ const RiskReturnsSection: React.FC<RiskReturnsSectionProps> = ({ onNext, onBack 
         </CardContent>
       </Card>
 
-      {/* Phase-Based Strategy Explanation */}
-      <Card className="border-gray-500/30 bg-gray-500/5 mb-8">
-        <CardContent className="pt-6">
-          <div className="space-y-3">
-            <h4 className="font-semibold text-theme-primary">🎢 Phase-Based Approach</h4>
-            <ul className="text-sm text-theme-secondary space-y-2">
-              <li>• <strong>Early Years:</strong> Higher growth to maximize time</li>
-              <li>• <strong>Middle Years:</strong> Balanced approach for steady growth</li>
-              <li>• <strong>Near Target:</strong> Conservative to protect your money</li>
-              <li>• <strong>Payment Period:</strong> Safe investments while you use the money</li>
-            </ul>
-          </div>
-          <div className="space-y-3">
-            <h4 className="font-semibold text-theme-primary">🎯 Why This Works</h4>
-            <ul className="text-sm text-theme-secondary space-y-2">
-              <li>• <strong>Time = Safety:</strong> More time means we can take more risk for higher returns</li>
-              <li>• <strong>Less Time = Caution:</strong> Near your goal date, we protect what you've built</li>
-              <li>• <strong>Automatic Adjustment:</strong> Strategy becomes more conservative as you get closer</li>
-              <li>• <strong>Proven Method:</strong> This is how financial professionals manage money</li>
-            </ul>
-          </div>
-        </CardContent>
-      </Card>
-
       {/* Customization Guidance */}
       <Card className="border-orange-500/30 bg-orange-500/5 mb-8">
         <CardContent className="pt-6">
