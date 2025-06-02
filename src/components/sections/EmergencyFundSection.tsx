@@ -1293,25 +1293,69 @@ Include ALL banks mentioned with ANY rate information. Return only the JSON arra
                       
                       {/* Timeline suggestions */}
                       <div className="mt-4">
-                        <p className="text-xs text-theme-muted mb-2">Suggested timelines (allocating 70% of available savings to emergency fund):</p>
+                        <p className="text-xs text-theme-muted mb-2">Suggested timelines (allocating different % of available savings to emergency fund) - Click to select:</p>
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                           {[50, 70, 90].map(percentage => {
                             const monthlySavings = (state.userProfile.monthlyIncome! - expenses) * (percentage / 100);
                             const months = Math.ceil(amount / monthlySavings);
                             const isRealistic = months <= 12 && monthlySavings > 0;
+                            const suggestedDate = new Date(today.getFullYear(), today.getMonth() + months, 1);
+                            const isCurrentlySelected = Math.abs(horizonMonths - months) <= 1; // Allow 1 month tolerance
+                            
+                            const handleTimelineSelect = () => {
+                              if (isRealistic && monthlySavings > 0) {
+                                setTargetMonth(suggestedDate.getMonth() + 1);
+                                setTargetYear(suggestedDate.getFullYear());
+                              }
+                            };
+                            
                             return (
-                              <div key={percentage} className={`text-center p-2 rounded border text-xs ${
-                                percentage === 70 ? 'border-green-500 bg-green-500/10' : 'border-theme bg-theme-section'
-                              }`}>
+                              <button
+                                key={percentage}
+                                onClick={handleTimelineSelect}
+                                disabled={!isRealistic || monthlySavings <= 0}
+                                className={`text-center p-2 rounded border text-xs transition-all duration-200 ${
+                                  isCurrentlySelected
+                                    ? 'border-green-500 bg-green-500/20 shadow-md transform scale-105'
+                                    : percentage === 70 
+                                      ? 'border-green-500 bg-green-500/10 hover:bg-green-500/15 hover:scale-102' 
+                                      : 'border-theme bg-theme-section hover:bg-theme-tertiary hover:scale-102'
+                                } ${
+                                  !isRealistic || monthlySavings <= 0 
+                                    ? 'opacity-50 cursor-not-allowed' 
+                                    : 'cursor-pointer'
+                                }`}
+                              >
                                 <div className="font-bold">{percentage}% allocation</div>
-                                <div className={`${percentage === 70 ? 'text-green-600' : 'text-theme-secondary'}`}>
+                                <div className={`${
+                                  isCurrentlySelected 
+                                    ? 'text-green-700 font-medium' 
+                                    : percentage === 70 
+                                      ? 'text-green-600' 
+                                      : 'text-theme-secondary'
+                                }`}>
                                   {formatCurrency(monthlySavings, currency)}/month
                                 </div>
-                                <div className={`font-medium ${percentage === 70 ? 'text-green-600' : 'text-theme-secondary'}`}>
+                                <div className={`font-medium ${
+                                  isCurrentlySelected 
+                                    ? 'text-green-700' 
+                                    : percentage === 70 
+                                      ? 'text-green-600' 
+                                      : 'text-theme-secondary'
+                                }`}>
                                   {isRealistic ? `${months} months` : '12+ months'}
                                 </div>
-                                {percentage === 70 && <div className="text-green-600 font-bold">⭐ Recommended</div>}
-                              </div>
+                                <div className="text-xs mt-1">
+                                  {isCurrentlySelected && '✓ Selected'}
+                                  {!isCurrentlySelected && percentage === 70 && '⭐ Recommended'}
+                                  {!isCurrentlySelected && percentage !== 70 && isRealistic && 'Click to select'}
+                                </div>
+                                {isRealistic && (
+                                  <div className="text-xs text-theme-muted mt-1">
+                                    Target: {suggestedDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
+                                  </div>
+                                )}
+                              </button>
                             );
                           })}
                         </div>
