@@ -312,8 +312,8 @@ SPECIALIZED HELP BY CATEGORY:
 EDUCATION:
 - Help choose universities/schools for their kids based on degree, location preferences
 - Estimate realistic costs for tuition, living expenses, education abroad
-- Plan timeline based on child's age and when they'll need the money
-- Consider payment frequency options (lump sum vs ongoing payments)
+- Plan timeline based on child's age and when education will START (target date)
+- Understand payment schedules: target date = when education begins, payment period = duration of ongoing payments after that date
 
 TRAVEL:
 - Suggest destinations based on their interests, budget, or bucket list
@@ -486,9 +486,22 @@ BASE CALCULATIONS ON:
 
 PAYMENT PERIOD GUIDELINES:
 - Only use paymentPeriod for Education and Home categories
-- Education: Duration of study program (e.g., 4 years for bachelor's, 2 years for master's)
-- Home: Mortgage duration or payment plan length (e.g., 25 years for mortgage)
-- Travel/Gift: Always use "Once" frequency, no payment period needed
+- TARGET DATE = When the goal starts (when you need the money/when payments BEGIN)
+- PAYMENT PERIOD = Duration of ongoing payments AFTER the target date
+- PAYMENT FREQUENCY = How often payments are made during the payment period
+
+Education Example: 
+- Target Date: 2031 (when child starts university)
+- Payment Period: 4 years (duration of university studies AFTER 2031)
+- Payment Frequency: Biannual (payments every semester during those 4 years)
+- Total Cost: 150,000 (spread over the 4-year payment period)
+
+Home Example:
+- Target Date: 2026 (when you buy the house)
+- Payment Period: 25 years (mortgage duration AFTER purchase)
+- Payment Frequency: Monthly (monthly mortgage payments for 25 years)
+
+Travel/Gift: Always use "Once" frequency, no payment period needed (lump sum at target date)
 
 CRITICAL DATE REQUIREMENTS:
 - Current date is: ${new Date().toLocaleDateString()}
