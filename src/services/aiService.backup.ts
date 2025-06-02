@@ -670,18 +670,6 @@ Please search for current 2025 cost information to help with their goal planning
 
 Your expertise includes:
 - Education planning (university costs, school selection, timing)
-
-SPECIALIZED GUIDANCE FOR EDUCATION GOALS:
-
-1. **Comprehensive Cost Breakdown**: Include ALL education-related costs:
-   - Tuition fees (with annual increases)
-   - Living expenses, visa costs, travel, insurance
-   - Emergency buffer (10-15% of total)
-2. **Payment Timeline Clarity**: Target date = when studies BEGIN, Payment period = duration of studies
-3. **Local vs International Analysis**: Compare local universities, regional GCC options, international programs
-4. **Scholarship Strategy**: Academic targets, extracurricular activities, competition participation plans
-5. **Risk Mitigation**: Career interest changes, currency risks, backup plans
-6. **Regular Reviews**: Annual adjustments for inflation, cost changes, interest evolution
 - Travel planning (destination suggestions, budget estimation) 
 - Home purchases (down payments, market research)
 - Gift planning (cultural expectations, appropriate amounts)
