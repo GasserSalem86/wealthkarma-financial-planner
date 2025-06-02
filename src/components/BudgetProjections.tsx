@@ -320,149 +320,14 @@ const AllocationTable = () => {
     return result;
   }, [allocations]);
 
-  // Analyze plan feasibility and generate recommendations
-  const feasibilityAnalysis = useMemo(() => {
-    const totalRequired = allocations.reduce((sum, a) => sum + a.requiredPMT, 0);
-    const isAchievable = totalRequired <= state.budget;
-    const shortfall = Math.max(0, totalRequired - state.budget);
-    const excess = Math.max(0, state.budget - totalRequired);
-    
-    const problemGoals = allocations.filter(a => a.requiredPMT > a.initialPMT || a.requiredPMT > state.budget);
-    const recommendations = [];
-
-    if (!isAchievable) {
-      // Budget recommendations
-      const suggestedBudget = Math.ceil(totalRequired / 50) * 50; // Round up to nearest 50
-      recommendations.push({
-        type: 'budget',
-        title: 'Increase Your Monthly Budget',
-        description: `Consider increasing your monthly savings to ${formatCurrency(suggestedBudget, currency)} (${formatCurrency(shortfall, currency)} more)`,
-        icon: '💰',
-        priority: 'high'
-      });
-
-      // Timeline recommendations for problematic goals
-      problemGoals.forEach(allocation => {
-        const goal = allocation.goal;
-        const currentMonths = Math.ceil((goal.targetDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24 * 30));
-        const extendedMonths = Math.ceil(currentMonths * 1.2); // 20% extension
-        const newDate = new Date();
-        newDate.setMonth(newDate.getMonth() + extendedMonths);
-        
-        recommendations.push({
-          type: 'timeline',
-          title: `Extend "${goal.name}" Timeline`,
-          description: `Consider extending deadline to ${newDate.toLocaleDateString()} to reduce monthly requirement`,
-          icon: '📅',
-          priority: 'medium'
-        });
-      });
-
-      // Goal amount recommendations
-      const expensiveGoals = allocations.filter(a => a.requiredPMT > state.budget * 0.4);
-      expensiveGoals.forEach(allocation => {
-        const reducedAmount = Math.floor(allocation.goal.amount * 0.8);
-        recommendations.push({
-          type: 'amount',
-          title: `Reduce "${allocation.goal.name}" Target`,
-          description: `Consider lowering target to ${formatCurrency(reducedAmount, currency)} to make it more achievable`,
-          icon: '🎯',
-          priority: 'low'
-        });
-      });
-    }
-
-    return {
-      isAchievable,
-      shortfall,
-      excess,
-      totalRequired,
-      recommendations: recommendations.slice(0, 3) // Limit to top 3 recommendations
-    };
-  }, [allocations, state.budget, currency]);
-
   return (
     <Card className="mb-8 shadow-theme-lg border-0 overflow-hidden">
       <div className="bg-gradient-to-r from-green-500/10 to-orange-500/10 border-b border-theme p-6 rounded-t-xl">
         <h3 className="heading-h3-sm text-theme-primary mb-2">
-          📊 Plan Feasibility Check
+          Where Your Money Goes
         </h3>
-        <p className="text-theme-secondary">
-          This analysis shows whether your current goals are achievable with your monthly budget, and provides recommendations to make them work.
-        </p>
+        <p className="text-theme-secondary">See how your monthly budget is allocated across your financial goals</p>
       </div>
-
-      {/* Feasibility Status Banner */}
-      <div className={`p-4 border-b border-theme ${
-        feasibilityAnalysis.isAchievable 
-          ? 'bg-theme-success/10' 
-          : 'bg-theme-error/10'
-      }`}>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-              feasibilityAnalysis.isAchievable 
-                ? 'bg-theme-success text-white' 
-                : 'bg-theme-error text-white'
-            }`}>
-              {feasibilityAnalysis.isAchievable ? (
-                <CheckCircle className="w-5 h-5" />
-              ) : (
-                <AlertTriangle className="w-5 h-5" />
-              )}
-            </div>
-            <div>
-              <h4 className={`font-semibold ${
-                feasibilityAnalysis.isAchievable ? 'text-theme-success' : 'text-theme-error'
-              }`}>
-                {feasibilityAnalysis.isAchievable ? '✅ Your Plan is Achievable!' : '⚠️ Your Plan Needs Adjustment'}
-              </h4>
-              <p className="text-sm text-theme-secondary">
-                {feasibilityAnalysis.isAchievable 
-                  ? `All goals can be funded with ${formatCurrency(feasibilityAnalysis.excess, currency)} to spare`
-                  : `You need ${formatCurrency(feasibilityAnalysis.shortfall, currency)} more monthly to achieve all goals`
-                }
-              </p>
-            </div>
-          </div>
-          <div className="text-right">
-            <div className="text-lg font-bold text-theme-primary">
-              {formatCurrency(feasibilityAnalysis.totalRequired, currency)}
-            </div>
-            <div className="text-xs text-theme-muted">Total Required</div>
-          </div>
-        </div>
-      </div>
-
-      {/* Recommendations Section */}
-      {!feasibilityAnalysis.isAchievable && feasibilityAnalysis.recommendations.length > 0 && (
-        <div className="p-4 bg-theme-tertiary border-b border-theme">
-          <h4 className="font-semibold text-theme-primary mb-3 flex items-center">
-            <span className="text-blue-500 mr-2">💡</span>
-            Recommendations to Make Your Plan Work
-          </h4>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-            {feasibilityAnalysis.recommendations.map((rec, index) => (
-              <div key={index} className={`p-3 rounded-lg border ${
-                rec.priority === 'high' 
-                  ? 'border-red-500/30 bg-red-500/5' 
-                  : rec.priority === 'medium'
-                  ? 'border-yellow-500/30 bg-yellow-500/5'
-                  : 'border-blue-500/30 bg-blue-500/5'
-              }`}>
-                <div className="flex items-start space-x-2">
-                  <span className="text-lg">{rec.icon}</span>
-                  <div>
-                    <h5 className="font-medium text-theme-primary text-sm">{rec.title}</h5>
-                    <p className="text-xs text-theme-secondary mt-1">{rec.description}</p>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
       <CardContent className="p-0">
         <div className="overflow-x-auto">
           <table className="min-w-full">
@@ -495,12 +360,9 @@ const AllocationTable = () => {
                 const firstActual = Math.min(state.budget, firstNonZero);
                 const finalPMT = allocation.requiredPMT;
                 const progressPercentage = Math.min(100, (allocation.amountAtTarget / allocation.goal.amount) * 100);
-                const isProblematic = allocation.requiredPMT > state.budget || firstNonZero > state.budget;
                 
                 return (
-                  <tr key={allocation.goal.id} className={`hover:bg-theme-tertiary transition-colors ${
-                    isProblematic ? 'bg-red-500/5' : ''
-                  }`}>
+                  <tr key={allocation.goal.id} className="hover:bg-theme-tertiary transition-colors">
                     <td className="px-6 py-5">
                       <div className="flex items-center space-x-3">
                         <div className={`w-3 h-3 rounded-full ${
@@ -518,11 +380,6 @@ const AllocationTable = () => {
                           })()
                         }`}></div>
                         <span className="text-sm font-semibold text-theme-primary">{allocation.goal.name}</span>
-                        {isProblematic && (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-500/20 text-red-400">
-                            Needs Adjustment
-                          </span>
-                        )}
                       </div>
                     </td>
                     <td className="px-6 py-5">
@@ -547,9 +404,7 @@ const AllocationTable = () => {
                       )}
                     </td>
                     <td className="px-6 py-5">
-                      <span className={`text-sm font-bold ${
-                        finalPMT > state.budget ? 'text-red-500' : 'text-theme-primary'
-                      }`}>
+                      <span className="text-sm font-bold text-theme-primary">
                         {formatCurrency(finalPMT, currency)}
                       </span>
                     </td>
