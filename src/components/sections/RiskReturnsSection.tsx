@@ -243,7 +243,7 @@ const RiskReturnsSection: React.FC<RiskReturnsSectionProps> = ({ onNext, onBack 
       {/* Comprehensive Investment Strategy Explanation */}
       <Card className="border-purple-500/30 bg-purple-500/5 mb-8">
         <CardContent className="pt-6">
-          <h3 className="text-lg font-semibold text-purple-600 mb-6 text-center">
+          <h3 className="text-lg font-semibold text-theme-light mb-6 text-center">
             ⏰ How Time Shapes Your Investment Strategy
           </h3>
           
@@ -478,7 +478,7 @@ const RiskReturnsSection: React.FC<RiskReturnsSectionProps> = ({ onNext, onBack 
       {/* Customization Guidance */}
       <Card className="border-orange-500/30 bg-orange-500/5 mb-8">
         <CardContent className="pt-6">
-          <h3 className="text-lg font-semibold text-orange-600 mb-4 text-center">
+          <h3 className="text-lg font-semibold text-theme-light mb-4 text-center">
             🛠️ Want Different Settings?
           </h3>
           
