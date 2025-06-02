@@ -194,8 +194,8 @@ const RiskReturnsSection: React.FC<RiskReturnsSectionProps> = ({ onNext, onBack 
         <Card className="border-blue-500/30 bg-blue-500/5">
           <CardContent className="pt-6">
             <div className="text-center space-y-3">
-              <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center mx-auto">
-                <span className="text-white font-bold text-sm">🛡️</span>
+              <div className="w-12 h-12 border-2 border-blue-500 rounded-full flex items-center justify-center mx-auto">
+                <span className="text-xl">🛡️</span>
               </div>
               <h3 className="font-semibold text-blue-600">Conservative (Low Risk)</h3>
               <div className="text-sm text-theme-secondary space-y-1">
@@ -210,8 +210,8 @@ const RiskReturnsSection: React.FC<RiskReturnsSectionProps> = ({ onNext, onBack 
         <Card className="border-green-500/30 bg-green-500/5">
           <CardContent className="pt-6">
             <div className="text-center space-y-3">
-              <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center mx-auto">
-                <span className="text-white font-bold text-sm">⚖️</span>
+              <div className="w-12 h-12 border-2 border-green-500 rounded-full flex items-center justify-center mx-auto">
+                <span className="text-xl">⚖️</span>
               </div>
               <h3 className="font-semibold text-green-600">Balanced (Medium Risk)</h3>
               <div className="text-sm text-theme-secondary space-y-1">
@@ -226,8 +226,8 @@ const RiskReturnsSection: React.FC<RiskReturnsSectionProps> = ({ onNext, onBack 
         <Card className="border-yellow-500/30 bg-yellow-500/5">
           <CardContent className="pt-6">
             <div className="text-center space-y-3">
-              <div className="w-12 h-12 bg-yellow-500 rounded-full flex items-center justify-center mx-auto">
-                <span className="text-white font-bold text-sm">🚀</span>
+              <div className="w-12 h-12 border-2 border-yellow-500 rounded-full flex items-center justify-center mx-auto">
+                <span className="text-xl">🚀</span>
               </div>
               <h3 className="font-semibold text-yellow-600">Growth (Higher Risk)</h3>
               <div className="text-sm text-theme-secondary space-y-1">
