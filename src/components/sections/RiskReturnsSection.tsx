@@ -388,96 +388,182 @@ const RiskReturnsSection: React.FC<RiskReturnsSectionProps> = ({ onNext, onBack 
               </div>
             </div>
 
-            {/* Visual Comparison Chart */}
+            {/* Enhanced Visual Comparison - Why Time Changes Everything */}
             <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-lg p-6 border border-blue-200 dark:border-blue-800">
-              <h4 className="font-semibold text-theme-primary mb-4 text-center">📊 Why Time Changes Everything</h4>
+              <h4 className="font-semibold text-theme-primary mb-6 text-center text-lg">⏰ Why Time Changes Everything</h4>
               
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {/* Risk vs Time Chart */}
-                <div className="text-center">
-                  <div className="bg-white dark:bg-gray-800 rounded-lg p-4 mb-3">
-                    <div className="text-sm font-medium text-theme-primary mb-2">Risk Capacity</div>
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between text-xs">
-                        <span>High</span>
-                        <div className="flex-1 mx-2 h-2 bg-gradient-to-r from-red-500 to-green-500 rounded"></div>
-                        <span>7+ years</span>
+              {/* Main Concept Explanation */}
+              <div className="bg-white/70 dark:bg-gray-800/70 rounded-lg p-4 mb-6 text-center">
+                <p className="text-sm text-theme-secondary mb-2">
+                  The more time you have until your goal, the more investment risk you can handle - because you have time to recover from temporary losses.
+                </p>
+                <p className="text-xs text-theme-muted">
+                  This is why we automatically adjust your strategy as you get closer to your goal date.
+                </p>
+              </div>
+
+              {/* Time-Based Strategy Visualization */}
+              <div className="space-y-6">
+                
+                {/* 10+ Years Timeline */}
+                <div className="bg-white/80 dark:bg-gray-800/80 rounded-lg p-5">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full flex items-center justify-center">
+                        <span className="text-white font-bold text-sm">10+</span>
                       </div>
-                      <div className="flex items-center justify-between text-xs">
-                        <span>Medium</span>
-                        <div className="flex-1 mx-2 h-2 bg-gradient-to-r from-yellow-500 to-green-500 rounded"></div>
-                        <span>3-7 years</span>
+                      <div>
+                        <h5 className="font-semibold text-theme-primary">Long-term Goals (10+ years)</h5>
+                        <p className="text-xs text-theme-muted">Retirement, Children's University</p>
                       </div>
-                      <div className="flex items-center justify-between text-xs">
-                        <span>Low</span>
-                        <div className="flex-1 mx-2 h-2 bg-blue-500 rounded"></div>
-                        <span>0-3 years</span>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-lg font-bold text-yellow-600">5-8%</div>
+                      <div className="text-xs text-theme-muted">Expected Returns</div>
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                    <div className="bg-yellow-50 dark:bg-yellow-900/20 p-3 rounded border border-yellow-200 dark:border-yellow-800">
+                      <div className="font-medium text-yellow-800 dark:text-yellow-200 mb-1">🚀 High Growth Strategy</div>
+                      <div className="text-yellow-700 dark:text-yellow-300 text-xs">
+                        • Stocks & equity investments<br/>
+                        • Market volatility acceptable<br/>
+                        • Maximum compound growth
+                      </div>
+                    </div>
+                    <div className="bg-green-50 dark:bg-green-900/20 p-3 rounded border border-green-200 dark:border-green-800">
+                      <div className="font-medium text-green-800 dark:text-green-200 mb-1">⏰ Time = Safety Net</div>
+                      <div className="text-green-700 dark:text-green-300 text-xs">
+                        • 10+ years to recover losses<br/>
+                        • Market cycles average out<br/>
+                        • Compound effect is powerful
+                      </div>
+                    </div>
+                    <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded border border-blue-200 dark:border-blue-800">
+                      <div className="font-medium text-blue-800 dark:text-blue-200 mb-1">💰 Example Result</div>
+                      <div className="text-blue-700 dark:text-blue-300 text-xs">
+                        • KWD 100/month @ 7%<br/>
+                        • After 10 years: ~KWD 17,300<br/>
+                        • After 20 years: ~KWD 52,400
                       </div>
                     </div>
                   </div>
-                  <div className="text-xs text-theme-secondary">More time = Can handle more risk</div>
                 </div>
 
-                {/* Growth Potential Chart */}
-                <div className="text-center">
-                  <div className="bg-white dark:bg-gray-800 rounded-lg p-4 mb-3">
-                    <div className="text-sm font-medium text-theme-primary mb-2">Growth Potential</div>
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between text-xs">
-                        <span>5-8%</span>
-                        <div className="flex-1 mx-2">
-                          <div className="h-6 bg-yellow-500 rounded flex items-center justify-center text-white font-bold">🚀</div>
-                        </div>
-                        <span>Growth</span>
+                {/* 3-7 Years Timeline */}
+                <div className="bg-white/80 dark:bg-gray-800/80 rounded-lg p-5">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-gradient-to-r from-green-500 to-teal-600 rounded-full flex items-center justify-center">
+                        <span className="text-white font-bold text-sm">3-7</span>
                       </div>
-                      <div className="flex items-center justify-between text-xs">
-                        <span>3-6%</span>
-                        <div className="flex-1 mx-2">
-                          <div className="h-6 bg-green-600 rounded flex items-center justify-center text-white font-bold">⚖️</div>
-                        </div>
-                        <span>Balanced</span>
+                      <div>
+                        <h5 className="font-semibold text-theme-primary">Medium-term Goals (3-7 years)</h5>
+                        <p className="text-xs text-theme-muted">Car Purchase, Home Down Payment</p>
                       </div>
-                      <div className="flex items-center justify-between text-xs">
-                        <span>2-4%</span>
-                        <div className="flex-1 mx-2">
-                          <div className="h-6 bg-blue-600 rounded flex items-center justify-center text-white font-bold">🛡️</div>
-                        </div>
-                        <span>Conservative</span>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-lg font-bold text-green-600">3-6%</div>
+                      <div className="text-xs text-theme-muted">Expected Returns</div>
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                    <div className="bg-green-50 dark:bg-green-900/20 p-3 rounded border border-green-200 dark:border-green-800">
+                      <div className="font-medium text-green-800 dark:text-green-200 mb-1">⚖️ Balanced Strategy</div>
+                      <div className="text-green-700 dark:text-green-300 text-xs">
+                        • Mix of stocks & bonds<br/>
+                        • Moderate growth potential<br/>
+                        • Reduced volatility risk
+                      </div>
+                    </div>
+                    <div className="bg-yellow-50 dark:bg-yellow-900/20 p-3 rounded border border-yellow-200 dark:border-yellow-800">
+                      <div className="font-medium text-yellow-800 dark:text-yellow-200 mb-1">🎯 Smart Transition</div>
+                      <div className="text-yellow-700 dark:text-yellow-300 text-xs">
+                        • Start balanced for growth<br/>
+                        • Switch to safe 2 years before<br/>
+                        • Best of both approaches
+                      </div>
+                    </div>
+                    <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded border border-blue-200 dark:border-blue-800">
+                      <div className="font-medium text-blue-800 dark:text-blue-200 mb-1">💰 Example Result</div>
+                      <div className="text-blue-700 dark:text-blue-300 text-xs">
+                        • KWD 200/month @ 5%<br/>
+                        • After 5 years: ~KWD 13,270<br/>
+                        • Protected final 2 years
                       </div>
                     </div>
                   </div>
-                  <div className="text-xs text-theme-secondary">Higher potential over time</div>
                 </div>
 
-                {/* Compound Effect Chart */}
-                <div className="text-center">
-                  <div className="bg-white dark:bg-gray-800 rounded-lg p-4 mb-3">
-                    <div className="text-sm font-medium text-theme-primary mb-2">Compound Effect</div>
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between text-xs">
-                        <span>💰💰💰</span>
-                        <div className="flex-1 mx-2">
-                          <div className="h-6 bg-gradient-to-r from-green-400 to-green-600 rounded flex items-center justify-center text-white font-bold">10+ years</div>
-                        </div>
-                        <span>Powerful</span>
+                {/* 0-3 Years Timeline */}
+                <div className="bg-white/80 dark:bg-gray-800/80 rounded-lg p-5">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-blue-700 rounded-full flex items-center justify-center">
+                        <span className="text-white font-bold text-sm">0-3</span>
                       </div>
-                      <div className="flex items-center justify-between text-xs">
-                        <span>💰💰</span>
-                        <div className="flex-1 mx-2">
-                          <div className="h-6 bg-gradient-to-r from-yellow-400 to-yellow-600 rounded flex items-center justify-center text-white font-bold">5-10 years</div>
-                        </div>
-                        <span>Strong</span>
+                      <div>
+                        <h5 className="font-semibold text-theme-primary">Short-term Goals (0-3 years)</h5>
+                        <p className="text-xs text-theme-muted">Emergency Fund, Vacation, Wedding</p>
                       </div>
-                      <div className="flex items-center justify-between text-xs">
-                        <span>💰</span>
-                        <div className="flex-1 mx-2">
-                          <div className="h-6 bg-blue-600 rounded flex items-center justify-center text-white font-bold">1-5 years</div>
-                        </div>
-                        <span>Modest</span>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-lg font-bold text-blue-600">2-4%</div>
+                      <div className="text-xs text-theme-muted">Expected Returns</div>
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                    <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded border border-blue-200 dark:border-blue-800">
+                      <div className="font-medium text-blue-800 dark:text-blue-200 mb-1">🛡️ Conservative Strategy</div>
+                      <div className="text-blue-700 dark:text-blue-300 text-xs">
+                        • High-yield savings accounts<br/>
+                        • Fixed deposits & bonds<br/>
+                        • Capital protection priority
+                      </div>
+                    </div>
+                    <div className="bg-red-50 dark:bg-red-900/20 p-3 rounded border border-red-200 dark:border-red-800">
+                      <div className="font-medium text-red-800 dark:text-red-200 mb-1">⚠️ Why Conservative?</div>
+                      <div className="text-red-700 dark:text-red-300 text-xs">
+                        • No time to recover losses<br/>
+                        • Need money soon<br/>
+                        • Certainty over growth
+                      </div>
+                    </div>
+                    <div className="bg-green-50 dark:bg-green-900/20 p-3 rounded border border-green-200 dark:border-green-800">
+                      <div className="font-medium text-green-800 dark:text-green-200 mb-1">💰 Example Result</div>
+                      <div className="text-green-700 dark:text-green-300 text-xs">
+                        • KWD 300/month @ 3%<br/>
+                        • After 2 years: ~KWD 7,380<br/>
+                        • Money safe when needed
                       </div>
                     </div>
                   </div>
-                  <div className="text-xs text-theme-secondary">Time multiplies your money</div>
+                </div>
+
+              </div>
+
+              {/* Key Principle Summary */}
+              <div className="mt-6 bg-gradient-to-r from-purple-100 to-blue-100 dark:from-purple-900/30 dark:to-blue-900/30 rounded-lg p-4 border border-purple-200 dark:border-purple-800">
+                <h5 className="font-semibold text-purple-800 dark:text-purple-200 text-center mb-3">🎯 The Golden Rule of Time & Risk</h5>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
+                  <div className="space-y-2">
+                    <div className="text-2xl">⏰</div>
+                    <div className="text-sm font-medium text-theme-primary">More Time</div>
+                    <div className="text-xs text-theme-secondary">= Can handle more risk<br/>= Higher potential returns</div>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="text-2xl">⚖️</div>
+                    <div className="text-sm font-medium text-theme-primary">Balanced Time</div>
+                    <div className="text-xs text-theme-secondary">= Moderate risk<br/>= Steady reliable growth</div>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="text-2xl">🏃‍♂️</div>
+                    <div className="text-sm font-medium text-theme-primary">Less Time</div>
+                    <div className="text-xs text-theme-secondary">= Safety first<br/>= Preserve what you have</div>
+                  </div>
                 </div>
               </div>
             </div>
