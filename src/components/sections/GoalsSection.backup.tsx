@@ -8,7 +8,7 @@ import Button from '../ui/Button';
 import Card, { CardHeader, CardTitle, CardContent, CardFooter } from '../ui/Card';
 import { Calendar, DollarSign, Edit, Trash2, GraduationCap, Plane, Gift, Home, Target, Plus, HelpCircle } from 'lucide-react';
 import AIGuidance from '../AIGuidance';
-import { UserContext, aiService } from '../../services/aiService';
+import { UserContext } from '../../services/aiService';
 
 interface GoalsSectionProps {
   onNext: () => void;

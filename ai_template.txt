@@ -1,0 +1,51 @@
+  const handleSendQuestion = async () => {
+    if (!userQuestion.trim() || isLoadingResponse) return;
+
+    // Add user message
+    const userMessage: ChatMessage = {
+      id: Date.now().toString(),
+      type: 'user',
+      content: userQuestion,
+      timestamp: new Date()
+    };
+
+    setChatMessages(prev => [...prev, userMessage]);
+    setUserQuestion('');
+    setIsLoadingResponse(true);
+
+    try {
+      // Prepare conversation history (exclude the current question which will be sent separately)
+      const conversationHistory = chatMessages.map(msg => ({
+        type: msg.type,
+        content: msg.content
+      }));
+
+      const response = await aiService.askQuestion(userQuestion, context, conversationHistory);
+      
+      // Handle form fill data if provided
+      if (response.formFillData && onGoalFormFill) {
+        onGoalFormFill(response.formFillData);
+      }
+      
+      // Clean up AI message
+      const cleanedMessage = cleanAIMessage(response.message);
+      
+      // Add AI response
+      const aiMessage: ChatMessage = {
+        id: (Date.now() + 1).toString(),
+        type: 'ai',
+        content: cleanedMessage,
+        timestamp: new Date()
+      };
+
+      setChatMessages(prev => [...prev, aiMessage]);
+    } catch (error) {
+      console.error('Failed to get AI response:', error);
+      const errorMessage: ChatMessage = {
+        id: (Date.now() + 1).toString(),
+        type: 'ai',
+        content: "I'm sorry, I couldn't process your question right now. Please try again.",
+        timestamp: new Date()
+      };
+      setChatMessages(prev => [...prev, errorMessage]);
+    } finally {
