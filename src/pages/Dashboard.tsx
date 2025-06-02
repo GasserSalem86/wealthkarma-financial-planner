@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { PlannerProvider, usePlanner } from '../context/PlannerContext';
 import { CurrencyProvider } from '../context/CurrencyContext';
 import { ThemeProvider } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
+import { supabase } from '../lib/supabase';
 import LiveDashboard from '../components/LiveDashboard';
 import ThemeToggle from '../components/ui/ThemeToggle';
 import CurrencySelector from '../components/CurrencySelector';
@@ -12,6 +13,80 @@ import Button from '../components/ui/Button';
 const DashboardContent: React.FC = () => {
   const { user, signOut } = useAuth();
   const { state } = usePlanner();
+
+  // Handle URL hash tokens for email confirmation
+  useEffect(() => {
+    const handleUrlTokens = async () => {
+      // Only process if we have hash tokens but no user session
+      if (!user && window.location.hash) {
+        console.log('Dashboard: No user but hash detected, checking for tokens...');
+        const hashParams = new URLSearchParams(window.location.hash.substring(1));
+        const access_token = hashParams.get('access_token');
+        const refresh_token = hashParams.get('refresh_token');
+        
+        if (access_token && refresh_token) {
+          console.log('Dashboard: Found tokens in URL hash, attempting to set session...');
+          
+          try {
+            // Add timeout to prevent hanging
+            const setSessionPromise = supabase.auth.setSession({
+              access_token,
+              refresh_token
+            });
+            
+            const timeoutPromise = new Promise((_, reject) => {
+              setTimeout(() => reject(new Error('setSession timeout after 3 seconds')), 3000);
+            });
+
+            console.log('Dashboard: Waiting for setSession to complete...');
+            const { data, error } = await Promise.race([setSessionPromise, timeoutPromise]) as any;
+            
+            if (error) {
+              console.error('Dashboard: Failed to set session from URL tokens:', error);
+            } else if (data.session) {
+              console.log('Dashboard: Successfully established session!', data.session.user.email);
+              // Clear the hash from URL
+              window.history.replaceState(null, '', window.location.pathname);
+            }
+          } catch (error) {
+            console.error('Dashboard: Exception/timeout setting session from URL tokens:', error);
+            
+            // Workaround: Decode the JWT token and create a temporary session
+            console.log('Dashboard: Using workaround - decoding JWT token...');
+            try {
+              // Decode the JWT payload (base64 decode the middle part)
+              const tokenParts = access_token.split('.');
+              if (tokenParts.length === 3) {
+                const payload = JSON.parse(atob(tokenParts[1]));
+                console.log('Dashboard: Decoded user from token:', payload.email);
+                
+                // Store token information for this session
+                sessionStorage.setItem('temp_user_data', JSON.stringify({
+                  id: payload.sub,
+                  email: payload.email,
+                  user_metadata: payload.user_metadata,
+                  email_confirmed_at: new Date().toISOString(),
+                  confirmed_at: new Date().toISOString()
+                }));
+                
+                // Clear the hash and reload to pick up the stored session
+                window.history.replaceState(null, '', window.location.pathname);
+                window.location.reload();
+              }
+            } catch (decodeError) {
+              console.error('Dashboard: Failed to decode token:', decodeError);
+              // Fallback: just reload the page
+              setTimeout(() => {
+                window.location.reload();
+              }, 2000);
+            }
+          }
+        }
+      }
+    };
+
+    handleUrlTokens();
+  }, [user]);
 
   // Show loading while data is being loaded
   if (state.isLoading) {

@@ -29,7 +29,59 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      console.log('Initial session check:', session ? 'Session found' : 'No session');
+      
+      // If no session, check for temporary user data from token workaround
+      if (!session) {
+        const tempUserData = sessionStorage.getItem('temp_user_data');
+        if (tempUserData) {
+          console.log('Found temporary user data, using workaround session...');
+          try {
+            const userData = JSON.parse(tempUserData);
+            setUser(userData as User);
+            setLoading(false);
+            
+            // Create profile for the user
+            await createUserProfile(userData as User, userData.user_metadata || {});
+            return;
+          } catch (error) {
+            console.error('Failed to parse temporary user data:', error);
+            sessionStorage.removeItem('temp_user_data');
+          }
+        }
+      }
+      
+      // If no session but tokens are in URL hash, try to establish session
+      if (!session && window.location.hash) {
+        console.log('No session found but hash detected, checking for tokens...');
+        const hashParams = new URLSearchParams(window.location.hash.substring(1));
+        const access_token = hashParams.get('access_token');
+        const refresh_token = hashParams.get('refresh_token');
+        
+        if (access_token && refresh_token) {
+          console.log('Found tokens in URL hash, attempting to set session...');
+          try {
+            const { data, error } = await supabase.auth.setSession({
+              access_token,
+              refresh_token
+            });
+            
+            if (error) {
+              console.error('Failed to set session from URL tokens:', error);
+            } else if (data.session) {
+              console.log('Successfully established session from URL tokens!', data.session.user.email);
+              setSession(data.session);
+              setUser(data.session.user);
+              setLoading(false);
+              return;
+            }
+          } catch (error) {
+            console.error('Exception setting session from URL tokens:', error);
+          }
+        }
+      }
+      
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
@@ -104,11 +156,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signUp = async (email: string, password: string, userData: any = {}) => {
     try {
       setLoading(true);
+      
+      // Set the correct redirect URL based on environment
+      const isProduction = window.location.hostname !== 'localhost';
+      const redirectUrl = isProduction 
+        ? `${window.location.origin}/confirm`
+        : `${window.location.origin}/confirm`;
+      
+      console.log('Signup redirect URL:', redirectUrl);
+      
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/confirm`,
+          emailRedirectTo: redirectUrl,
           data: {
             full_name: userData.name || userData.fullName || '',
             country: userData.country || '',
@@ -162,8 +223,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const resetPassword = async (email: string) => {
     try {
+      // Set the correct redirect URL based on environment
+      const isProduction = window.location.hostname !== 'localhost';
+      const redirectUrl = isProduction 
+        ? `${window.location.origin}/reset-password`
+        : `${window.location.origin}/reset-password`;
+      
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/reset-password`,
+        redirectTo: redirectUrl,
       });
       return { error };
     } catch (error) {

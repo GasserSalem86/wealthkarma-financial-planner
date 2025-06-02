@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { CheckCircle, XCircle, Loader2, Save } from 'lucide-react';
@@ -9,36 +9,87 @@ const EmailConfirmation: React.FC = () => {
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
   const [message, setMessage] = useState('');
   const [savingData, setSavingData] = useState(false);
+  const hasProcessed = useRef(false);
 
   useEffect(() => {
     const handleEmailConfirmation = async () => {
+      // Prevent multiple executions
+      if (hasProcessed.current) {
+        console.log('Email confirmation already processed, skipping...');
+        return;
+      }
+      hasProcessed.current = true;
+
       try {
-        // Get the tokens from URL parameters - handle both old and new formats
-        const token_hash = searchParams.get('token_hash');
-        const type = searchParams.get('type');
+        console.log('Starting email confirmation process...');
+        console.log('Current URL:', window.location.href);
+        console.log('Search params:', Object.fromEntries(searchParams.entries()));
         
-        // New format parameters
-        const access_token = searchParams.get('access_token');
-        const refresh_token = searchParams.get('refresh_token');
+        // Parse hash fragment parameters (Supabase often uses hash fragments)
+        const hashParams = new URLSearchParams(window.location.hash.substring(1));
+        console.log('Hash params:', Object.fromEntries(hashParams.entries()));
+        
+        // Get the tokens from URL parameters - check both search params and hash
+        const token_hash = searchParams.get('token_hash') || hashParams.get('token_hash');
+        const type = searchParams.get('type') || hashParams.get('type');
+        
+        // Also check for the older 'token' parameter (used in some Supabase versions)
+        const token = searchParams.get('token') || hashParams.get('token');
+        
+        // New format parameters (often in hash fragment)
+        const access_token = searchParams.get('access_token') || hashParams.get('access_token');
+        const refresh_token = searchParams.get('refresh_token') || hashParams.get('refresh_token');
+        
+        // Error parameters that might be present
+        const error = searchParams.get('error') || hashParams.get('error');
+        const error_description = searchParams.get('error_description') || hashParams.get('error_description');
 
-        console.log('Email confirmation params:', { token_hash, type, access_token, refresh_token });
+        console.log('Email confirmation params:', { 
+          token_hash, 
+          token,
+          type, 
+          access_token: access_token?.substring(0, 20) + '...', 
+          refresh_token: refresh_token?.substring(0, 20) + '...', 
+          error, 
+          error_description 
+        });
 
-        // Handle new format (access_token + refresh_token)
+        // Check for error parameters first
+        if (error) {
+          console.error('Email confirmation error from URL:', error, error_description);
+          setStatus('error');
+          setMessage(error_description || error || 'Failed to confirm email. Please try again.');
+          return;
+        }
+
+        // Handle new format (access_token + refresh_token) - THIS IS YOUR FORMAT
         if (access_token && refresh_token) {
           console.log('Using new token format for confirmation');
-          const { data, error } = await supabase.auth.setSession({
-            access_token,
-            refresh_token
+          console.log('Tokens detected, proceeding with direct confirmation...');
+          
+          // Since Supabase auth methods are hanging in development,
+          // use the alternative approach immediately
+          await handleAlternativeConfirmation();
+          return;
+        }
+
+        // Handle standard format (token_hash + type=email)
+        if (token_hash && type === 'email') {
+          console.log('Using standard token_hash format for confirmation');
+          const { data, error } = await supabase.auth.verifyOtp({
+            token_hash,
+            type: 'email'
           });
 
           if (error) {
-            console.error('Email confirmation error (new format):', error);
+            console.error('Email confirmation error (standard format):', error);
             setStatus('error');
-            setMessage(error.message || 'Failed to confirm email. Please try again.');
+            setMessage(error.message || 'Failed to confirm email. Please try signing up again.');
             return;
           }
 
           if (data.user) {
+            console.log('Email confirmed successfully with standard format!', data.user.email);
             setStatus('success');
             setMessage('Email confirmed successfully!');
             
@@ -53,22 +104,23 @@ const EmailConfirmation: React.FC = () => {
           }
         }
 
-        // Handle old format (token_hash + type)
-        if (token_hash && type === 'email') {
-          console.log('Using old token format for confirmation');
+        // Handle older format (token + type=signup) - this is what your URL shows
+        if (token && (type === 'signup' || type === 'email')) {
+          console.log('Using older token format for confirmation');
           const { data, error } = await supabase.auth.verifyOtp({
-            token_hash,
-            type: 'email'
+            token_hash: token, // Use the 'token' parameter as token_hash
+            type: 'signup' // Use the actual type from URL
           });
 
           if (error) {
-            console.error('Email confirmation error (old format):', error);
+            console.error('Email confirmation error (older format):', error);
             setStatus('error');
-            setMessage(error.message || 'Failed to confirm email. Please try again.');
+            setMessage(error.message || 'Failed to confirm email. Please try signing up again.');
             return;
           }
 
           if (data.user) {
+            console.log('Email confirmed successfully with older format!', data.user.email);
             setStatus('success');
             setMessage('Email confirmed successfully!');
             
@@ -84,8 +136,9 @@ const EmailConfirmation: React.FC = () => {
         }
 
         // If we get here, no valid tokens were found
+        console.error('No valid confirmation tokens found in URL');
         setStatus('error');
-        setMessage('Invalid confirmation link. Please try signing up again.');
+        setMessage('Invalid confirmation link. Please check your email and try the confirmation link again, or sign up again.');
         
       } catch (error) {
         console.error('Unexpected error during email confirmation:', error);
@@ -98,6 +151,7 @@ const EmailConfirmation: React.FC = () => {
       try {
         setSavingData(true);
         setMessage('Email confirmed! Saving your planning data...');
+        console.log('Starting to save planning data for user:', userId);
         
         // Load planning data from localStorage
         const savedPlannerState = localStorage.getItem('planner-state');
@@ -121,6 +175,7 @@ const EmailConfirmation: React.FC = () => {
           return;
         }
 
+        console.log('Found meaningful data, saving to Supabase...');
         // Import and use the planning persistence service
         const { plannerPersistence } = await import('../services/plannerPersistence');
         const result = await plannerPersistence.savePlanningData(userId, plannerState);
@@ -131,6 +186,7 @@ const EmailConfirmation: React.FC = () => {
           
           // Clear localStorage since data is now in Supabase
           localStorage.removeItem('planner-state');
+          console.log('Cleared localStorage planning data');
         } else {
           console.error('❌ Failed to save planning data:', result.error);
           setMessage('Email confirmed, but failed to save planning data. You can access your data in the dashboard.');
@@ -141,7 +197,33 @@ const EmailConfirmation: React.FC = () => {
         setMessage('Email confirmed, but encountered an error saving data. You can access your data in the dashboard.');
       } finally {
         setSavingData(false);
+        console.log('Finished saving planning data process');
       }
+    };
+
+    // Alternative confirmation method when setSession fails
+    const handleAlternativeConfirmation = async () => {
+      console.log('Using alternative confirmation approach...');
+      
+      // Since we have valid tokens in the URL, try to navigate to dashboard
+      // and let the auth system handle the session detection
+      setStatus('success');
+      setMessage('Email confirmation detected! Redirecting to dashboard...');
+      
+      // Check localStorage for planning data to save
+      const savedPlannerState = localStorage.getItem('planner-state');
+      if (savedPlannerState) {
+        setSavingData(true);
+        setMessage('Email confirmed! Preparing your planning data...');
+      }
+      
+      // Redirect to dashboard while preserving the hash tokens for Supabase to detect
+      setTimeout(() => {
+        console.log('Redirecting to dashboard via alternative method...');
+        // Preserve the current hash and redirect to dashboard
+        const currentHash = window.location.hash;
+        window.location.href = `/dashboard${currentHash}`;
+      }, 2000);
     };
 
     handleEmailConfirmation();

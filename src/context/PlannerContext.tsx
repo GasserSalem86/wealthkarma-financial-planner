@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useReducer, useEffect } from 'react';
+import React, { createContext, useContext, useReducer, useEffect, useRef } from 'react';
 import { Goal, Profile, ReturnPhase, FundingStyle } from '../types/plannerTypes';
 import { calculateRequiredPMT, calculateSequentialAllocations, GoalResult } from '../utils/calculations';
 import { useAuth } from './AuthContext';
@@ -134,6 +134,9 @@ const buildReturnPhases = (
     { length: low, rate: rates.low },
   ];
 };
+
+// Global flag to prevent duplicate loading across component re-mounts
+const globalLoadingTracker = new Map<string, boolean>();
 
 // Create the reducer function
 const plannerReducer = (state: PlannerState, action: PlannerAction): PlannerState => {
@@ -377,6 +380,36 @@ const PlannerContext = createContext<PlannerContextType | undefined>(undefined);
 
 // Create a provider component with localStorage persistence
 export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { user } = useAuth(); // Use auth context instead of direct supabase calls
+  const isLoadingRef = useRef(false); // Prevent multiple simultaneous loads
+  const hasAttemptedLoadRef = useRef(false); // Track if we've attempted to load data
+  const lastUserIdRef = useRef<string | null>(null); // Track user changes
+  const componentMountedRef = useRef(false); // Track if component is mounted
+  
+  // Reset loading state when user changes
+  const currentUserId = user?.id || null;
+  
+  // Check global tracker for this user
+  const globalKey = currentUserId || 'no-user';
+  const hasGloballyAttempted = globalLoadingTracker.get(globalKey) || false;
+  
+  // Only reset on actual user changes, not on initial mount
+  if (componentMountedRef.current && currentUserId !== lastUserIdRef.current) {
+    console.log('User changed from', lastUserIdRef.current, 'to', currentUserId, '- resetting loading state');
+    lastUserIdRef.current = currentUserId;
+    hasAttemptedLoadRef.current = false;
+    isLoadingRef.current = false;
+    // Clear global tracker for old user if they changed
+    if (lastUserIdRef.current) {
+      globalLoadingTracker.delete(lastUserIdRef.current);
+    }
+  } else if (!componentMountedRef.current) {
+    // First mount
+    lastUserIdRef.current = currentUserId;
+    componentMountedRef.current = true;
+    hasAttemptedLoadRef.current = hasGloballyAttempted;
+  }
+
   // Lazy init: attempt to load from localStorage
   const [state, dispatch] = useReducer(
     plannerReducer,
@@ -391,7 +424,7 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
             ...g,
             targetDate: new Date(g.targetDate),
           }));
-          return { ...init, ...parsed, isLoading: false, isDataLoaded: true } as PlannerState;
+          return { ...init, ...parsed, isLoading: false, isDataLoaded: false };
         }
       } catch (_) {}
       return { ...init, isLoading: false };
@@ -402,27 +435,32 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
   useEffect(() => {
     const loadDataFromSupabase = async (userId: string) => {
       try {
+        console.log('Loading planning data from Supabase for user:', userId);
         dispatch({ type: 'SET_LOADING', payload: true });
         
-        // Only load if we don't have data in localStorage and haven't loaded from Supabase yet
-        const hasLocalData = localStorage.getItem('planner-state');
-        if (hasLocalData || state.isDataLoaded) {
-          dispatch({ type: 'SET_LOADING', payload: false });
-          return;
-        }
-
-        console.log('Loading planning data from Supabase for user:', userId);
+        // In development, if we've had persistent timeout issues, use shorter timeout
+        const isDevelopment = window.location.hostname === 'localhost';
+        const timeoutDuration = isDevelopment ? 3000 : 5000;
         
-        // Dynamically import to avoid circular dependencies
-        const { plannerPersistence } = await import('../services/plannerPersistence');
-        const result = await plannerPersistence.loadPlanningData(userId);
+        // Add timeout to prevent hanging
+        const loadPromise = (async () => {
+          const { plannerPersistence } = await import('../services/plannerPersistence');
+          return await plannerPersistence.loadPlanningData(userId);
+        })();
+        
+        const timeoutPromise = new Promise((_, reject) => {
+          setTimeout(() => reject(new Error(`Data loading timeout after ${timeoutDuration/1000} seconds`)), timeoutDuration);
+        });
+
+        console.log('Waiting for data loading to complete...');
+        const result = await Promise.race([loadPromise, timeoutPromise]) as any;
 
         if (result.success && result.data) {
-          console.log('Successfully loaded planning data from Supabase');
+          console.log('Successfully loaded planning data from Supabase:', result.data);
           
           // Revive Date objects in goals
           if (result.data.goals) {
-            result.data.goals = result.data.goals.map(goal => ({
+            result.data.goals = result.data.goals.map((goal: any) => ({
               ...goal,
               targetDate: new Date(goal.targetDate),
             }));
@@ -442,33 +480,43 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
           dispatch({ type: 'SET_DATA_LOADED', payload: true });
         }
       } catch (error) {
-        console.error('Error loading planning data from Supabase:', error);
+        console.error('Error/timeout loading planning data from Supabase:', error);
+        console.log('Using default empty state since data loading failed');
         dispatch({ type: 'SET_LOADING', payload: false });
+        dispatch({ type: 'SET_DATA_LOADED', payload: true });
+      } finally {
+        isLoadingRef.current = false;
+        hasAttemptedLoadRef.current = true;
       }
     };
 
-    // We need to get auth state - this will be called when component mounts
-    // but we need to ensure we have the user context
-    const checkAndLoadData = async () => {
-      // We'll need to import useAuth differently since we can't use hooks here
-      // Instead, we'll check for user via supabase directly
-      try {
-        const { supabase } = await import('../lib/supabase');
-        const { data: { user } } = await supabase.auth.getUser();
-        
-        if (user && !state.isDataLoaded) {
-          await loadDataFromSupabase(user.id);
-        }
-      } catch (error) {
-        console.error('Error checking auth state:', error);
-      }
-    };
-
-    // Only run if we haven't loaded data yet
-    if (!state.isDataLoaded) {
-      checkAndLoadData();
+    // Only load data once when user becomes available and we haven't attempted yet
+    if (user && !hasAttemptedLoadRef.current && !isLoadingRef.current && !hasGloballyAttempted) {
+      console.log('User authenticated, loading data from Supabase...', {
+        userId: user.id,
+        hasAttempted: hasAttemptedLoadRef.current,
+        isLoading: isLoadingRef.current,
+        hasGloballyAttempted
+      });
+      isLoadingRef.current = true;
+      hasAttemptedLoadRef.current = true;
+      globalLoadingTracker.set(globalKey, true);
+      loadDataFromSupabase(user.id);
+    } else if (!user && !hasAttemptedLoadRef.current && !hasGloballyAttempted) {
+      console.log('No user authenticated, marking as loaded');
+      dispatch({ type: 'SET_LOADING', payload: false });
+      dispatch({ type: 'SET_DATA_LOADED', payload: true });
+      hasAttemptedLoadRef.current = true;
+      globalLoadingTracker.set(globalKey, true);
+    } else {
+      console.log('Skipping data load:', {
+        hasUser: !!user,
+        hasAttempted: hasAttemptedLoadRef.current,
+        isLoading: isLoadingRef.current,
+        hasGloballyAttempted
+      });
     }
-  }, [state.isDataLoaded]);
+  }, [user, hasGloballyAttempted]); // Add hasGloballyAttempted to dependencies
 
   // Persist on every state change (but not while loading)
   useEffect(() => {
