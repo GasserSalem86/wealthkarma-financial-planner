@@ -1,6 +1,6 @@
 export type Profile = 'Conservative' | 'Balanced' | 'Growth';
 
-export type GoalCategory = 'Education' | 'Travel' | 'Gift' | 'Home' | 'Retirement';
+export type GoalCategory = 'Education' | 'Travel' | 'Gift' | 'Home' | 'Retirement' | 'Other';
 
 export type PaymentFrequency = 'Once' | 'Monthly' | 'Quarterly' | 'Biannual' | 'Annual';
 
@@ -50,7 +50,7 @@ export const STEPS: Step[] = [
   { id: 8, label: 'Get Started' }
 ];
 
-export const GOAL_CATEGORIES: GoalCategory[] = ['Education', 'Travel', 'Gift', 'Home', 'Retirement'];
+export const GOAL_CATEGORIES: GoalCategory[] = ['Education', 'Travel', 'Gift', 'Home', 'Retirement', 'Other'];
 
 export const PAYMENT_FREQUENCIES: PaymentFrequency[] = ['Once', 'Monthly', 'Quarterly', 'Biannual', 'Annual'];
 
