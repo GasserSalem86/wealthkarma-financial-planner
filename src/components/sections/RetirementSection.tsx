@@ -159,23 +159,6 @@ const RetirementSection: React.FC<RetirementSectionProps> = ({ onNext, onBack })
         </div>
       )}
 
-      {/* Hero Section */}
-      <div className="text-center mb-8 lg:mb-12">
-        <div className="relative mb-4 lg:mb-6">
-          <div className="absolute inset-0 bg-gradient-to-r from-green-400/10 to-orange-400/10 rounded-full blur-3xl transform scale-150"></div>
-          <div className="relative bg-gradient-to-r from-green-400 to-orange-400 w-16 h-16 lg:w-20 lg:h-20 rounded-full flex items-center justify-center mx-auto mb-4 lg:mb-6 shadow-2xl">
-            <Target className="w-8 h-8 lg:w-10 lg:h-10 text-white" />
-          </div>
-        </div>
-        <h2 className="text-2xl lg:text-4xl xl:text-5xl heading-gradient mb-3 lg:mb-4">
-          Plan Your Golden Years
-        </h2>
-        <p className="text-base lg:text-xl text-theme-secondary max-w-3xl mx-auto leading-relaxed">
-          As a GCC expat, retirement planning is your pathway to financial freedom. 
-          Let's build a plan that gives you the retirement lifestyle you deserve.
-        </p>
-      </div>
-
       {/* Create New Retirement Plan */}
       <Card className="mb-8 lg:mb-12 border-0 shadow-xl bg-theme-card">
         <CardHeader className="pb-3 lg:pb-4">
