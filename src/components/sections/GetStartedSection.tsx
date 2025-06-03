@@ -171,35 +171,6 @@ const GetStartedSection: React.FC<GetStartedSectionProps> = ({ onBack }) => {
     }
   };
 
-  const handleSkipToDashboard = async () => {
-    // Track skip action
-    if (window.gtag) {
-      window.gtag('event', 'signup_skipped', {
-        plan_value: totalPlanValue
-      });
-    }
-
-    // If user is already authenticated, save their planning data before going to dashboard
-    if (user) {
-      try {
-        console.log('Saving planning data for authenticated user:', user.id);
-        const { plannerPersistence } = await import('../../services/plannerPersistence');
-        const saveResult = await plannerPersistence.savePlanningData(user.id, state);
-        
-        if (saveResult.success) {
-          console.log('Successfully saved planning data to Supabase!');
-        } else {
-          console.error('Failed to save planning data:', saveResult.error);
-        }
-      } catch (error) {
-        console.error('Error saving planning data:', error);
-      }
-    }
-
-    // Exit wizard and go to standalone dashboard
-    window.location.href = '/dashboard';
-  };
-
   return (
     <div className="max-w-6xl mx-auto px-4">
       
@@ -433,11 +404,6 @@ const GetStartedSection: React.FC<GetStartedSectionProps> = ({ onBack }) => {
                     )}
                   </div>
                 )}
-
-                {/* Skip Button */}
-                <Button variant="outline" className="w-full" onClick={handleSkipToDashboard}>
-                  Skip Signup (View Demo)
-                </Button>
 
                 {/* Terms */}
                 <p className="text-xs text-theme-muted text-center">
