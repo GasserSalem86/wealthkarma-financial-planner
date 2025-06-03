@@ -138,8 +138,37 @@ const DashboardContent: React.FC = () => {
   };
 
   const handleSignOut = async () => {
-    await signOut();
-    window.location.href = '/';
+    try {
+      console.log('🚪 Starting sign out process...');
+      
+      // Clear temporary session data first
+      sessionStorage.removeItem('temp_user_data');
+      console.log('✅ Cleared temporary session data');
+      
+      // Call the auth signOut function
+      const { error } = await signOut();
+      
+      if (error) {
+        console.error('❌ Sign out error:', error);
+        // Even if there's an error, still redirect to home as a fallback
+        alert(`Sign out error: ${error.message}. Redirecting to home page.`);
+      } else {
+        console.log('✅ Sign out successful');
+      }
+      
+      // Always redirect to home page regardless of sign out result
+      window.location.href = '/';
+      
+    } catch (error) {
+      console.error('❌ Unexpected sign out error:', error);
+      
+      // Clear session data as fallback
+      sessionStorage.removeItem('temp_user_data');
+      
+      // Force redirect even if sign out fails
+      alert('An error occurred during sign out. Redirecting to home page.');
+      window.location.href = '/';
+    }
   };
 
   return (

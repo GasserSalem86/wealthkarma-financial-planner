@@ -217,12 +217,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signOut = async () => {
     try {
       setLoading(true);
+      console.log('🚪 AuthContext: Starting sign out...');
+      
+      // Clear any temporary session data
+      sessionStorage.removeItem('temp_user_data');
+      console.log('✅ AuthContext: Cleared temporary session data');
+      
       const { error } = await supabase.auth.signOut();
+      
+      if (error) {
+        console.error('❌ AuthContext: Sign out error:', error);
+      } else {
+        console.log('✅ AuthContext: Sign out successful');
+      }
+      
       return { error };
     } catch (error) {
+      console.error('❌ AuthContext: Unexpected sign out error:', error);
       return { error: error as AuthError };
     } finally {
       setLoading(false);
+      console.log('🏁 AuthContext: Sign out process completed');
     }
   };
 
