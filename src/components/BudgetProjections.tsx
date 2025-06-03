@@ -293,7 +293,8 @@ const BudgetBanner = () => {
 const AllocationTable = () => {
   const { state } = usePlanner();
   const { currency } = useCurrency();
-  const { goals, allocations } = state;
+  const [showDetails, setShowDetails] = React.useState(false);
+  const { allocations } = state;
 
   const handleScrollToGoal = (goalId: string) => {
     const element = document.getElementById(`goal-tab-${goalId}`);
@@ -307,7 +308,7 @@ const AllocationTable = () => {
     const result = new Map<string, number>();
     let pot = 0;
     
-    allocations.forEach(a => {
+    allocations.forEach((a: any) => {
       if (a.amountAtTarget >= a.goal.amount && a.requiredPMT < a.initialPMT) {
         pot += a.initialPMT - a.requiredPMT;
       }
@@ -320,13 +321,30 @@ const AllocationTable = () => {
     return result;
   }, [allocations]);
 
+  // Check if goal is feasible (amount at target date meets or exceeds goal amount)
+  const isGoalFeasible = (allocation: any) => {
+    return allocation.amountAtTarget >= allocation.goal.amount;
+  };
+
   return (
     <Card className="mb-8 shadow-theme-lg border-0 overflow-hidden">
       <div className="bg-gradient-to-r from-green-500/10 to-orange-500/10 border-b border-theme p-6 rounded-t-xl">
-        <h3 className="heading-h3-sm text-theme-primary mb-2">
-          Where Your Money Goes
-        </h3>
-        <p className="text-theme-secondary">See how your monthly budget is allocated across your financial goals</p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="heading-h3-sm text-theme-primary mb-2">
+              Where Your Money Goes
+            </h3>
+            <p className="text-theme-secondary">See how your monthly budget is allocated across your financial goals</p>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowDetails(!showDetails)}
+            className="transition-all duration-200"
+          >
+            {showDetails ? 'Hide Details' : 'Show Details'}
+          </Button>
+        </div>
       </div>
       <CardContent className="p-0">
         <div className="overflow-x-auto">
@@ -337,14 +355,27 @@ const AllocationTable = () => {
                   Goal
                 </th>
                 <th className="px-6 py-4 text-left heading-table">
-                  Monthly Amount
+                  Goal Target
                 </th>
                 <th className="px-6 py-4 text-left heading-table">
-                  Extra Money
+                  Amount at Target Date
                 </th>
-                <th className="px-6 py-4 text-left heading-table">
-                  Final Monthly
+                <th className="px-6 py-4 text-center heading-table">
+                  Feasible
                 </th>
+                {showDetails && (
+                  <>
+                    <th className="px-6 py-4 text-left heading-table">
+                      Monthly Amount
+                    </th>
+                    <th className="px-6 py-4 text-left heading-table">
+                      Extra Money
+                    </th>
+                    <th className="px-6 py-4 text-left heading-table">
+                      Final Monthly
+                    </th>
+                  </>
+                )}
                 <th className="px-6 py-4 text-left heading-table">
                   Progress
                 </th>
@@ -354,12 +385,13 @@ const AllocationTable = () => {
               </tr>
             </thead>
             <tbody className="bg-theme-card divide-y divide-theme">
-              {allocations.map((allocation, index) => {
+              {allocations.map((allocation: any, index: number) => {
                 const reallocation = reallocations.get(allocation.goal.id) || 0;
-                const firstNonZero = allocation.monthlyAllocations.find(a => a > 0) ?? 0;
+                const firstNonZero = allocation.monthlyAllocations.find((a: any) => a > 0) ?? 0;
                 const firstActual = Math.min(state.budget, firstNonZero);
                 const finalPMT = allocation.requiredPMT;
                 const progressPercentage = Math.min(100, (allocation.amountAtTarget / allocation.goal.amount) * 100);
+                const isFeasible = isGoalFeasible(allocation);
                 
                 return (
                   <tr key={allocation.goal.id} className="hover:bg-theme-tertiary transition-colors">
@@ -383,31 +415,54 @@ const AllocationTable = () => {
                       </div>
                     </td>
                     <td className="px-6 py-5">
-                      <div className="flex items-center gap-2">
-                        {firstNonZero > state.budget && (
-                          <span title="Exceeds current monthly budget">
-                            <AlertTriangle className="w-4 h-4 text-red-500" />
-                          </span>
-                        )}
-                        <span className="text-sm font-medium text-theme-primary" title={`Theoretical PMT: ${formatCurrency(allocation.initialPMT, currency)}`}>
-                          {formatCurrency(firstActual, currency)}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-5">
-                      {reallocation > 0 ? (
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-500/20 text-green-400">
-                          +{formatCurrency(reallocation, currency)}
-                        </span>
-                      ) : (
-                        <span className="text-theme-muted text-sm">-</span>
-                      )}
-                    </td>
-                    <td className="px-6 py-5">
                       <span className="text-sm font-bold text-theme-primary">
-                        {formatCurrency(finalPMT, currency)}
+                        {formatCurrency(allocation.goal.amount, currency)}
                       </span>
                     </td>
+                    <td className="px-6 py-5">
+                      <span className={`text-sm font-bold ${
+                        isFeasible ? 'text-theme-success' : 'text-theme-warning'
+                      }`}>
+                        {formatCurrency(allocation.amountAtTarget, currency)}
+                      </span>
+                    </td>
+                    <td className="px-6 py-5 text-center">
+                      {isFeasible ? (
+                        <CheckCircle className="w-5 h-5 text-theme-success mx-auto" />
+                      ) : (
+                        <AlertTriangle className="w-5 h-5 text-theme-warning mx-auto" />
+                      )}
+                    </td>
+                    {showDetails && (
+                      <>
+                        <td className="px-6 py-5">
+                          <div className="flex items-center gap-2">
+                            {firstNonZero > state.budget && (
+                              <span title="Exceeds current monthly budget">
+                                <AlertTriangle className="w-4 h-4 text-red-500" />
+                              </span>
+                            )}
+                            <span className="text-sm font-medium text-theme-primary" title={`Theoretical PMT: ${formatCurrency(allocation.initialPMT, currency)}`}>
+                              {formatCurrency(firstActual, currency)}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="px-6 py-5">
+                          {reallocation > 0 ? (
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-500/20 text-green-400">
+                              +{formatCurrency(reallocation, currency)}
+                            </span>
+                          ) : (
+                            <span className="text-theme-muted text-sm">-</span>
+                          )}
+                        </td>
+                        <td className="px-6 py-5">
+                          <span className="text-sm font-bold text-theme-primary">
+                            {formatCurrency(finalPMT, currency)}
+                          </span>
+                        </td>
+                      </>
+                    )}
                     <td className="px-6 py-5">
                       <div className="flex items-center space-x-3">
                         <div className="flex-1 h-3 bg-theme-section rounded-full overflow-hidden">
