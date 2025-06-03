@@ -104,7 +104,7 @@ const BudgetBanner = () => {
           <h3 className="text-lg lg:text-xl font-bold text-theme-primary mb-1 lg:mb-2">
             Step 1: Choose Your Savings Strategy
           </h3>
-          <p className="text-sm lg:text-base text-theme-secondary">Choose how you want to fund your goals. <strong>Your strategy choice will determine how your monthly budget is allocated</strong> in the feasibility check below.</p>
+          <p className="text-sm lg:text-base text-theme-secondary">Choose how you want to fund your goals. Your strategy choice will determine how your monthly budget is allocated in the feasibility check below.</p>
         </div>
 
         {/* Content with background */}
@@ -118,8 +118,8 @@ const BudgetBanner = () => {
                 <div 
                   className={`funding-card p-3 lg:p-4 rounded-lg border cursor-pointer text-center transition-all ${
                     state.fundingStyle === 'waterfall' 
-                      ? 'border-emerald-500 bg-theme-tertiary shadow-theme ring-2 ring-emerald-500/30' 
-                      : 'border-theme bg-theme-tertiary hover:border-emerald-400'
+                      ? 'border-emerald-500 bg-theme-card shadow-theme ring-2 ring-emerald-500/30' 
+                      : 'border-theme bg-theme-card hover:border-emerald-400'
                   }`}
                   onClick={() => handleFundingStyleChange('waterfall')}
                 >
@@ -140,8 +140,8 @@ const BudgetBanner = () => {
                 <div 
                   className={`funding-card p-3 lg:p-4 rounded-lg border cursor-pointer text-center transition-all ${
                     state.fundingStyle === 'parallel' 
-                      ? 'border-emerald-500 bg-theme-tertiary shadow-theme ring-2 ring-emerald-500/30' 
-                      : 'border-theme bg-theme-tertiary hover:border-emerald-400'
+                      ? 'border-emerald-500 bg-theme-card shadow-theme ring-2 ring-emerald-500/30' 
+                      : 'border-theme bg-theme-card hover:border-emerald-400'
                   }`}
                   onClick={() => handleFundingStyleChange('parallel')}
                 >
@@ -162,8 +162,8 @@ const BudgetBanner = () => {
                 <div 
                   className={`funding-card p-3 lg:p-4 rounded-lg border cursor-pointer text-center transition-all ${
                     state.fundingStyle === 'hybrid' 
-                      ? 'border-emerald-500 bg-theme-tertiary shadow-theme ring-2 ring-emerald-500/30' 
-                      : 'border-theme bg-theme-tertiary hover:border-emerald-400'
+                      ? 'border-emerald-500 bg-theme-card shadow-theme ring-2 ring-emerald-500/30' 
+                      : 'border-theme bg-theme-card hover:border-emerald-400'
                   }`}
                   onClick={() => handleFundingStyleChange('hybrid')}
                 >
@@ -184,7 +184,7 @@ const BudgetBanner = () => {
             </div>
 
             {/* Compact Budget Section */}
-            <div className="bg-theme-tertiary rounded-lg p-3 lg:p-4 border border-theme shadow-theme-sm">
+            <div className="bg-theme-card rounded-lg p-3 lg:p-4 border border-theme shadow-theme-sm">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 lg:gap-4 items-center">
                 {/* Left: Budget Display & Input */}
                 <div className="text-center lg:text-left">
@@ -337,7 +337,7 @@ const AllocationTable = ({ activeGoal, setActiveGoal }: { activeGoal: string, se
             <h3 className="heading-h3-sm text-theme-primary mb-2">
               Step 2: Check if Your Plan is Feasible
             </h3>
-            <p className="text-theme-secondary mb-4">Based on your monthly budget, see if your goals are achievable. If not, you can go back to adjust your <strong>Emergency Fund</strong>, <strong>Goals</strong>, or <strong>Retirement</strong> sections - decrease amounts or increase timelines to make goals more achievable.</p>
+            <p className="text-theme-secondary mb-4">See if your current goals fit within your monthly budget. If any goals appear challenging to achieve, simply revisit your Emergency Fund, Goals, or Retirement sections to adjust amounts or extend timelines for a more comfortable plan.</p>
           </div>
           <Button
             variant="outline"
