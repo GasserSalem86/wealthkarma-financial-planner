@@ -358,7 +358,7 @@ const AllocationTable = ({ activeGoal, setActiveGoal }: { activeGoal: string, se
                   Goal
                 </th>
                 <th className="px-6 py-4 text-left heading-table">
-                  Goal Target
+                  Goal Amount
                 </th>
                 <th className="px-6 py-4 text-left heading-table">
                   Amount at Target Date
