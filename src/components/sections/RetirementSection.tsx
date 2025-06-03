@@ -110,7 +110,7 @@ const RetirementSection: React.FC<RetirementSectionProps> = ({ onNext, onBack })
             <Target className="w-8 h-8 lg:w-10 lg:h-10 text-white" />
           </div>
         </div>
-        <h2 className="text-2xl lg:text-4xl xl:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-orange-400 mb-3 lg:mb-4">
+        <h2 className="text-2xl lg:text-4xl xl:text-5xl heading-gradient mb-3 lg:mb-4">
           Plan Your Golden Years
         </h2>
         <p className="text-base lg:text-xl text-theme-secondary max-w-3xl mx-auto leading-relaxed">
