@@ -16,8 +16,7 @@ import {
   Sparkles,
   TrendingUp,
   Heart,
-  Target,
-  Lock
+  Target
 } from 'lucide-react';
 import Card, { CardHeader, CardTitle, CardContent } from '../ui/Card';
 import Button from '../ui/Button';
@@ -30,10 +29,11 @@ interface GetStartedSectionProps {
 const GetStartedSection: React.FC<GetStartedSectionProps> = ({ onBack }) => {
   const { state } = usePlanner();
   const { currency } = useCurrency();
-  const { signUp, user } = useAuth();
+  const { sendOTP, verifyOTP, user } = useAuth();
   const [isSigningUp, setIsSigningUp] = useState(false);
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [otpCode, setOtpCode] = useState('');
+  const [showOTPInput, setShowOTPInput] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [debugStatus, setDebugStatus] = useState('');
 
@@ -50,32 +50,160 @@ const GetStartedSection: React.FC<GetStartedSectionProps> = ({ onBack }) => {
     
     // Prevent multiple rapid submissions
     if (isSigningUp) {
-      console.log('🚫 Signup already in progress, ignoring duplicate submission');
+      console.log('🚫 Operation already in progress, ignoring duplicate submission');
       return;
     }
     
     setIsSigningUp(true);
-    setDebugStatus('Starting signup...');
     
-    // Track signup attempt
-    if (window.gtag) {
-      window.gtag('event', 'signup_attempt', {
-        plan_type: 'free',
-        plan_value: totalPlanValue,
-        conversion_point: 'post_plan_generation'
-      });
-    }
-
-    // Add timeout mechanism to prevent hanging
-    const timeoutPromise = new Promise((_, reject) => {
-      setTimeout(() => reject(new Error('Signup timed out after 30 seconds')), 30000);
-    });
-
     try {
-      console.log('🚀 Starting signup process...', { email });
-      setDebugStatus('Connecting to authentication service...');
-      
-      // Use Supabase Auth with timeout
+      if (!showOTPInput) {
+        // Step 1: Send OTP to email
+        setDebugStatus('Sending verification code...');
+        
+        // Track OTP send attempt
+        if (window.gtag) {
+          window.gtag('event', 'otp_send_attempt', {
+            plan_type: 'free',
+            plan_value: totalPlanValue,
+            conversion_point: 'post_plan_generation'
+          });
+        }
+
+        const userData = {
+          name: userName,
+          plan_type: 'free',
+          plan_value: totalPlanValue,
+          signup_source: 'post_plan_generation'
+        };
+
+        console.log('📧 Sending OTP to:', email);
+        const result = await sendOTP(email, userData);
+        
+        if (result.error) {
+          console.error('❌ Failed to send OTP:', result.error);
+          
+          // Handle rate limiting specifically
+          if (result.error.message?.includes('request this after')) {
+            setDebugStatus('Rate limit reached - please wait');
+            alert(`Please wait before trying again. ${result.error.message}`);
+          } else {
+            setDebugStatus(`Failed to send code: ${result.error.message}`);
+            alert(`Failed to send verification code: ${result.error.message}`);
+          }
+          return;
+        }
+
+        console.log('✅ OTP sent successfully');
+        setDebugStatus('Verification code sent! Check your email.');
+        setShowOTPInput(true);
+        
+        // Track successful OTP send
+        if (window.gtag) {
+          window.gtag('event', 'otp_sent_success', {
+            plan_type: 'free',
+            plan_value: totalPlanValue
+          });
+        }
+        
+      } else {
+        // Step 2: Verify OTP code
+        setDebugStatus('Verifying code...');
+        
+        if (!otpCode || otpCode.length !== 6) {
+          alert('Please enter the 6-digit verification code');
+          return;
+        }
+
+        console.log('🔐 Verifying OTP code...');
+        const userData = {
+          name: userName,
+          plan_type: 'free',
+          plan_value: totalPlanValue,
+          signup_source: 'post_plan_generation'
+        };
+
+        const result = await verifyOTP(email, otpCode, userData);
+        
+        if (result.error) {
+          console.error('❌ OTP verification failed:', result.error);
+          setDebugStatus(`Invalid code: ${result.error.message}`);
+          alert(`Invalid verification code: ${result.error.message}`);
+          return;
+        }
+
+        console.log('✅ OTP verified successfully, user authenticated');
+        setDebugStatus('Account created! Saving your planning data...');
+
+        // Save planning data (non-blocking)
+        const saveDataWithTimeout = async () => {
+          try {
+            console.log('💾 Attempting to save planning data...');
+            
+            const { plannerPersistence } = await import('../../services/plannerPersistence');
+            
+            if (result.user) {
+              console.log('👤 Found authenticated user:', result.user.id);
+              const saveResult = await plannerPersistence.savePlanningData(result.user.id, state);
+              return saveResult;
+            }
+            return { success: false, error: 'No authenticated user found' };
+          } catch (error) {
+            console.warn('⚠️ Non-critical error saving planning data:', error);
+            setDebugStatus('Data save error (non-critical)');
+            return { success: false, error: 'Data save error (non-critical)' };
+          }
+        };
+
+        // Start data saving but don't wait for it to prevent blocking
+        saveDataWithTimeout().then(saveResult => {
+          if (saveResult.success) {
+            console.log('✅ Planning data saved successfully!');
+            setDebugStatus('Planning data saved successfully!');
+          } else {
+            console.warn('⚠️ Failed to save planning data:', saveResult.error);
+            setDebugStatus('Data save failed, but continuing...');
+          }
+        }).catch(error => {
+          console.warn('⚠️ Data save promise failed:', error);
+        });
+        
+        // Track successful signup
+        if (window.gtag) {
+          window.gtag('event', 'signup_success', {
+            plan_type: 'free',
+            plan_value: totalPlanValue,
+            method: 'otp'
+          });
+        }
+
+        // OTP verification successful - user is now authenticated
+        console.log('✅ User successfully authenticated via OTP');
+        setDebugStatus('Welcome! Your account is ready.');
+        setShowSuccess(true);
+      }
+
+    } catch (error) {
+      console.error('❌ Unexpected error:', error);
+      if (error instanceof Error && error.message.includes('timeout')) {
+        setDebugStatus('Operation timed out');
+        alert('Operation is taking longer than expected. Please check your internet connection and try again.');
+      } else {
+        setDebugStatus(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        alert('An unexpected error occurred. Please try again.');
+      }
+    } finally {
+      setIsSigningUp(false);
+    }
+  };
+
+  const resendOTP = async () => {
+    if (isSigningUp) return;
+    
+    setIsSigningUp(true);
+    setDebugStatus('Resending verification code...');
+    
+    try {
       const userData = {
         name: userName,
         plan_type: 'free',
@@ -83,89 +211,21 @@ const GetStartedSection: React.FC<GetStartedSectionProps> = ({ onBack }) => {
         signup_source: 'post_plan_generation'
       };
 
-      console.log('📝 Calling signUp with userData:', userData);
-      setDebugStatus('Creating account...');
-      
-      // Race between signup and timeout
-      const signupPromise = signUp(email, password, userData);
-      const result = await Promise.race([signupPromise, timeoutPromise]) as { error: any; user?: any };
+      const result = await sendOTP(email, userData);
       
       if (result.error) {
-        console.error('❌ Signup failed:', result.error);
-        
-        // Handle rate limiting specifically
-        if (result.error.message?.includes('request this after')) {
-          setDebugStatus('Rate limit reached - please wait');
-          alert(`Please wait before trying again. ${result.error.message}`);
-        } else {
-          setDebugStatus(`Signup failed: ${result.error.message}`);
-          alert(`Signup failed: ${result.error.message}`);
-        }
-          return;
-      }
-
-      console.log('✅ Signup successful, proceeding...');
-      setDebugStatus('Account created! Saving your planning data...');
-
-      // Save planning data (non-blocking)
-      const saveDataWithTimeout = async () => {
-        try {
-          console.log('💾 Attempting to save planning data...');
-          
-          const { plannerPersistence } = await import('../../services/plannerPersistence');
-          const { supabase } = await import('../../lib/supabase');
-          
-          const { data: { user: currentUser } } = await supabase.auth.getUser();
-          
-          if (currentUser) {
-            console.log('👤 Found authenticated user:', currentUser.id);
-            const saveResult = await plannerPersistence.savePlanningData(currentUser.id, state);
-            return saveResult;
-          }
-          return { success: false, error: 'No authenticated user found' };
-        } catch (error) {
-          console.warn('⚠️ Non-critical error saving planning data:', error);
-          setDebugStatus('Data save error (non-critical)');
-          return { success: false, error: 'Data save error (non-critical)' };
-        }
-      };
-
-      // Start data saving but don't wait for it to prevent blocking
-      saveDataWithTimeout().then(saveResult => {
-        if (saveResult.success) {
-          console.log('✅ Planning data saved successfully!');
-          setDebugStatus('Planning data saved successfully!');
+        console.error('❌ Failed to resend OTP:', result.error);
+        setDebugStatus(`Failed to resend: ${result.error.message}`);
+        alert(`Failed to resend verification code: ${result.error.message}`);
       } else {
-          console.warn('⚠️ Failed to save planning data:', saveResult.error);
-          setDebugStatus('Data save failed, but continuing...');
+        console.log('✅ OTP resent successfully');
+        setDebugStatus('New verification code sent!');
+        setOtpCode(''); // Clear the input
       }
-      }).catch(error => {
-        console.warn('⚠️ Data save promise failed:', error);
-      });
-      
-      // Track successful signup
-      if (window.gtag) {
-        window.gtag('event', 'signup_success', {
-          plan_type: 'free',
-          plan_value: totalPlanValue
-        });
-      }
-
-      // Free signup completed - always requires email confirmation for new signups
-      console.log('✅ Free signup completed');
-      setDebugStatus('Please check your email for confirmation link');
-      alert('Account created! Please check your email and click the confirmation link to activate your account.');
-      setShowSuccess(true);
-
     } catch (error) {
-      console.error('❌ Unexpected signup error:', error);
-      if (error instanceof Error && error.message.includes('timeout')) {
-        setDebugStatus('Signup timed out');
-        alert('Signup is taking longer than expected. Please check your internet connection and try again.');
-      } else {
-        setDebugStatus(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
-        alert('Signup failed due to an unexpected error. Please try again.');
-      }
+      console.error('❌ Error resending OTP:', error);
+      setDebugStatus('Error resending code');
+      alert('Failed to resend code. Please try again.');
     } finally {
       setIsSigningUp(false);
     }
@@ -304,7 +364,7 @@ const GetStartedSection: React.FC<GetStartedSectionProps> = ({ onBack }) => {
                 <div className="mt-4 p-4 bg-green-500/10 rounded-xl border border-green-500/20">
                   <div className="flex items-center justify-center gap-2 text-green-600">
                     <CheckCircle className="w-5 h-5" />
-                    <span className="font-semibold">100% Free - No Credit Card Required</span>
+                    <span className="font-semibold">100% Free - No Password Required</span>
                   </div>
                 </div>
               </div>
@@ -314,14 +374,14 @@ const GetStartedSection: React.FC<GetStartedSectionProps> = ({ onBack }) => {
                 <div className="mb-6 p-6 bg-green-500/10 border border-green-500/20 rounded-xl text-center">
                   <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
                   <h3 className="text-xl font-bold text-green-600 mb-2">
-                    {userName ? `Welcome ${userName}! Account Created!` : 'Account Created!'}
+                    {userName ? `Welcome ${userName}! Account Created!` : 'Welcome! Account Created!'}
                   </h3>
                   <p className="text-theme-secondary mb-4">
-                    We've sent a confirmation email to <strong>{email}</strong>
+                    Your account has been successfully created and you're now logged in.
                   </p>
-                  <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-3">
-                    <p className="text-sm text-yellow-700 dark:text-yellow-400">
-                      <strong>Next Step:</strong> Check your email and click the confirmation link to activate your account.
+                  <div className="bg-green-500/10 border border-green-500/20 rounded-lg p-3">
+                    <p className="text-sm text-green-700 dark:text-green-400">
+                      <strong>You're all set!</strong> Your personalized financial plan has been saved and you can start tracking your progress.
                     </p>
                   </div>
                 </div>
@@ -354,6 +414,7 @@ const GetStartedSection: React.FC<GetStartedSectionProps> = ({ onBack }) => {
 
                 {/* Signup Form */}
                 <div className="space-y-4">
+                  {/* Email Input - Always visible */}
                   <div className="relative">
                     <input
                       type="email"
@@ -362,36 +423,83 @@ const GetStartedSection: React.FC<GetStartedSectionProps> = ({ onBack }) => {
                       onChange={(e) => setEmail(e.target.value)}
                       className="w-full px-4 py-3 rounded-lg border border-theme bg-theme-tertiary focus:outline-none focus:ring-2 focus:ring-green-500"
                       required
+                      disabled={showOTPInput || isSigningUp}
                     />
                     <Mail className="absolute top-3 right-3 w-5 h-5 text-theme-muted" />
                   </div>
-                  <div className="relative">
-                    <input 
-                      type="password"
-                      placeholder="Password (minimum 6 characters)"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      className="w-full px-4 py-3 rounded-lg border border-theme bg-theme-tertiary focus:outline-none focus:ring-2 focus:ring-green-500"
-                      minLength={6}
-                      required
-                    />
-                    <Lock className="absolute top-3 right-3 w-5 h-5 text-theme-muted" />
-                  </div>
+                  
+                  {/* OTP Input - Only show when OTP step is active */}
+                  {showOTPInput && (
+                    <div className="relative">
+                      <input
+                        type="text"
+                        placeholder="Enter 6-digit verification code"
+                        value={otpCode}
+                        onChange={(e) => {
+                          const value = e.target.value.replace(/\D/g, '').slice(0, 6);
+                          setOtpCode(value);
+                        }}
+                        className="w-full px-4 py-3 rounded-lg border border-theme bg-theme-tertiary focus:outline-none focus:ring-2 focus:ring-green-500 text-center text-lg tracking-widest"
+                        maxLength={6}
+                        required
+                        autoComplete="one-time-code"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
+                      />
+                      <div className="absolute top-3 right-3 w-5 h-5 text-theme-muted flex items-center justify-center">
+                        <span className="text-xs font-mono">{otpCode.length}/6</span>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Help text for current step */}
+                  {showOTPInput && (
+                    <div className="text-center p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+                      <p className="text-sm text-blue-600">
+                        📧 We sent a 6-digit code to <strong>{email}</strong>
+                      </p>
+                      <p className="text-xs text-blue-500 mt-1">
+                        Check your email and enter the code above
+                      </p>
+                      <div className="mt-3 flex justify-center gap-4 text-xs">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setShowOTPInput(false);
+                            setOtpCode('');
+                            setDebugStatus('');
+                          }}
+                          className="text-theme-muted hover:text-theme-primary transition-colors"
+                          disabled={isSigningUp}
+                        >
+                          ← Change Email
+                        </button>
+                        <button
+                          type="button"
+                          onClick={resendOTP}
+                          className="text-blue-600 hover:text-blue-700 transition-colors"
+                          disabled={isSigningUp}
+                        >
+                          Resend Code
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Submit Button */}
                 <Button
                   type="submit"
                   className={`w-full ${isSigningUp ? 'opacity-75 cursor-not-allowed' : ''}`}
-                  disabled={isSigningUp || !email || !password}
+                  disabled={isSigningUp || !email || (showOTPInput && (!otpCode || otpCode.length !== 6))}
                 >
                   {isSigningUp ? (
                     <div className="flex items-center justify-center gap-2">
                       <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                      {debugStatus || 'Creating Account...'}
+                      {debugStatus || (showOTPInput ? 'Verifying Code...' : 'Sending Code...')}
                     </div>
                   ) : (
-                    'Create Free Account'
+                    showOTPInput ? 'Verify Code & Create Account' : 'Send Verification Code'
                   )}
                 </Button>
 

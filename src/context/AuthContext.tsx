@@ -10,6 +10,8 @@ interface AuthContextType {
   signIn: (email: string, password: string) => Promise<{ error: AuthError | null }>;
   signOut: () => Promise<{ error: AuthError | null }>;
   resetPassword: (email: string) => Promise<{ error: AuthError | null }>;
+  sendOTP: (email: string, userData?: any) => Promise<{ error: AuthError | null }>;
+  verifyOTP: (email: string, token: string, userData?: any) => Promise<{ error: AuthError | null; user?: User | null }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -238,6 +240,59 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const sendOTP = async (email: string, userData?: any) => {
+    try {
+      setLoading(true);
+      
+      // Send OTP email
+      const { error } = await supabase.auth.signInWithOtp({
+        email,
+        options: {
+          shouldCreateUser: true, // Allow new user creation
+          data: userData ? {
+            full_name: userData.name || userData.fullName || '',
+            country: userData.country || '',
+            nationality: userData.nationality || '',
+            plan_type: userData.plan_type || 'free',
+            plan_value: userData.plan_value || 0,
+            signup_source: userData.signup_source || ''
+          } : undefined,
+        },
+      });
+
+      return { error };
+    } catch (error) {
+      return { error: error as AuthError };
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const verifyOTP = async (email: string, token: string, userData?: any) => {
+    try {
+      setLoading(true);
+      
+      // Verify the OTP token
+      const { data, error } = await supabase.auth.verifyOtp({
+        email,
+        token,
+        type: 'email',
+      });
+
+      if (!error && data.user) {
+        // Create profile for new users
+        await createUserProfile(data.user, userData || data.user.user_metadata || {});
+        return { error: null, user: data.user };
+      }
+
+      return { error, user: null };
+    } catch (error) {
+      return { error: error as AuthError, user: null };
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const value = {
     user,
     session,
@@ -246,6 +301,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     signIn,
     signOut,
     resetPassword,
+    sendOTP,
+    verifyOTP,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
