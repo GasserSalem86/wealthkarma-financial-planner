@@ -102,6 +102,63 @@ const RetirementSection: React.FC<RetirementSectionProps> = ({ onNext, onBack })
 
   return (
     <div className="container mx-auto max-w-4xl px-4 lg:px-0">
+      {/* Congratulations Section - Show when user has goals (excluding emergency fund) */}
+      {state.goals.filter(goal => goal.id !== 'emergency-fund' && goal.category !== 'Retirement').length > 0 && (
+        <div className="space-y-6 lg:space-y-8 mb-8 lg:mb-12">
+          {/* Congratulations Section */}
+          <Card className="border-green-500/30 bg-green-500/5">
+            <CardContent className="pt-6">
+              <div className="text-center space-y-4">
+                <div className="text-4xl">🎉</div>
+                <h3 className="text-xl lg:text-2xl font-bold text-green-600">
+                  Amazing Progress! Your Goals Are Planned!
+                </h3>
+                <p className="text-sm lg:text-base text-theme-secondary max-w-2xl mx-auto">
+                  You've successfully planned your life goals and dreams. Now it's time for the most important step - 
+                  securing your golden years and ensuring you can enjoy the retirement lifestyle you deserve!
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Progress Overview */}
+          <Card className="border-orange-500/30 bg-orange-500/5">
+            <CardContent className="pt-6">
+              <div className="text-center space-y-4">
+                <h3 className="text-xl font-semibold text-theme-primary">Your Financial Journey</h3>
+                <div className="flex items-center justify-center space-x-4">
+                  <div className="flex items-center space-x-2">
+                    <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+                      <span className="text-white text-sm font-bold">✓</span>
+                    </div>
+                    <span className="text-sm text-green-600 font-medium">Emergency Fund</span>
+                  </div>
+                  <div className="w-8 h-1 bg-green-500"></div>
+                  <div className="flex items-center space-x-2">
+                    <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+                      <span className="text-white text-sm font-bold">✓</span>
+                    </div>
+                    <span className="text-sm text-green-600 font-medium">Your Goals</span>
+                  </div>
+                  <div className="w-8 h-1 bg-orange-500"></div>
+                  <div className="flex items-center space-x-2">
+                    <div className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center animate-pulse">
+                      <span className="text-white text-sm font-bold">3</span>
+                    </div>
+                    <span className="text-sm text-orange-600 font-medium">Retirement Plan</span>
+                  </div>
+                </div>
+                <div className="bg-orange-500/10 border border-orange-500/30 rounded-lg p-3 max-w-lg mx-auto">
+                  <p className="text-sm text-orange-600 font-medium">
+                    🌟 Fantastic momentum! You've built a solid foundation. Now let's secure your future with a retirement plan that gives you true financial freedom.
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
       {/* Hero Section */}
       <div className="text-center mb-8 lg:mb-12">
         <div className="relative mb-4 lg:mb-6">
