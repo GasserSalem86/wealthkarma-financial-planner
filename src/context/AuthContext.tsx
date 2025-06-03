@@ -247,6 +247,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setLoading(true);
       
       // Send OTP email
+      // Note: For new users, this uses "Confirm signup" template
+      // For existing users, this uses "Magic Link" template  
+      // Both templates need to be configured with {{ .Token }} for OTP
       const { error } = await supabase.auth.signInWithOtp({
         email,
         options: {
@@ -298,6 +301,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signInWithOTP = async (email: string) => {
     try {
       setLoading(true);
+      
+      // Send OTP email for existing users
+      // This uses "Magic Link" template - must be configured with {{ .Token }}
       const { error } = await supabase.auth.signInWithOtp({
         email,
         options: {
