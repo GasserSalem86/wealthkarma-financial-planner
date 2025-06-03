@@ -269,6 +269,77 @@ Always provide specific, actionable advice relevant to their expat status.`;
     return contextPrompt;
   }
 
+  private getCountryFromLocation(location: string): string {
+    const locationMappings: { [key: string]: string } = {
+      // UAE cities
+      'dubai': 'UAE',
+      'abu dhabi': 'UAE', 
+      'sharjah': 'UAE',
+      'ajman': 'UAE',
+      
+      // Saudi Arabia cities
+      'riyadh': 'Saudi Arabia',
+      'jeddah': 'Saudi Arabia',
+      'mecca': 'Saudi Arabia',
+      'dammam': 'Saudi Arabia',
+      
+      // Kuwait
+      'kuwait city': 'Kuwait',
+      'hawalli': 'Kuwait',
+      
+      // Qatar
+      'doha': 'Qatar',
+      
+      // Bahrain
+      'manama': 'Bahrain',
+      
+      // Oman
+      'muscat': 'Oman',
+    };
+
+    // Convert to lowercase and check direct mapping
+    const lowerLocation = location.toLowerCase();
+    
+    // Check for direct city mapping
+    if (locationMappings[lowerLocation]) {
+      return locationMappings[lowerLocation];
+    }
+    
+    // Check if location contains country name
+    if (lowerLocation.includes('uae') || lowerLocation.includes('emirates')) {
+      return 'UAE';
+    }
+    if (lowerLocation.includes('saudi') || lowerLocation.includes('ksa')) {
+      return 'Saudi Arabia';
+    }
+    if (lowerLocation.includes('kuwait')) {
+      return 'Kuwait';
+    }
+    if (lowerLocation.includes('qatar')) {
+      return 'Qatar';
+    }
+    if (lowerLocation.includes('bahrain')) {
+      return 'Bahrain';
+    }
+    if (lowerLocation.includes('oman')) {
+      return 'Oman';
+    }
+    
+    // Try to extract country from comma-separated location (e.g., "Dubai, UAE")
+    const parts = location.split(',').map(part => part.trim());
+    if (parts.length > 1) {
+      const lastPart = parts[parts.length - 1].toLowerCase();
+      if (lastPart === 'uae' || lastPart === 'united arab emirates') return 'UAE';
+      if (lastPart === 'saudi arabia' || lastPart === 'ksa') return 'Saudi Arabia';
+      if (lastPart === 'kuwait') return 'Kuwait';
+      if (lastPart === 'qatar') return 'Qatar';
+      if (lastPart === 'bahrain') return 'Bahrain';
+      if (lastPart === 'oman') return 'Oman';
+    }
+    
+    return 'UAE'; // Default fallback
+  }
+
   async getStepGuidance(step: string, context: UserContext): Promise<AIGuidanceResponse> {
     if (!this.openai) {
       return {
@@ -394,7 +465,8 @@ Keep responses conversational and provide portfolio-aware advice based on their 
 
       // For emergency fund step, try to get live bank information using web search
       if (step === 'emergency-fund' && context.location) {
-        const country = context.location.split(',')[1]?.trim() || context.location;
+        const location = context.location || 'UAE';
+        const country = this.getCountryFromLocation(location);
         
         try {
           console.log(`🌐 Getting live bank information for ${country} using web search...`);
@@ -635,7 +707,8 @@ Please help with their goal planning request. Be specific and practical in your 
                             bankRateSearchKeywords.some(keyword => questionLower.includes(keyword));
 
       if (needsWebSearch && context.location) {
-        const country = context.location.split(',')[1]?.trim() || context.location;
+        const location = context.location || 'UAE';
+        const country = this.getCountryFromLocation(location);
         
         try {
           // Method 1: Try new Responses API with web search tool (preferred)
@@ -830,8 +903,6 @@ Provide helpful, specific guidance for their goal planning question. Ask follow-
       };
     }
   }
-
-
 
   // Method to get bank options for a specific country
   private getBankOptionsForCountry(country: string): BankOption[] {
