@@ -88,6 +88,9 @@ const GoalsSection: React.FC<GoalsSectionProps> = ({ onNext, onBack }) => {
     setEditMode(false);
     setEditingGoalId(null);
     setCurrentStep('category');
+    // Reset chat messages to clear AI conversation when context changes
+    setChatMessages([]);
+    setChatInput('');
   };
 
   // Chat functionality
@@ -259,6 +262,9 @@ const GoalsSection: React.FC<GoalsSectionProps> = ({ onNext, onBack }) => {
     setEditMode(true);
     setEditingGoalId(goal.id);
     setCurrentStep('category');
+    // Reset chat messages when editing a different goal
+    setChatMessages([]);
+    setChatInput('');
   };
 
   const handleDeleteGoal = (id: string) => {
@@ -269,10 +275,17 @@ const GoalsSection: React.FC<GoalsSectionProps> = ({ onNext, onBack }) => {
 
   const handleCancelEdit = () => {
     resetForm();
+    // Additional reset to ensure we're back to overview state
+    setCurrentStep('intro');
   };
 
   const handleCategorySelect = (category: GoalCategory) => {
     setGoalCategory(category);
+    // Reset chat messages when switching to a new goal category to get fresh AI guidance
+    if (!editMode) {
+      setChatMessages([]);
+      setChatInput('');
+    }
   };
 
   // AI form filling function
@@ -325,6 +338,39 @@ const GoalsSection: React.FC<GoalsSectionProps> = ({ onNext, onBack }) => {
 
   // Create AI context with goals information
   const createAIContext = (): UserContext => {
+    // Determine current goal context
+    let currentGoalContext: UserContext['currentGoalContext'] = {
+      isEditingGoal: false,
+      isCreatingNew: false
+    };
+
+    if (editMode && editingGoalId) {
+      // User is editing an existing goal
+      const goalBeingEdited = state.goals.find(g => g.id === editingGoalId);
+      if (goalBeingEdited) {
+        currentGoalContext = {
+          isEditingGoal: true,
+          isCreatingNew: false,
+          activeGoalId: editingGoalId,
+          goalBeingEdited: {
+            id: goalBeingEdited.id,
+            name: goalBeingEdited.name,
+            category: goalBeingEdited.category,
+            amount: goalBeingEdited.amount,
+            targetDate: goalBeingEdited.targetDate,
+            requiredPMT: goalBeingEdited.requiredPMT
+          }
+        };
+      }
+    } else if (currentStep !== 'intro' && currentStep !== 'success') {
+      // User is creating a new goal (in any step other than intro)
+      currentGoalContext = {
+        isEditingGoal: false,
+        isCreatingNew: true,
+        activeGoalId: undefined
+      };
+    }
+
     return {
       name: state.userProfile.name,
       nationality: state.userProfile.nationality,
@@ -355,7 +401,8 @@ const GoalsSection: React.FC<GoalsSectionProps> = ({ onNext, onBack }) => {
         paymentPeriod,
         isEditMode: editMode,
         editingGoalId: editingGoalId || undefined
-      }
+      },
+      currentGoalContext
     };
   };
 
@@ -542,7 +589,7 @@ const GoalsSection: React.FC<GoalsSectionProps> = ({ onNext, onBack }) => {
                   <button
                     key={category}
                       onClick={() => {
-                        setGoalCategory(category);
+                        handleCategorySelect(category);
                         setCurrentStep('when');
                       }}
                       className={`p-4 rounded-lg border transition-all hover:shadow-lg ${

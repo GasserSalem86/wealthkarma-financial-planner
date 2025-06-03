@@ -28,6 +28,19 @@ export interface UserContext {
     isEditMode?: boolean;
     editingGoalId?: string;
   };
+  currentGoalContext?: {
+    isEditingGoal: boolean;
+    goalBeingEdited?: {
+      id: string;
+      name: string;
+      category: string;
+      amount: number;
+      targetDate: Date;
+      requiredPMT: number;
+    };
+    isCreatingNew: boolean;
+    activeGoalId?: string;
+  };
 }
 
 export interface AIGuidanceResponse {
@@ -282,6 +295,23 @@ DO NOT discuss financial advice, emergency funds, investments, or specific plann
 Do NOT list bank options or provide bank selection buttons. Users will select banks from the dropdown on the page. Only provide bank advice when specifically asked. Keep it conversational and approachable. Use plain text without any markdown formatting.`,
       
       'financial-goals': `You are a specialized goal planning coach for GCC expats. Your job is to help users plan specific life goals through interactive conversations.
+
+${context.currentGoalContext?.isEditingGoal ? 
+`CURRENT CONTEXT: You are helping the user EDIT their existing goal "${context.currentGoalContext.goalBeingEdited?.name}" (${context.currentGoalContext.goalBeingEdited?.category}). 
+- Current Amount: ${context.currentGoalContext.goalBeingEdited?.amount?.toLocaleString()} ${context.currency || 'USD'}
+- Target Date: ${context.currentGoalContext.goalBeingEdited?.targetDate ? new Date(context.currentGoalContext.goalBeingEdited.targetDate).toLocaleDateString() : 'Not set'}
+- Monthly Required: ${context.currentGoalContext.goalBeingEdited?.requiredPMT?.toLocaleString()} ${context.currency || 'USD'}
+
+Focus specifically on helping them improve or adjust this existing goal.` :
+context.currentGoalContext?.isCreatingNew ? 
+`CURRENT CONTEXT: You are helping the user CREATE A NEW ${context.currentFormData?.goalCategory || 'financial'} goal.
+- Goal Name: ${context.currentFormData?.goalName || 'Not set yet'}
+- Amount: ${context.currentFormData?.goalAmount ? context.currentFormData.goalAmount.toLocaleString() + ' ' + (context.currency || 'USD') : 'Not set yet'}
+- Target: ${context.currentFormData?.targetMonth && context.currentFormData?.targetYear ? `${context.currentFormData.targetMonth}/${context.currentFormData.targetYear}` : 'Not set yet'}
+
+Focus specifically on helping them plan this new goal.` :
+'CURRENT CONTEXT: You are in the general goals overview. Help them decide what to do next with their goal portfolio.'
+}
 
 RESPONSE STRUCTURE:
 1. BRIEF WELCOME (1-2 sentences): Greet them warmly and acknowledge their existing goal portfolio if they have any.
@@ -665,8 +695,24 @@ Please search for current 2025 cost information to help with their goal planning
         }
       } else {
         // Regular chat for goal planning questions
-        const messages: any[] = [
-          { role: "system", content: `You are a specialized goal planning coach for GCC expats. Help users plan specific financial goals through interactive conversations.
+        const systemPrompt = `You are a specialized goal planning coach for GCC expats. Help users plan specific financial goals through interactive conversations.
+
+${context.currentGoalContext?.isEditingGoal ? 
+`CURRENT CONTEXT: You are helping the user with their "${context.currentGoalContext.goalBeingEdited?.name}" goal (${context.currentGoalContext.goalBeingEdited?.category}).
+- Current Amount: ${context.currentGoalContext.goalBeingEdited?.amount?.toLocaleString()} ${context.currency || 'USD'}
+- Target Date: ${context.currentGoalContext.goalBeingEdited?.targetDate ? new Date(context.currentGoalContext.goalBeingEdited.targetDate).toLocaleDateString() : 'Not set'}
+- Monthly Required: ${context.currentGoalContext.goalBeingEdited?.requiredPMT?.toLocaleString()} ${context.currency || 'USD'}
+
+Focus your advice on this specific goal.` :
+context.currentGoalContext?.isCreatingNew ? 
+`CURRENT CONTEXT: You are helping the user create a new ${context.currentFormData?.goalCategory || 'financial'} goal.
+- Goal Name: ${context.currentFormData?.goalName || 'Not set yet'}
+- Amount: ${context.currentFormData?.goalAmount ? context.currentFormData.goalAmount.toLocaleString() + ' ' + (context.currency || 'USD') : 'Not set yet'}
+- Target: ${context.currentFormData?.targetMonth && context.currentFormData?.targetYear ? `${context.currentFormData.targetMonth}/${context.currentFormData.targetYear}` : 'Not set yet'}
+
+Focus your advice on planning this new goal.` :
+'CURRENT CONTEXT: You are in the general goals overview. Help them with their overall goal portfolio or guide them to work on specific goals.'
+}
 
 Your expertise includes:
 - Education planning (university costs, school selection, timing)
@@ -688,7 +734,10 @@ SPECIALIZED GUIDANCE FOR EDUCATION GOALS:
 
 Be conversational, ask follow-up questions, and provide specific, actionable advice based on their situation as a ${context.nationality} expat living in ${context.location} earning ${context.monthlyIncome} ${context.currency}.
 
-Focus on practical goal planning, not investment advice or banking recommendations.` }
+Focus on practical goal planning, not investment advice or banking recommendations.`;
+
+        const messages: any[] = [
+          { role: "system", content: systemPrompt }
         ];
 
         // Add conversation history if available

@@ -28,6 +28,38 @@ const AIGuidance: React.FC<AIGuidanceProps> = ({ step, context, className = '', 
   const [userQuestion, setUserQuestion] = useState('');
   const [isLoadingResponse, setIsLoadingResponse] = useState(false);
   const [isBankSelectionInProgress, setIsBankSelectionInProgress] = useState(false);
+  
+  // Track current goal context to detect changes and reset conversation
+  const [currentGoalContext, setCurrentGoalContext] = useState<string>('');
+
+  // Function to create a unique context identifier
+  const createContextId = (context: UserContext): string => {
+    const goalContext = context.currentGoalContext;
+    if (goalContext?.isEditingGoal && goalContext.goalBeingEdited) {
+      return `editing-${goalContext.goalBeingEdited.id}`;
+    }
+    if (goalContext?.isCreatingNew && context.currentFormData?.goalCategory) {
+      return `creating-${context.currentFormData.goalCategory}-${context.currentFormData.goalName || 'new'}`;
+    }
+    return 'overview';
+  };
+
+  // Reset conversation when goal context changes
+  useEffect(() => {
+    const newContextId = createContextId(context);
+    if (newContextId !== currentGoalContext && currentGoalContext !== '') {
+      console.log('Goal context changed, resetting conversation:', {
+        from: currentGoalContext,
+        to: newContextId
+      });
+      setChatMessages([]);
+      setGuidance(null);
+      if (isExpanded) {
+        loadStepGuidance();
+      }
+    }
+    setCurrentGoalContext(newContextId);
+  }, [context.currentGoalContext, context.currentFormData?.goalCategory, context.currentFormData?.goalName]);
 
   // Function to convert URLs in text to clickable links
   const parseMessageWithLinks = (text: string) => {
