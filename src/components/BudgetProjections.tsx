@@ -102,9 +102,9 @@ const BudgetBanner = () => {
         {/* Header similar to other cards */}
         <div className="bg-gradient-to-r from-green-500/10 to-orange-500/10 border-b border-theme p-4 lg:p-6 rounded-t-xl">
           <h3 className="text-lg lg:text-xl font-bold text-theme-primary mb-1 lg:mb-2">
-            Your Money Plan
+            Step 1: Choose Your Savings Strategy
           </h3>
-          <p className="text-sm lg:text-base text-theme-secondary">Choose your savings strategy and set your monthly budget</p>
+          <p className="text-sm lg:text-base text-theme-secondary">Choose how you want to fund your goals. <strong>Your strategy choice will determine how your monthly budget is allocated</strong> in the feasibility check below.</p>
         </div>
 
         {/* Content with background */}
@@ -290,16 +290,19 @@ const BudgetBanner = () => {
   );
 };
 
-const AllocationTable = () => {
+const AllocationTable = ({ activeGoal, setActiveGoal }: { activeGoal: string, setActiveGoal: (goalId: string) => void }) => {
   const { state } = usePlanner();
   const { currency } = useCurrency();
   const [showDetails, setShowDetails] = React.useState(false);
   const { allocations } = state;
 
   const handleScrollToGoal = (goalId: string) => {
+    // First scroll to goal tabs section
     const element = document.getElementById(`goal-tab-${goalId}`);
     if (element) {
       element.scrollIntoView({ behavior: 'smooth' });
+      // Then activate the specific goal tab
+      setActiveGoal(goalId);
     }
   };
 
@@ -332,9 +335,9 @@ const AllocationTable = () => {
         <div className="flex items-center justify-between">
           <div>
             <h3 className="heading-h3-sm text-theme-primary mb-2">
-              Where Your Money Goes
+              Step 2: Check if Your Plan is Feasible
             </h3>
-            <p className="text-theme-secondary">See how your monthly budget is allocated across your financial goals</p>
+            <p className="text-theme-secondary mb-4">Based on your monthly budget, see if your goals are achievable. If not, you can go back to adjust your <strong>Emergency Fund</strong>, <strong>Goals</strong>, or <strong>Retirement</strong> sections - decrease amounts or increase timelines to make goals more achievable.</p>
           </div>
           <Button
             variant="outline"
@@ -480,6 +483,7 @@ const AllocationTable = () => {
                       <button
                         onClick={() => handleScrollToGoal(allocation.goal.id)}
                         className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 transition-colors"
+                        title="View detailed chart for this goal"
                       >
                         <LineChart className="w-4 h-4" />
                       </button>
@@ -495,9 +499,8 @@ const AllocationTable = () => {
   );
 };
 
-const GoalTabs = () => {
+const GoalTabs = ({ activeGoal, setActiveGoal }: { activeGoal: string, setActiveGoal: (goalId: string) => void }) => {
   const { state } = usePlanner();
-  const [activeGoal, setActiveGoal] = React.useState<string>(state.goals[0]?.id || '');
 
   const sortedGoals = useMemo(() => {
     return [...state.goals].sort((a, b) => {
@@ -513,7 +516,7 @@ const GoalTabs = () => {
     <div className="rounded-2xl border border-theme overflow-hidden mt-12 shadow-theme-lg bg-theme-card">
       <div className="bg-gradient-to-r from-green-500/10 to-orange-500/10 border-b border-theme p-6 rounded-t-xl">
         <h3 className="heading-h3-sm text-theme-primary mb-2">
-          Track Each Goal
+          Step 3: Track Each Goal
         </h3>
         <p className="text-theme-secondary">See how each goal is growing! Click between your goals to explore your progress.</p>
       </div>
@@ -592,6 +595,9 @@ interface BudgetProjectionsProps {
 }
 
 const BudgetProjections: React.FC<BudgetProjectionsProps> = ({ onNext, onBack }) => {
+  const { state } = usePlanner();
+  const [activeGoal, setActiveGoal] = React.useState<string>(state.goals[0]?.id || '');
+
   return (
     <div className="container mx-auto max-w-6xl p-6 space-y-8">
       {/* Header */}
@@ -605,9 +611,9 @@ const BudgetProjections: React.FC<BudgetProjectionsProps> = ({ onNext, onBack })
       </div>
 
       <BudgetBanner />
-      <AllocationTable />
+      <AllocationTable activeGoal={activeGoal} setActiveGoal={setActiveGoal} />
+      <GoalTabs activeGoal={activeGoal} setActiveGoal={setActiveGoal} />
       <CombinedProgressChart />
-      <GoalTabs />
       
       {/* Enhanced Navigation */}
       {(onNext || onBack) && (
