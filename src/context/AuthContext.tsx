@@ -8,6 +8,8 @@ interface AuthContextType {
   loading: boolean;
   signUp: (email: string, password: string, userData: any) => Promise<{ error: AuthError | null }>;
   signIn: (email: string, password: string) => Promise<{ error: AuthError | null }>;
+  signInWithOTP: (email: string) => Promise<{ error: AuthError | null }>;
+  verifySignInOTP: (email: string, token: string) => Promise<{ error: AuthError | null; user?: User | null }>;
   signOut: () => Promise<{ error: AuthError | null }>;
   resetPassword: (email: string) => Promise<{ error: AuthError | null }>;
   sendOTP: (email: string, userData?: any) => Promise<{ error: AuthError | null }>;
@@ -293,6 +295,46 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const signInWithOTP = async (email: string) => {
+    try {
+      setLoading(true);
+      const { error } = await supabase.auth.signInWithOtp({
+        email,
+        options: {
+          shouldCreateUser: true, // Allow new user creation
+        },
+      });
+      return { error };
+    } catch (error) {
+      return { error: error as AuthError };
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const verifySignInOTP = async (email: string, token: string) => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase.auth.verifyOtp({
+        email,
+        token,
+        type: 'email',
+      });
+
+      if (!error && data.user) {
+        // Create profile for new users
+        await createUserProfile(data.user, data.user.user_metadata || {});
+        return { error: null, user: data.user };
+      }
+
+      return { error, user: null };
+    } catch (error) {
+      return { error: error as AuthError, user: null };
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const value = {
     user,
     session,
@@ -303,6 +345,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     resetPassword,
     sendOTP,
     verifyOTP,
+    signInWithOTP,
+    verifySignInOTP,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

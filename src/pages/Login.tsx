@@ -2,14 +2,16 @@ import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Link } from 'react-router-dom';
 import Button from '../components/ui/Button';
-import { Mail, Lock, ArrowRight, Sparkles, Home } from 'lucide-react';
+import { Mail, ArrowRight, Sparkles, Home, CheckCircle } from 'lucide-react';
 
 const Login: React.FC = () => {
-  const { signIn, user } = useAuth();
+  const { signInWithOTP, verifySignInOTP, user } = useAuth();
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [otpCode, setOtpCode] = useState('');
+  const [showOTPInput, setShowOTPInput] = useState(false);
   const [isSigningIn, setIsSigningIn] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [debugStatus, setDebugStatus] = useState('');
 
   // Redirect if already logged in
   if (user) {
@@ -19,22 +21,102 @@ const Login: React.FC = () => {
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Prevent multiple rapid submissions
+    if (isSigningIn) {
+      console.log('🚫 Operation already in progress, ignoring duplicate submission');
+      return;
+    }
+    
     setIsSigningIn(true);
     setError(null);
-
+    
     try {
-      const { error } = await signIn(email, password);
-      
-      if (error) {
-        setError(error.message);
-        return;
+      if (!showOTPInput) {
+        // Step 1: Send OTP to email
+        setDebugStatus('Sending verification code...');
+        
+        console.log('📧 Sending sign-in OTP to:', email);
+        const result = await signInWithOTP(email);
+        
+        if (result.error) {
+          console.error('❌ Failed to send sign-in OTP:', result.error);
+          
+          if (result.error.message?.includes('request this after')) {
+            setError('Rate limit reached. Please wait before trying again.');
+            setDebugStatus('Rate limit reached - please wait');
+          } else {
+            setError(`Failed to send verification code: ${result.error.message}`);
+            setDebugStatus(`Failed to send code: ${result.error.message}`);
+          }
+          return;
+        }
+
+        console.log('✅ Sign-in OTP sent successfully');
+        setDebugStatus('Verification code sent! Check your email.');
+        setShowOTPInput(true);
+        
+      } else {
+        // Step 2: Verify OTP code
+        setDebugStatus('Verifying code...');
+        
+        if (!otpCode || otpCode.length !== 6) {
+          setError('Please enter the 6-digit verification code');
+          return;
+        }
+
+        console.log('🔐 Verifying sign-in OTP code...');
+        const result = await verifySignInOTP(email, otpCode);
+        
+        if (result.error) {
+          console.error('❌ Sign-in OTP verification failed:', result.error);
+          setError(`Invalid verification code: ${result.error.message}`);
+          setDebugStatus(`Invalid code: ${result.error.message}`);
+          return;
+        }
+
+        console.log('✅ Sign-in OTP verified successfully, user authenticated');
+        setDebugStatus('Welcome back! Redirecting to dashboard...');
+        
+        // Success - redirect to dashboard
+        setTimeout(() => {
+          window.location.href = '/dashboard';
+        }, 1000);
       }
 
-      // Success - redirect to dashboard
-      window.location.href = '/dashboard';
     } catch (error) {
-      console.error('Sign in failed:', error);
-      setError('Sign in failed. Please try again.');
+      console.error('❌ Unexpected sign-in error:', error);
+      setError('An unexpected error occurred. Please try again.');
+      setDebugStatus(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+      setIsSigningIn(false);
+    }
+  };
+
+  const resendOTP = async () => {
+    if (isSigningIn) return;
+    
+    setIsSigningIn(true);
+    setError(null);
+    setDebugStatus('Resending verification code...');
+    
+    try {
+      const result = await signInWithOTP(email);
+      
+      if (result.error) {
+        console.error('❌ Failed to resend sign-in OTP:', result.error);
+        setError(`Failed to resend verification code: ${result.error.message}`);
+        setDebugStatus(`Failed to resend: ${result.error.message}`);
+      } else {
+        console.log('✅ Sign-in OTP resent successfully');
+        setDebugStatus('New verification code sent!');
+        setOtpCode(''); // Clear the input
+        setError(null);
+      }
+    } catch (error) {
+      console.error('❌ Error resending sign-in OTP:', error);
+      setError('Failed to resend code. Please try again.');
+      setDebugStatus('Error resending code');
     } finally {
       setIsSigningIn(false);
     }
@@ -55,7 +137,7 @@ const Login: React.FC = () => {
             </div>
           </div>
           <h2 className="text-2xl lg:text-3xl font-bold text-theme-primary mb-2">Welcome Back</h2>
-          <p className="text-theme-secondary">Sign in to your financial dashboard</p>
+          <p className="text-theme-secondary">Sign in to your financial dashboard - no password required</p>
         </div>
 
         {/* Login Form */}
@@ -79,42 +161,98 @@ const Login: React.FC = () => {
                 className="w-full pl-10 lg:pl-12 pr-3 lg:pr-4 py-3 lg:py-4 rounded-xl text-base lg:text-lg bg-theme-tertiary border-2 border-theme text-theme-primary placeholder-theme-muted focus:ring-0 focus:border-green-500 transition-all duration-300"
                 placeholder="your.email@example.com"
                 required
+                disabled={showOTPInput || isSigningIn}
               />
             </div>
 
-            {/* Password Field */}
-            <div className="relative group">
-              <Lock className="absolute left-3 lg:left-4 top-1/2 transform -translate-y-1/2 w-4 h-4 lg:w-5 lg:h-5 text-theme-muted group-focus-within:text-green-500 transition-colors" />
-              <input
-                type="password"
-                id="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full pl-10 lg:pl-12 pr-3 lg:pr-4 py-3 lg:py-4 rounded-xl text-base lg:text-lg bg-theme-tertiary border-2 border-theme text-theme-primary placeholder-theme-muted focus:ring-0 focus:border-green-500 transition-all duration-300"
-                placeholder="Password"
-                required
-              />
-            </div>
+            {/* OTP Input - Only show when OTP step is active */}
+            {showOTPInput && (
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="Enter 6-digit verification code"
+                  value={otpCode}
+                  onChange={(e) => {
+                    const value = e.target.value.replace(/\D/g, '').slice(0, 6);
+                    setOtpCode(value);
+                  }}
+                  className="w-full px-4 py-3 lg:py-4 rounded-xl text-base lg:text-lg bg-theme-tertiary border-2 border-theme text-theme-primary placeholder-theme-muted focus:ring-0 focus:border-green-500 transition-all duration-300 text-center tracking-widest"
+                  maxLength={6}
+                  required
+                  autoComplete="one-time-code"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                />
+                <div className="absolute top-3 lg:top-4 right-3 lg:right-4 text-theme-muted flex items-center justify-center">
+                  <span className="text-xs font-mono">{otpCode.length}/6</span>
+                </div>
+              </div>
+            )}
+            
+            {/* Help text for current step */}
+            {showOTPInput && (
+              <div className="text-center p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+                <p className="text-sm text-blue-600">
+                  📧 We sent a 6-digit code to <strong>{email}</strong>
+                </p>
+                <p className="text-xs text-blue-500 mt-1">
+                  Check your email and enter the code above
+                </p>
+                <div className="mt-3 flex justify-center gap-4 text-xs">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowOTPInput(false);
+                      setOtpCode('');
+                      setError(null);
+                      setDebugStatus('');
+                    }}
+                    className="text-theme-muted hover:text-theme-primary transition-colors"
+                    disabled={isSigningIn}
+                  >
+                    ← Change Email
+                  </button>
+                  <button
+                    type="button"
+                    onClick={resendOTP}
+                    className="text-blue-600 hover:text-blue-700 transition-colors"
+                    disabled={isSigningIn}
+                  >
+                    Resend Code
+                  </button>
+                </div>
+              </div>
+            )}
 
             {/* Sign In Button */}
             <Button
               type="submit"
-              disabled={isSigningIn}
+              disabled={isSigningIn || !email || (showOTPInput && (!otpCode || otpCode.length !== 6))}
               fullWidth
               className="py-3 lg:py-4 text-lg lg:text-xl rounded-xl bg-gradient-to-r from-green-500 to-orange-500 hover:from-green-600 hover:to-orange-600 text-white shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300 font-bold"
             >
               {isSigningIn ? (
                 <div className="flex items-center justify-center gap-2 lg:gap-3">
                   <div className="w-5 h-5 lg:w-6 lg:h-6 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                  Signing in...
+                  {debugStatus || (showOTPInput ? 'Verifying Code...' : 'Sending Code...')}
                 </div>
               ) : (
                 <div className="flex items-center justify-center gap-2 lg:gap-3">
-                  Sign In
+                  {showOTPInput ? 'Verify Code & Sign In' : 'Send Verification Code'}
                   <ArrowRight className="w-5 h-5 lg:w-6 lg:h-6" />
                 </div>
               )}
             </Button>
+
+            {/* Debug Status - Only show during operation */}
+            {isSigningIn && debugStatus && (
+              <div className="text-center p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+                <p className="text-sm text-blue-600">{debugStatus}</p>
+                {debugStatus.includes('Rate limit') && (
+                  <p className="text-xs text-blue-500 mt-1">Please wait a moment before trying again</p>
+                )}
+              </div>
+            )}
           </form>
 
           {/* Footer Links */}
