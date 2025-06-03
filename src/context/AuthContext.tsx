@@ -276,24 +276,56 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const verifyOTP = async (email: string, token: string, userData?: any) => {
     try {
       setLoading(true);
+      console.log('🔐 Starting OTP verification for:', email, 'with token length:', token.length);
       
-      // Verify the OTP token
-      const { data, error } = await supabase.auth.verifyOtp({
+      // Add timeout protection
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('OTP verification timed out after 30 seconds')), 30000);
+      });
+      
+      // Verify the OTP token with timeout
+      const verificationPromise = supabase.auth.verifyOtp({
         email,
         token,
         type: 'email',
       });
+      
+      const { data, error } = await Promise.race([verificationPromise, timeoutPromise]) as any;
+      
+      console.log('🔍 OTP verification response:', { 
+        hasData: !!data, 
+        hasUser: !!data?.user, 
+        hasError: !!error,
+        errorMessage: error?.message 
+      });
 
-      if (!error && data.user) {
-        // Create profile for new users
-        await createUserProfile(data.user, userData || data.user.user_metadata || {});
-        return { error: null, user: data.user };
+      if (error) {
+        console.error('❌ OTP verification failed:', error);
+        return { error, user: null };
       }
 
-      return { error, user: null };
+      if (!data || !data.user) {
+        console.error('❌ OTP verification succeeded but no user data returned');
+        return { error: new Error('No user data returned after verification') as AuthError, user: null };
+      }
+
+      console.log('✅ OTP verification successful, creating user profile...');
+      
+      // Create profile for new users
+      try {
+        await createUserProfile(data.user, userData || data.user.user_metadata || {});
+        console.log('✅ User profile created successfully');
+      } catch (profileError) {
+        console.warn('⚠️ Profile creation failed but continuing:', profileError);
+      }
+      
+      return { error: null, user: data.user };
+
     } catch (error) {
+      console.error('❌ Unexpected error during OTP verification:', error);
       return { error: error as AuthError, user: null };
     } finally {
+      console.log('🏁 OTP verification completed, resetting loading state');
       setLoading(false);
     }
   };
@@ -321,22 +353,56 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const verifySignInOTP = async (email: string, token: string) => {
     try {
       setLoading(true);
-      const { data, error } = await supabase.auth.verifyOtp({
+      console.log('🔐 Starting sign-in OTP verification for:', email, 'with token length:', token.length);
+      
+      // Add timeout protection
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Sign-in OTP verification timed out after 30 seconds')), 30000);
+      });
+      
+      // Verify the OTP token with timeout
+      const verificationPromise = supabase.auth.verifyOtp({
         email,
         token,
         type: 'email',
       });
+      
+      const { data, error } = await Promise.race([verificationPromise, timeoutPromise]) as any;
+      
+      console.log('🔍 Sign-in OTP verification response:', { 
+        hasData: !!data, 
+        hasUser: !!data?.user, 
+        hasError: !!error,
+        errorMessage: error?.message 
+      });
 
-      if (!error && data.user) {
-        // Create profile for new users
-        await createUserProfile(data.user, data.user.user_metadata || {});
-        return { error: null, user: data.user };
+      if (error) {
+        console.error('❌ Sign-in OTP verification failed:', error);
+        return { error, user: null };
       }
 
-      return { error, user: null };
+      if (!data || !data.user) {
+        console.error('❌ Sign-in OTP verification succeeded but no user data returned');
+        return { error: new Error('No user data returned after verification') as AuthError, user: null };
+      }
+
+      console.log('✅ Sign-in OTP verification successful, ensuring user profile exists...');
+      
+      // Create profile for new users (or ensure existing profile)
+      try {
+        await createUserProfile(data.user, data.user.user_metadata || {});
+        console.log('✅ User profile ensured successfully');
+      } catch (profileError) {
+        console.warn('⚠️ Profile creation/update failed but continuing:', profileError);
+      }
+      
+      return { error: null, user: data.user };
+
     } catch (error) {
+      console.error('❌ Unexpected error during sign-in OTP verification:', error);
       return { error: error as AuthError, user: null };
     } finally {
+      console.log('🏁 Sign-in OTP verification completed, resetting loading state');
       setLoading(false);
     }
   };
