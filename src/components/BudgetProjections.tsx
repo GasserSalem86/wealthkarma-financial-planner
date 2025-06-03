@@ -6,6 +6,7 @@ import { LineChart, ArrowRight, AlertTriangle, Layers, Split, BarChart2, Trendin
 import Card, { CardHeader, CardTitle, CardContent } from './ui/Card';
 import GoalProgressChart from './GoalProgressChart';
 import CombinedProgressChart from './CombinedProgressChart';
+import GoalOptimizer from './GoalOptimizer';
 import { FundingStyle } from '../types/plannerTypes';
 import Button from './ui/Button';
 
@@ -551,6 +552,7 @@ const BudgetProjections: React.FC<BudgetProjectionsProps> = ({ onNext, onBack })
 
       <BudgetBanner />
       <AllocationTable />
+      <GoalOptimizer />
       <CombinedProgressChart />
       <GoalTabs />
       
