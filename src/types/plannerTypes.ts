@@ -46,8 +46,7 @@ export const STEPS: Step[] = [
   { id: 4, label: 'How Risky?' },
   { id: 5, label: 'Your Money Plan' },
   { id: 6, label: 'Monthly View' },
-  { id: 7, label: 'Monthly Roadmap' },
-  { id: 8, label: 'Get Started' }
+  { id: 7, label: 'Get Started' }
 ];
 
 export const GOAL_CATEGORIES: GoalCategory[] = ['Education', 'Travel', 'Gift', 'Home', 'Retirement', 'Other'];

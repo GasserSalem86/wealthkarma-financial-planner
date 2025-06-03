@@ -9,7 +9,6 @@ import RetirementSection from './sections/RetirementSection';
 import RiskReturnsSection from './sections/RiskReturnsSection';
 import BudgetProjections from './BudgetProjections';
 import MonthlyPlanView from './MonthlyPlanView';
-import MonthlyRoadmapSection from './sections/MonthlyRoadmapSection';
 import GetStartedSection from './sections/GetStartedSection';
 import AIGuidance from './AIGuidance';
 import DebugPanel from './DebugPanel';
@@ -17,7 +16,7 @@ import ThemeToggle from './ui/ThemeToggle';
 import Button from './ui/Button';
 
 import { UserContext } from '../services/aiService';
-import { User, Shield, Target, TrendingUp, BarChart3, Calendar, CalendarDays, Download, CheckCircle, Circle, Sparkles, Brain, Menu, X } from 'lucide-react';
+import { User, Shield, Target, TrendingUp, BarChart3, Calendar, Download, CheckCircle, Circle, Sparkles, Brain, Menu, X } from 'lucide-react';
 
 const FinancialGoalsPlanner: React.FC = () => {
   const { state, dispatch } = usePlanner();
@@ -32,9 +31,8 @@ const FinancialGoalsPlanner: React.FC = () => {
     3: Target,
     4: TrendingUp,
     5: BarChart3,
-    6: CalendarDays,
-    7: Calendar,
-    8: Download
+    6: Calendar,
+    7: Download
   };
 
   useEffect(() => {
@@ -341,10 +339,6 @@ const FinancialGoalsPlanner: React.FC = () => {
           </section>
 
           <section className={`min-h-screen p-4 lg:p-8 ${state.currentStep === 7 ? 'block' : 'hidden'}`}>
-            <MonthlyRoadmapSection onNext={handleNext} onBack={handleBack} />
-          </section>
-
-          <section className={`min-h-screen p-4 lg:p-8 ${state.currentStep === 8 ? 'block' : 'hidden'}`}>
             <GetStartedSection onBack={handleBack} />
           </section>
         </div>
