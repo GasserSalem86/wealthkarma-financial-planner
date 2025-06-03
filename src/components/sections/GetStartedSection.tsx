@@ -181,6 +181,12 @@ const GetStartedSection: React.FC<GetStartedSectionProps> = ({ onBack }) => {
         console.log('✅ User successfully authenticated via OTP');
         setDebugStatus('Welcome! Your account is ready.');
         setShowSuccess(true);
+        
+        // Redirect to dashboard after showing success message
+        setTimeout(() => {
+          console.log('🚀 Redirecting to dashboard...');
+          window.location.href = '/dashboard';
+        }, 2000); // 2 second delay to let user see success message
       }
 
     } catch (error) {
@@ -379,144 +385,152 @@ const GetStartedSection: React.FC<GetStartedSectionProps> = ({ onBack }) => {
                   <p className="text-theme-secondary mb-4">
                     Your account has been successfully created and you're now logged in.
                   </p>
-                  <div className="bg-green-500/10 border border-green-500/20 rounded-lg p-3">
+                  <div className="bg-green-500/10 border border-green-500/20 rounded-lg p-3 mb-4">
                     <p className="text-sm text-green-700 dark:text-green-400">
                       <strong>You're all set!</strong> Your personalized financial plan has been saved and you can start tracking your progress.
                     </p>
+                  </div>
+                  <div className="flex items-center justify-center gap-2 text-blue-600">
+                    <div className="w-4 h-4 border-2 border-blue-600/30 border-t-blue-600 rounded-full animate-spin"></div>
+                    <span className="text-sm font-medium">Redirecting to your dashboard...</span>
                   </div>
                 </div>
               )}
 
               <form onSubmit={handleSignup} className="space-y-6">
                 
-                {/* Features List */}
-                <div className="bg-theme-tertiary rounded-xl p-4 mb-6">
-                  <h3 className="font-semibold text-theme-primary mb-3">What you get for free:</h3>
-                  <div className="grid grid-cols-1 gap-2 text-sm text-theme-secondary">
-                        <div className="flex items-center gap-2">
-                      <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
-                      <span>Live progress tracking</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
-                      <span>AI financial coaching</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
-                      <span>Goal optimization</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
-                      <span>Personalized roadmap</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Signup Form */}
-                <div className="space-y-4">
-                  {/* Email Input - Always visible */}
-                  <div className="relative">
-                    <input
-                      type="email"
-                      placeholder="Email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className="w-full px-4 py-3 rounded-lg border border-theme bg-theme-tertiary focus:outline-none focus:ring-2 focus:ring-green-500"
-                      required
-                      disabled={showOTPInput || isSigningUp}
-                    />
-                    <Mail className="absolute top-3 right-3 w-5 h-5 text-theme-muted" />
-                  </div>
-                  
-                  {/* OTP Input - Only show when OTP step is active */}
-                  {showOTPInput && (
-                    <div className="relative">
-                      <input
-                        type="text"
-                        placeholder="Enter 6-digit verification code"
-                        value={otpCode}
-                        onChange={(e) => {
-                          const value = e.target.value.replace(/\D/g, '').slice(0, 6);
-                          setOtpCode(value);
-                        }}
-                        className="w-full px-4 py-3 rounded-lg border border-theme bg-theme-tertiary focus:outline-none focus:ring-2 focus:ring-green-500 text-center text-lg tracking-widest"
-                        maxLength={6}
-                        required
-                        autoComplete="one-time-code"
-                        inputMode="numeric"
-                        pattern="[0-9]*"
-                      />
-                      <div className="absolute top-3 right-3 w-5 h-5 text-theme-muted flex items-center justify-center">
-                        <span className="text-xs font-mono">{otpCode.length}/6</span>
+                {!showSuccess && (
+                  <>
+                    {/* Features List */}
+                    <div className="bg-theme-tertiary rounded-xl p-4 mb-6">
+                      <h3 className="font-semibold text-theme-primary mb-3">What you get for free:</h3>
+                      <div className="grid grid-cols-1 gap-2 text-sm text-theme-secondary">
+                            <div className="flex items-center gap-2">
+                        <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
+                        <span>Live progress tracking</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
+                        <span>AI financial coaching</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
+                        <span>Goal optimization</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
+                        <span>Personalized roadmap</span>
+                      </div>
                       </div>
                     </div>
-                  )}
-                  
-                  {/* Help text for current step */}
-                  {showOTPInput && (
-                    <div className="text-center p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
-                      <p className="text-sm text-blue-600">
-                        📧 We sent a 6-digit code to <strong>{email}</strong>
-                      </p>
-                      <p className="text-xs text-blue-500 mt-1">
-                        Check your email and enter the code above
-                      </p>
-                      <div className="mt-3 flex justify-center gap-4 text-xs">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setShowOTPInput(false);
-                            setOtpCode('');
-                            setDebugStatus('');
-                          }}
-                          className="text-theme-muted hover:text-theme-primary transition-colors"
-                          disabled={isSigningUp}
-                        >
-                          ← Change Email
-                        </button>
-                        <button
-                          type="button"
-                          onClick={resendOTP}
-                          className="text-blue-600 hover:text-blue-700 transition-colors"
-                          disabled={isSigningUp}
-                        >
-                          Resend Code
-                        </button>
+
+                    {/* Signup Form */}
+                    <div className="space-y-4">
+                      {/* Email Input - Always visible */}
+                      <div className="relative">
+                        <input
+                          type="email"
+                          placeholder="Email"
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          className="w-full px-4 py-3 rounded-lg border border-theme bg-theme-tertiary focus:outline-none focus:ring-2 focus:ring-green-500"
+                          required
+                          disabled={showOTPInput || isSigningUp}
+                        />
+                        <Mail className="absolute top-3 right-3 w-5 h-5 text-theme-muted" />
                       </div>
+                      
+                      {/* OTP Input - Only show when OTP step is active */}
+                      {showOTPInput && (
+                        <div className="relative">
+                          <input
+                            type="text"
+                            placeholder="Enter 6-digit verification code"
+                            value={otpCode}
+                            onChange={(e) => {
+                              const value = e.target.value.replace(/\D/g, '').slice(0, 6);
+                              setOtpCode(value);
+                            }}
+                            className="w-full px-4 py-3 rounded-lg border border-theme bg-theme-tertiary focus:outline-none focus:ring-2 focus:ring-green-500 text-center text-lg tracking-widest"
+                            maxLength={6}
+                            required
+                            autoComplete="one-time-code"
+                            inputMode="numeric"
+                            pattern="[0-9]*"
+                          />
+                          <div className="absolute top-3 right-3 w-5 h-5 text-theme-muted flex items-center justify-center">
+                            <span className="text-xs font-mono">{otpCode.length}/6</span>
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* Help text for current step */}
+                      {showOTPInput && (
+                        <div className="text-center p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+                          <p className="text-sm text-blue-600">
+                            📧 We sent a 6-digit code to <strong>{email}</strong>
+                          </p>
+                          <p className="text-xs text-blue-500 mt-1">
+                            Check your email and enter the code above
+                          </p>
+                          <div className="mt-3 flex justify-center gap-4 text-xs">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setShowOTPInput(false);
+                                setOtpCode('');
+                                setDebugStatus('');
+                              }}
+                              className="text-theme-muted hover:text-theme-primary transition-colors"
+                              disabled={isSigningUp}
+                            >
+                              ← Change Email
+                            </button>
+                            <button
+                              type="button"
+                              onClick={resendOTP}
+                              className="text-blue-600 hover:text-blue-700 transition-colors"
+                              disabled={isSigningUp}
+                            >
+                              Resend Code
+                            </button>
+                          </div>
+                        </div>
+                      )}
                     </div>
-                  )}
-                </div>
 
-                {/* Submit Button */}
-                <Button
-                  type="submit"
-                  className={`w-full ${isSigningUp ? 'opacity-75 cursor-not-allowed' : ''}`}
-                  disabled={isSigningUp || !email || (showOTPInput && (!otpCode || otpCode.length !== 6))}
-                >
-                  {isSigningUp ? (
-                    <div className="flex items-center justify-center gap-2">
-                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                      {debugStatus || (showOTPInput ? 'Verifying Code...' : 'Sending Code...')}
-                    </div>
-                  ) : (
-                    showOTPInput ? 'Verify Code & Create Account' : 'Send Verification Code'
-                  )}
-                </Button>
+                    {/* Submit Button */}
+                    <Button
+                      type="submit"
+                      className={`w-full ${isSigningUp ? 'opacity-75 cursor-not-allowed' : ''}`}
+                      disabled={isSigningUp || !email || (showOTPInput && (!otpCode || otpCode.length !== 6))}
+                    >
+                      {isSigningUp ? (
+                        <div className="flex items-center justify-center gap-2">
+                          <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                          {debugStatus || (showOTPInput ? 'Verifying Code...' : 'Sending Code...')}
+                        </div>
+                      ) : (
+                        showOTPInput ? 'Verify Code & Create Account' : 'Send Verification Code'
+                      )}
+                    </Button>
 
-                {/* Debug Status - Only show during signup */}
-                {isSigningUp && debugStatus && (
-                  <div className="text-center p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
-                    <p className="text-sm text-blue-600">{debugStatus}</p>
-                    {debugStatus.includes('Rate limit') && (
-                      <p className="text-xs text-blue-500 mt-1">Please wait a moment before trying again</p>
+                    {/* Debug Status - Only show during signup */}
+                    {isSigningUp && debugStatus && (
+                      <div className="text-center p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+                        <p className="text-sm text-blue-600">{debugStatus}</p>
+                        {debugStatus.includes('Rate limit') && (
+                          <p className="text-xs text-blue-500 mt-1">Please wait a moment before trying again</p>
+                        )}
+                      </div>
                     )}
-                  </div>
-                )}
 
-                {/* Terms */}
-                <p className="text-xs text-theme-muted text-center">
-                  By creating an account, you agree to our Terms of Service and Privacy Policy
-                </p>
+                    {/* Terms */}
+                    <p className="text-xs text-theme-muted text-center">
+                      By creating an account, you agree to our Terms of Service and Privacy Policy
+                    </p>
+                  </>
+                )}
               </form>
             </CardContent>
           </Card>
