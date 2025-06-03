@@ -14,6 +14,7 @@ interface AuthContextType {
   resetPassword: (email: string) => Promise<{ error: AuthError | null }>;
   sendOTP: (email: string, userData?: any) => Promise<{ error: AuthError | null }>;
   verifyOTP: (email: string, token: string, userData?: any) => Promise<{ error: AuthError | null; user?: User | null }>;
+  checkEmailExists: (email: string) => Promise<{ exists: boolean; error: string | null }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -246,14 +247,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       setLoading(true);
       
-      // Send OTP email
+      // Prevent OTP signup if user is already authenticated
+      if (user) {
+        console.warn('⚠️ User already authenticated, cannot use OTP signup');
+        return { error: { message: 'You are already signed in. Please sign out first if you want to create a new account.' } as AuthError };
+      }
+      
+      // Send OTP email for NEW USER SIGNUP
       // Note: For new users, this uses "Confirm signup" template
       // For existing users, this uses "Magic Link" template  
       // Both templates need to be configured with {{ .Token }} for OTP
       const { error } = await supabase.auth.signInWithOtp({
         email,
         options: {
-          shouldCreateUser: true, // Allow new user creation
+          shouldCreateUser: true, // Allow new user creation for signup flow
           data: userData ? {
             full_name: userData.name || userData.fullName || '',
             country: userData.country || '',
@@ -334,12 +341,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       setLoading(true);
       
-      // Send OTP email for existing users
+      // Prevent OTP signin if user is already authenticated
+      if (user) {
+        console.warn('⚠️ User already authenticated, cannot use OTP signin');
+        return { error: { message: 'You are already signed in. Please sign out first if you want to sign in with a different account.' } as AuthError };
+      }
+      
+      // Send OTP email for EXISTING USER SIGN-IN
       // This uses "Magic Link" template - must be configured with {{ .Token }}
       const { error } = await supabase.auth.signInWithOtp({
         email,
         options: {
-          shouldCreateUser: true, // Allow new user creation
+          shouldCreateUser: false, // Do NOT create new users - only authenticate existing ones
         },
       });
       return { error };
@@ -407,6 +420,32 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const checkEmailExists = async (email: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('email', email)
+        .single();
+
+      if (error) {
+        console.error('Error checking email existence:', error);
+        return { exists: false, error: error.message };
+      }
+
+      if (data) {
+        console.log('Email exists in database');
+        return { exists: true, error: null };
+      } else {
+        console.log('Email does not exist in database');
+        return { exists: false, error: null };
+      }
+    } catch (error) {
+      console.error('Error checking email existence:', error);
+      return { exists: false, error: error instanceof Error ? error.message : 'Unknown error' };
+    }
+  };
+
   const value = {
     user,
     session,
@@ -419,6 +458,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     verifyOTP,
     signInWithOTP,
     verifySignInOTP,
+    checkEmailExists,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
