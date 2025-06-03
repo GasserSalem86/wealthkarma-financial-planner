@@ -302,16 +302,26 @@ ${context.currentGoalContext?.isEditingGoal ?
 - Target Date: ${context.currentGoalContext.goalBeingEdited?.targetDate ? new Date(context.currentGoalContext.goalBeingEdited.targetDate).toLocaleDateString() : 'Not set'}
 - Monthly Required: ${context.currentGoalContext.goalBeingEdited?.requiredPMT?.toLocaleString()} ${context.currency || 'USD'}
 
-Focus specifically on helping them improve or adjust this existing goal.` :
+Focus specifically on helping them improve or adjust this existing goal. ALWAYS consider inflation when reviewing their existing amounts and suggesting updates.` :
 context.currentGoalContext?.isCreatingNew ? 
 `CURRENT CONTEXT: You are helping the user CREATE A NEW ${context.currentFormData?.goalCategory || 'financial'} goal.
 - Goal Name: ${context.currentFormData?.goalName || 'Not set yet'}
 - Amount: ${context.currentFormData?.goalAmount ? context.currentFormData.goalAmount.toLocaleString() + ' ' + (context.currency || 'USD') : 'Not set yet'}
 - Target: ${context.currentFormData?.targetMonth && context.currentFormData?.targetYear ? `${context.currentFormData.targetMonth}/${context.currentFormData.targetYear}` : 'Not set yet'}
 
-Focus specifically on helping them plan this new goal.` :
-'CURRENT CONTEXT: You are in the general goals overview. Help them decide what to do next with their goal portfolio.'
+Focus specifically on helping them plan this new goal. ALWAYS factor inflation into all cost estimates and recommendations.` :
+'CURRENT CONTEXT: You are in the general goals overview. Help them decide what to do next with their goal portfolio. When discussing any goals or costs, always consider inflation impact.'
 }
+
+CRITICAL INFLATION REQUIREMENT:
+🔥 ALWAYS FACTOR INFLATION INTO ALL COST DISCUSSIONS AND RECOMMENDATIONS 🔥
+- Apply 3-5% annual inflation rate to all cost projections
+- Education costs: 4-6% annual inflation
+- Travel costs: 3-4% annual inflation  
+- Property costs: 2-8% annual inflation (location-dependent)
+- Lifestyle/Gift costs: 3-5% annual inflation
+- ALWAYS mention inflation when discussing goal amounts or costs
+- Explain how inflation affects purchasing power over time
 
 RESPONSE STRUCTURE:
 1. BRIEF WELCOME (1-2 sentences): Greet them warmly and acknowledge their existing goal portfolio if they have any.
@@ -323,10 +333,10 @@ RESPONSE STRUCTURE:
    - If they have goals: "What would you like to add to your goal portfolio?" or suggest areas they haven't covered yet
    
 Available categories:
-   - Education planning (university costs, school fees, degree programs)
-   - Travel planning (destination suggestions, budget estimation)
-   - Home purchases (down payments, market research)
-   - Gift planning (appropriate amounts, special occasions)
+   - Education planning (university costs, school fees, degree programs) - ALWAYS inflate tuition by 4-6% annually
+   - Travel planning (destination suggestions, budget estimation) - ALWAYS consider travel cost inflation 3-4% annually
+   - Home purchases (down payments, market research) - ALWAYS factor property inflation 2-8% annually by region
+   - Gift planning (appropriate amounts, special occasions) - ALWAYS consider lifestyle inflation 3-5% annually
 
 4. BE INTERACTIVE: Ask follow-up questions to understand their specific situation.
 
@@ -336,33 +346,41 @@ PORTFOLIO ANALYSIS GUIDANCE:
 - Identify timeline conflicts (multiple goals with similar target dates)
 - Suggest prioritization if they're overcommitted
 - Recommend goal diversification if they're too focused on one category
+- ALWAYS mention if their existing goal amounts may need inflation adjustments
 
 SPECIALIZED HELP BY CATEGORY:
 
 EDUCATION:
 - Help choose universities/schools for their kids based on degree, location preferences
-- Estimate realistic costs for tuition, living expenses, education abroad
+- Estimate realistic costs for tuition, living expenses, education abroad WITH INFLATION ADJUSTMENTS
+- Apply 4-6% annual tuition inflation rates (higher for international education)
 - Plan timeline based on child's age and when education will START (target date)
 - Understand payment schedules: target date = when education begins, payment period = duration of ongoing payments after that date
+- Always provide both "today's cost" and "inflation-adjusted future cost"
 
 TRAVEL:
 - Suggest destinations based on their interests, budget, or bucket list
-- Help estimate realistic travel costs for different trip types
+- Help estimate realistic travel costs for different trip types WITH INFLATION ADJUSTMENTS
+- Apply 3-4% annual travel cost inflation (flights, hotels, activities)
 - Plan timing around work schedules, family commitments
 - Consider multiple trips vs one big vacation
+- Account for destination-specific inflation rates
 
 HOME:
-- Help calculate down payment requirements for their target location
+- Help calculate down payment requirements for their target location WITH INFLATION ADJUSTMENTS
 - Research typical property prices in areas they're considering
+- Apply property-specific inflation rates (2-8% annually depending on location and market)
 - Plan timeline for purchase based on market conditions
 - Consider ongoing vs lump sum payment strategies
+- Factor in mortgage rate changes and property appreciation
 
 GIFT:
-- Suggest appropriate amounts for major life events
+- Suggest appropriate amounts for major life events WITH INFLATION ADJUSTMENTS
 - Help plan for multiple gifts or big occasions
-- Consider cultural and family expectations
+- Consider cultural and family expectations with lifestyle inflation (3-5% annually)
+- Account for how gift expectations rise with inflation
 
-Keep responses conversational and provide portfolio-aware advice based on their existing goals and financial capacity.`,
+Keep responses conversational and provide portfolio-aware advice based on their existing goals and financial capacity. ALWAYS emphasize the importance of inflation-adjusted planning.`,
       
       'risk-assessment': `Give BRIEF guidance (3-4 sentences max) on risk tolerance for expats in their location. Consider currency risk, visa uncertainty, and investment platform limitations. Provide specific platform recommendations available in their country. Use plain text without any markdown formatting.`,
       
@@ -462,6 +480,16 @@ ${stepPrompts[step as keyof typeof stepPrompts] || 'Please provide general finan
         const messages: any[] = [
           { role: "system", content: `You are a specialized goal planning expert for GCC expats. When users ask for goal recommendations or form filling, provide detailed, personalized advice based on their specific situation and existing goal portfolio.
 
+CRITICAL INFLATION REQUIREMENT - MANDATORY:
+🔥 ALL COST ESTIMATES MUST BE INFLATION-ADJUSTED 🔥
+- Apply appropriate annual inflation rates to ALL cost projections
+- Education: 4-6% annual inflation (higher for international programs)
+- Travel: 3-4% annual inflation for flights, hotels, activities
+- Property: 2-8% annual inflation depending on location and market
+- Lifestyle/Gifts: 3-5% annual inflation for lifestyle costs
+- ALWAYS provide inflation-adjusted amounts in goalAmount field
+- Explain inflation impact in your response text
+
 EXISTING GOALS AWARENESS:
 - Always consider the user's existing goals when making new recommendations
 - Avoid duplicate or overly similar goals unless specifically requested
@@ -471,17 +499,18 @@ EXISTING GOALS AWARENESS:
 - Recommend complementary goals that fill gaps in their portfolio
 
 EXPERTISE AREAS:
-- Education costs in GCC, US, UK, Europe, Australia
-- Travel budgets for different destinations and trip types  
-- Property down payments across GCC and international markets
-- Cultural gift-giving expectations and amounts
+- Education costs in GCC, US, UK, Europe, Australia (WITH INFLATION ADJUSTMENTS)
+- Travel budgets for different destinations and trip types (WITH INFLATION ADJUSTMENTS)
+- Property down payments across GCC and international markets (WITH INFLATION ADJUSTMENTS)
+- Cultural gift-giving expectations and amounts (WITH INFLATION ADJUSTMENTS)
 - Timeline planning based on life circumstances
 
 RESPONSE FORMAT:
 1. Provide detailed, conversational explanation of your recommendations
-2. Acknowledge their existing goals and how this new goal fits their portfolio
-3. Ask any clarifying questions if needed
-4. When ready to fill the form, end with a JSON object in this EXACT format:
+2. EXPLICITLY explain inflation calculations and assumptions used
+3. Acknowledge their existing goals and how this new goal fits their portfolio
+4. Ask any clarifying questions if needed
+5. When ready to fill the form, end with a JSON object in this EXACT format:
 
 CRITICAL NAMING GUIDELINES:
 - Goal names must be SHORT and CONCISE (2-4 words maximum)
@@ -510,9 +539,15 @@ USER CONTEXT:
 
 BASE CALCULATIONS ON:
 - Their income level and affordability (suggest 10-20% of monthly income for goal savings)
-- Location-specific costs and market conditions
+- Location-specific costs and market conditions WITH MANDATORY INFLATION ADJUSTMENTS
 - Cultural and practical considerations for their nationality
 - Realistic timelines based on goal type and urgency
+- INFLATION-ADJUSTED FUTURE VALUES: Always calculate what things will cost at the target date, not today's prices
+
+INFLATION CALCULATION EXAMPLES:
+- Goal in 5 years with 4% inflation: Today's 100,000 becomes 121,665 (multiply by 1.04^5)
+- Education goal in 8 years with 5% inflation: Today's 150,000 becomes 221,699 (multiply by 1.05^8)
+- Travel goal in 3 years with 3% inflation: Today's 25,000 becomes 27,318 (multiply by 1.03^3)
 
 PAYMENT PERIOD GUIDELINES:
 - Only use paymentPeriod for Education and Home categories
@@ -697,44 +732,54 @@ Please search for current 2025 cost information to help with their goal planning
         // Regular chat for goal planning questions
         const systemPrompt = `You are a specialized goal planning coach for GCC expats. Help users plan specific financial goals through interactive conversations.
 
+CRITICAL INFLATION REQUIREMENT:
+🔥 ALWAYS FACTOR INFLATION INTO ALL COST DISCUSSIONS AND RECOMMENDATIONS 🔥
+- Apply 3-5% annual inflation rate to all cost projections
+- Education costs: 4-6% annual inflation
+- Travel costs: 3-4% annual inflation  
+- Property costs: 2-8% annual inflation (location-dependent)
+- Lifestyle/Gift costs: 3-5% annual inflation
+- ALWAYS mention inflation when discussing goal amounts or costs
+- Explain how inflation affects purchasing power over time
+
 ${context.currentGoalContext?.isEditingGoal ? 
 `CURRENT CONTEXT: You are helping the user with their "${context.currentGoalContext.goalBeingEdited?.name}" goal (${context.currentGoalContext.goalBeingEdited?.category}).
 - Current Amount: ${context.currentGoalContext.goalBeingEdited?.amount?.toLocaleString()} ${context.currency || 'USD'}
 - Target Date: ${context.currentGoalContext.goalBeingEdited?.targetDate ? new Date(context.currentGoalContext.goalBeingEdited.targetDate).toLocaleDateString() : 'Not set'}
 - Monthly Required: ${context.currentGoalContext.goalBeingEdited?.requiredPMT?.toLocaleString()} ${context.currency || 'USD'}
 
-Focus your advice on this specific goal.` :
+Focus your advice on this specific goal. Consider if the current amount needs inflation adjustment for the target date.` :
 context.currentGoalContext?.isCreatingNew ? 
 `CURRENT CONTEXT: You are helping the user create a new ${context.currentFormData?.goalCategory || 'financial'} goal.
 - Goal Name: ${context.currentFormData?.goalName || 'Not set yet'}
 - Amount: ${context.currentFormData?.goalAmount ? context.currentFormData.goalAmount.toLocaleString() + ' ' + (context.currency || 'USD') : 'Not set yet'}
 - Target: ${context.currentFormData?.targetMonth && context.currentFormData?.targetYear ? `${context.currentFormData.targetMonth}/${context.currentFormData.targetYear}` : 'Not set yet'}
 
-Focus your advice on planning this new goal.` :
-'CURRENT CONTEXT: You are in the general goals overview. Help them with their overall goal portfolio or guide them to work on specific goals.'
+Focus your advice on planning this new goal. Ensure all cost estimates are inflation-adjusted to the target date.` :
+'CURRENT CONTEXT: You are in the general goals overview. Help them with their overall goal portfolio or guide them to work on specific goals. Always consider inflation when discussing existing or new goals.'
 }
 
 Your expertise includes:
-- Education planning (university costs, school selection, timing)
+- Education planning (university costs, school selection, timing) - ALWAYS apply 4-6% annual inflation
 
 SPECIALIZED GUIDANCE FOR EDUCATION GOALS:
 
-1. **Comprehensive Cost Breakdown**: Include ALL education-related costs:
-   - Tuition fees (with annual increases)
-   - Living expenses, visa costs, travel, insurance
-   - Emergency buffer (10-15% of total)
+1. **Comprehensive Cost Breakdown WITH INFLATION**: Include ALL education-related costs inflation-adjusted to target date:
+   - Tuition fees (with annual increases of 4-6%)
+   - Living expenses, visa costs, travel, insurance (with 3-4% inflation)
+   - Emergency buffer (10-15% of total inflation-adjusted amount)
 2. **Payment Timeline Clarity**: Target date = when studies BEGIN, Payment period = duration of studies
-3. **Local vs International Analysis**: Compare local universities, regional GCC options, international programs
+3. **Local vs International Analysis**: Compare local universities, regional GCC options, international programs (all inflation-adjusted)
 4. **Scholarship Strategy**: Academic targets, extracurricular activities, competition participation plans
 5. **Risk Mitigation**: Career interest changes, currency risks, backup plans
 6. **Regular Reviews**: Annual adjustments for inflation, cost changes, interest evolution
-- Travel planning (destination suggestions, budget estimation) 
-- Home purchases (down payments, market research)
-- Gift planning (cultural expectations, appropriate amounts)
+- Travel planning (destination suggestions, budget estimation) - ALWAYS apply 3-4% annual inflation
+- Home purchases (down payments, market research) - ALWAYS apply 2-8% annual property inflation
+- Gift planning (cultural expectations, appropriate amounts) - ALWAYS apply 3-5% annual lifestyle inflation
 
 Be conversational, ask follow-up questions, and provide specific, actionable advice based on their situation as a ${context.nationality} expat living in ${context.location} earning ${context.monthlyIncome} ${context.currency}.
 
-Focus on practical goal planning, not investment advice or banking recommendations.`;
+Focus on practical goal planning with mandatory inflation considerations, not investment advice or banking recommendations.`;
 
         const messages: any[] = [
           { role: "system", content: systemPrompt }
