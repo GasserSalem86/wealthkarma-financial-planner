@@ -10,7 +10,6 @@ import RiskReturnsSection from './sections/RiskReturnsSection';
 import BudgetProjections from './BudgetProjections';
 import MonthlyPlanView from './MonthlyPlanView';
 import GetStartedSection from './sections/GetStartedSection';
-import AIGuidance from './AIGuidance';
 import DebugPanel from './DebugPanel';
 import ThemeToggle from './ui/ThemeToggle';
 import Button from './ui/Button';
@@ -310,42 +309,53 @@ const FinancialGoalsPlanner: React.FC = () => {
         </div>
 
         <div ref={sectionsRef} className="h-full">
-          <section className={`min-h-screen p-4 lg:p-8 ${state.currentStep === 0 ? 'block' : 'hidden'}`}>
-            <WelcomeProfileSection onNext={handleNext} />
-          </section>
+          {state.currentStep === 0 && (
+            <section className="min-h-screen p-4 lg:p-8">
+              <WelcomeProfileSection onNext={handleNext} />
+            </section>
+          )}
 
-          <section className={`min-h-screen p-4 lg:p-8 ${state.currentStep === 1 ? 'block' : 'hidden'}`}>
-            <EmergencyFundSection onNext={handleNext} />
-          </section>
+          {state.currentStep === 1 && (
+            <section className="min-h-screen p-4 lg:p-8">
+              <EmergencyFundSection onNext={handleNext} />
+            </section>
+          )}
 
-          <section className={`min-h-screen p-4 lg:p-8 ${state.currentStep === 2 ? 'block' : 'hidden'}`}>
-            <GoalsSection onNext={handleNext} onBack={handleBack} />
-          </section>
+          {state.currentStep === 2 && (
+            <section className="min-h-screen p-4 lg:p-8">
+              <GoalsSection onNext={handleNext} onBack={handleBack} />
+            </section>
+          )}
 
-          <section className={`min-h-screen p-4 lg:p-8 ${state.currentStep === 3 ? 'block' : 'hidden'}`}>
-            <RetirementSection onNext={handleNext} onBack={handleBack} />
-          </section>
+          {state.currentStep === 3 && (
+            <section className="min-h-screen p-4 lg:p-8">
+              <RetirementSection onNext={handleNext} onBack={handleBack} />
+            </section>
+          )}
 
-          <section className={`min-h-screen p-4 lg:p-8 ${state.currentStep === 4 ? 'block' : 'hidden'}`}>
-            <RiskReturnsSection onNext={handleNext} onBack={handleBack} />
-          </section>
+          {state.currentStep === 4 && (
+            <section className="min-h-screen p-4 lg:p-8">
+              <RiskReturnsSection onNext={handleNext} onBack={handleBack} />
+            </section>
+          )}
 
-          <section className={`min-h-screen p-4 lg:p-8 ${state.currentStep === 5 ? 'block' : 'hidden'}`}>
-            <BudgetProjections onNext={handleNext} onBack={handleBack} />
-          </section>
+          {state.currentStep === 5 && (
+            <section className="min-h-screen p-4 lg:p-8">
+              <BudgetProjections onNext={handleNext} onBack={handleBack} />
+            </section>
+          )}
 
-          <section className={`min-h-screen p-4 lg:p-8 ${state.currentStep === 6 ? 'block' : 'hidden'}`}>
-            <MonthlyPlanView onContinue={handleNext} />
-          </section>
+          {state.currentStep === 6 && (
+            <section className="min-h-screen p-4 lg:p-8">
+              <MonthlyPlanView onContinue={handleNext} />
+            </section>
+          )}
 
-          <section className={`min-h-screen p-4 lg:p-8 ${state.currentStep === 7 ? 'block' : 'hidden'}`}>
-            <GetStartedSection onBack={handleBack} />
-          </section>
-        </div>
-
-        {/* AI Guidance Panel - Mobile Responsive */}
-        <div className="fixed bottom-4 right-4 z-30">
-          <AIGuidance context={aiContext} step={String(STEPS[state.currentStep]?.id || 'welcome')} />
+          {state.currentStep === 7 && (
+            <section className="min-h-screen p-4 lg:p-8">
+              <GetStartedSection onBack={handleBack} />
+            </section>
+          )}
         </div>
 
         {/* Debug Panel - Hidden on mobile for better UX */}

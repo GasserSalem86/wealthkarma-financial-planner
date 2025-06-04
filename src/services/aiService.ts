@@ -451,22 +451,22 @@ ${stepPrompts[step as keyof typeof stepPrompts] || 'Please provide general finan
       return await this.rateLimitedCall(async () => {
         const completion = await this.openai!.chat.completions.create({
           model: "gpt-4o-mini",
-          messages,
-          max_tokens: 500,
-          temperature: 0.7,
-        });
+        messages,
+        max_tokens: 500,
+        temperature: 0.7,
+      });
 
-        const message = completion.choices[0]?.message?.content || "I'm sorry, I couldn't generate guidance at this time.";
+      const message = completion.choices[0]?.message?.content || "I'm sorry, I couldn't generate guidance at this time.";
 
-        return {
-          message,
-        };
+      return {
+        message,
+      };
       });
 
     } catch (error: any) {
       console.error('AI Service Error:', error);
       if (error.message?.includes('rate limit')) {
-        return {
+      return {
           message: "AI guidance is temporarily unavailable due to high demand. You can continue with the planning process manually, and AI features will be restored shortly.",
         };
       }

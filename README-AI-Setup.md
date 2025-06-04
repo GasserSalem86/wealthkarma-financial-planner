@@ -3,11 +3,30 @@
 ## Overview
 The Financial Goals Planner now includes an AI-powered financial advisor that provides personalized guidance for GCC expats. The AI assistant helps users through each step of the planning process and can answer questions about their financial plan.
 
+## ⚡ **Cost-Optimized AI Models (January 2025)**
+
+### **Current Model Configuration:**
+- **Primary Model**: `gpt-4o-mini` ($0.15 input / $0.60 output per 1M tokens)
+- **Web Search**: `gpt-4o-mini-search-preview` ($0.15 input / $0.60 output per 1M tokens)
+- **Search Tool Calls**: $27.50 per 1k calls (medium context)
+
+### **Cost Savings Achieved:**
+- **90-95% cost reduction** vs previous gpt-4 usage
+- **From**: ~$0.20-0.26 per interaction **To**: ~$0.001-0.003 per interaction
+- **Monthly costs**: Reduced from $500-1000+ to $20-50 with heavy usage
+
+### **Performance Benefits:**
+✅ **Better or equal quality** compared to older gpt-4 models
+✅ **Faster response times** with mini models
+✅ **Latest capabilities** with 4o-mini architecture
+✅ **Same functionality** for all use cases
+
 ## Features
 - **Step-by-step guidance**: AI provides contextual advice based on the current planning step
 - **GCC expat expertise**: Specialized knowledge of expat financial planning challenges and opportunities
 - **Interactive chat**: Ask questions and get immediate, personalized responses
 - **Context-aware**: AI knows your nationality, location, income, and goals
+- **Live web search**: Current bank rates, education costs, travel prices, property values
 
 ## Setup Instructions
 

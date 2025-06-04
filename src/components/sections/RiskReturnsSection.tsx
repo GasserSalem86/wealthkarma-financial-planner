@@ -877,8 +877,8 @@ const RiskReturnsSection: React.FC<RiskReturnsSectionProps> = ({ onNext, onBack 
         </Button>
       </div>
       
-      {/* AI Guidance for Risk & Returns */}
-      {state.userProfile.name && (
+      {/* AI Guidance for Risk & Returns - Only show on risk returns step */}
+      {(state.userProfile.name && state.currentStep === 4) && (
         <AIGuidance 
           step="risk-&-returns" 
           context={{

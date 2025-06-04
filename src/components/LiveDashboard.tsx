@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { usePlanner } from '../context/PlannerContext';
 import { useCurrency } from '../context/CurrencyContext';
 import { 
@@ -44,11 +44,10 @@ interface AIRecommendation {
 }
 
 const LiveDashboard: React.FC<LiveDashboardProps> = ({ onOptimizePlan, onUpdateProgress }) => {
-  const { state, dispatch, saveToSupabase } = usePlanner();
+  const { state, dispatch } = usePlanner();
   const { currency } = useCurrency();
   const [activeTab, setActiveTab] = useState<'overview' | 'goals' | 'insights' | 'settings'>('overview');
   const [editingGoal, setEditingGoal] = useState<string | null>(null);
-  const [saving, setSaving] = useState(false);
   const [actualProgress, setActualProgress] = useState<ActualProgress[]>(
     state.goals.map(goal => ({
       goalId: goal.id,
@@ -146,9 +145,6 @@ const LiveDashboard: React.FC<LiveDashboardProps> = ({ onOptimizePlan, onUpdateP
 
     const updatedGoal = { ...goal, amount: newAmount };
     dispatch({ type: 'UPDATE_GOAL', payload: updatedGoal });
-    
-    // Auto-save to Supabase
-    await handleSaveChanges();
   };
 
   const updateGoalDate = async (goalId: string, newDate: Date) => {
@@ -164,50 +160,24 @@ const LiveDashboard: React.FC<LiveDashboardProps> = ({ onOptimizePlan, onUpdateP
       horizonMonths
     };
     dispatch({ type: 'UPDATE_GOAL', payload: updatedGoal });
-    
-    // Auto-save to Supabase
-    await handleSaveChanges();
   };
 
   const updateBudget = async (newBudget: number) => {
     dispatch({ type: 'SET_BUDGET', payload: newBudget });
-    
-    // Auto-save to Supabase
-    await handleSaveChanges();
   };
 
   const updateEmergencyFund = async (newExpenses: number, newBufferMonths: number) => {
-    dispatch({ type: 'SET_MONTHLY_EXPENSES', payload: newExpenses });
-    dispatch({ type: 'SET_BUFFER_MONTHS', payload: newBufferMonths });
-    
-    // Update emergency fund goal if it exists
-    const emergencyFund = state.goals.find(g => g.id === 'emergency-fund');
-    if (emergencyFund) {
-      const newAmount = newExpenses * newBufferMonths;
-      const updatedGoal = { ...emergencyFund, amount: newAmount };
-      dispatch({ type: 'UPDATE_GOAL', payload: updatedGoal });
-    }
-    
-    // Auto-save to Supabase
-    await handleSaveChanges();
-  };
-
-  // Save changes to Supabase
-  const handleSaveChanges = async () => {
-    if (saving) return; // Prevent multiple saves
-    
-    try {
-      setSaving(true);
-      const result = await saveToSupabase();
-      
-      if (!result.success) {
-        console.error('Failed to save changes:', result.error);
-        // You could add a toast notification here
-      }
-    } catch (error) {
-      console.error('Error saving changes:', error);
-    } finally {
-      setSaving(false);
+    const currentEmergencyFund = state.goals.find(goal => goal.id === 'emergency-fund');
+    if (currentEmergencyFund) {
+      dispatch({
+        type: 'UPDATE_EMERGENCY_FUND',
+        payload: {
+          monthlyExpenses: newExpenses,
+          bufferMonths: newBufferMonths,
+          targetMonth: currentEmergencyFund.targetDate.getMonth(),
+          targetYear: currentEmergencyFund.targetDate.getFullYear()
+        }
+      });
     }
   };
 
@@ -691,14 +661,6 @@ const LiveDashboard: React.FC<LiveDashboardProps> = ({ onOptimizePlan, onUpdateP
               </div>
             </CardContent>
           </Card>
-
-          {/* Save Status */}
-          {saving && (
-            <div className="flex items-center justify-center gap-2 p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
-              <div className="w-4 h-4 border-2 border-blue-400/30 border-t-blue-400 rounded-full animate-spin"></div>
-              <span className="text-sm text-blue-400">Saving changes...</span>
-            </div>
-          )}
         </div>
       )}
 
@@ -764,10 +726,12 @@ const LiveDashboard: React.FC<LiveDashboardProps> = ({ onOptimizePlan, onUpdateP
 
       {/* Action Buttons */}
       <div className="flex justify-between mt-8">
-        <Button variant="outline" onClick={onOptimizePlan}>
-          <RefreshCw className="w-4 h-4 mr-2" />
-          Optimize Plan
-        </Button>
+        <div className="flex gap-3">
+          <Button variant="outline" onClick={onOptimizePlan}>
+            <RefreshCw className="w-4 h-4 mr-2" />
+            Optimize Plan
+          </Button>
+        </div>
         <Button variant="primary">
           <Download className="w-4 h-4 mr-2" />
           Export Updated Plan

@@ -30,7 +30,7 @@ const Login: React.FC = () => {
     
     setIsSigningIn(true);
     setError(null);
-    
+
     try {
       if (!showOTPInput) {
         // Step 1: Send OTP to email
@@ -59,7 +59,7 @@ const Login: React.FC = () => {
       } else {
         // Step 2: Verify OTP code
         setDebugStatus('Verifying code...');
-        
+      
         if (!otpCode || otpCode.length !== 6) {
           setError('Please enter the 6-digit verification code');
           return;
@@ -72,15 +72,15 @@ const Login: React.FC = () => {
           console.error('❌ Sign-in OTP verification failed:', result.error);
           setError(`Invalid verification code: ${result.error.message}`);
           setDebugStatus(`Invalid code: ${result.error.message}`);
-          return;
-        }
+        return;
+      }
 
         console.log('✅ Sign-in OTP verified successfully, user authenticated');
         setDebugStatus('Welcome back! Redirecting to dashboard...');
-        
-        // Success - redirect to dashboard
+
+      // Success - redirect to dashboard
         setTimeout(() => {
-          window.location.href = '/dashboard';
+      window.location.href = '/dashboard';
         }, 1000);
       }
 
@@ -168,7 +168,7 @@ const Login: React.FC = () => {
             {/* OTP Input - Only show when OTP step is active */}
             {showOTPInput && (
               <div className="relative">
-                <input
+              <input
                   type="text"
                   placeholder="Enter 6-digit verification code"
                   value={otpCode}
@@ -178,15 +178,15 @@ const Login: React.FC = () => {
                   }}
                   className="w-full px-4 py-3 lg:py-4 rounded-xl text-base lg:text-lg bg-theme-tertiary border-2 border-theme text-theme-primary placeholder-theme-muted focus:ring-0 focus:border-green-500 transition-all duration-300 text-center tracking-widest"
                   maxLength={6}
-                  required
+                required
                   autoComplete="one-time-code"
                   inputMode="numeric"
                   pattern="[0-9]*"
-                />
+              />
                 <div className="absolute top-3 lg:top-4 right-3 lg:right-4 text-theme-muted flex items-center justify-center">
                   <span className="text-xs font-mono">{otpCode.length}/6</span>
                 </div>
-              </div>
+            </div>
             )}
             
             {/* Help text for current step */}

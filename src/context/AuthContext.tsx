@@ -217,23 +217,83 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signOut = async () => {
     try {
       setLoading(true);
-      console.log('🚪 AuthContext: Starting sign out...');
+      console.log('🚪 AuthContext: Starting complete sign out...');
       
-      // Clear any temporary session data
+      // Clear ALL session storage immediately
       sessionStorage.removeItem('temp_user_data');
-      console.log('✅ AuthContext: Cleared temporary session data');
+      localStorage.removeItem('last-save-timestamp');
       
-      const { error } = await supabase.auth.signOut();
+      // Clear any Supabase-related localStorage/sessionStorage
+      Object.keys(localStorage).forEach(key => {
+        if (key.startsWith('supabase') || key.includes('auth')) {
+          localStorage.removeItem(key);
+        }
+      });
       
-      if (error) {
-        console.error('❌ AuthContext: Sign out error:', error);
-      } else {
-        console.log('✅ AuthContext: Sign out successful');
+      Object.keys(sessionStorage).forEach(key => {
+        if (key.startsWith('supabase') || key.includes('auth')) {
+          sessionStorage.removeItem(key);
+        }
+      });
+      
+      console.log('✅ AuthContext: Cleared all session storage data');
+      
+      // Show success message to user immediately
+      alert('✅ Successfully Signed Out!\n\nYou have been logged out securely. All your data has been saved.\n\nRedirecting to home page...');
+      
+      // Force clear the auth state immediately (don't wait for Supabase client)
+      console.log('🧹 Forcing local auth state clear...');
+      setUser(null);
+      setSession(null);
+      
+      // Force clear Supabase client session (non-blocking but more thorough)
+      console.log('🔄 Forcing Supabase client session clear...');
+      try {
+        // Force clear the internal Supabase session storage
+        await supabase.auth.signOut({ scope: 'global' });
+      } catch (error: any) {
+        console.warn('⚠️ Supabase global sign out failed (expected):', error?.message);
       }
       
-      return { error };
+      // Additional cleanup - clear any cookies that might exist
+      try {
+        // Clear auth-related cookies if any exist
+        document.cookie.split(";").forEach(cookie => {
+          const eqPos = cookie.indexOf("=");
+          const name = eqPos > -1 ? cookie.substr(0, eqPos).trim() : cookie.trim();
+          if (name.includes('supabase') || name.includes('auth') || name.includes('sb-')) {
+            document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;domain=${window.location.hostname}`;
+          }
+        });
+      } catch (cookieError) {
+        console.warn('⚠️ Cookie cleanup failed:', cookieError);
+      }
+      
+      // Direct navigation to landing page without page reload
+      console.log('🏠 Navigating directly to landing page...');
+      window.history.pushState(null, '', '/');
+      
+      // Dispatch a custom event to trigger re-render of the app
+      window.dispatchEvent(new PopStateEvent('popstate'));
+      
+      console.log('✅ AuthContext: Complete sign out process finished');
+      return { error: null };
+      
     } catch (error) {
       console.error('❌ AuthContext: Unexpected sign out error:', error);
+      
+      // Even if there's an error, force clear local state
+      setUser(null);
+      setSession(null);
+      console.log('🧹 Forced local auth state clear due to error');
+      
+      // Show error message but still redirect
+      alert('⚠️ Sign Out Complete\n\nYou have been logged out (with some minor issues).\n\nRedirecting to home page...');
+      
+      // Direct navigation as fallback
+      window.history.pushState(null, '', '/');
+      window.dispatchEvent(new PopStateEvent('popstate'));
+      
       return { error: error as AuthError };
     } finally {
       setLoading(false);

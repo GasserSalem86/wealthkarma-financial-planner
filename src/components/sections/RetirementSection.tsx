@@ -146,13 +146,13 @@ const RetirementSection: React.FC<RetirementSectionProps> = ({ onNext, onBack })
                       <span className="text-white text-sm font-bold">3</span>
                     </div>
                     <span className="text-sm text-orange-600 font-medium">Retirement Plan</span>
-                  </div>
-                </div>
+          </div>
+        </div>
                 <div className="bg-orange-500/10 border border-orange-500/30 rounded-lg p-3 max-w-lg mx-auto">
                   <p className="text-sm text-orange-600 font-medium">
                     🌟 Fantastic momentum! You've built a solid foundation. Now let's secure your future with a retirement plan that gives you true financial freedom.
-                  </p>
-                </div>
+        </p>
+      </div>
               </div>
             </CardContent>
           </Card>
@@ -376,21 +376,23 @@ const RetirementSection: React.FC<RetirementSectionProps> = ({ onNext, onBack })
         </Button>
       </div>
 
-      {/* AI Guidance */}
-      <AIGuidance 
-        step="retirement-plan" 
-        context={{
-          name: state.userProfile.name,
-          nationality: state.userProfile.nationality,
-          location: state.userProfile.location,
-          monthlyIncome: state.userProfile.monthlyIncome,
-          monthlyExpenses: state.monthlyExpenses,
-          currency: currency.code,
-          currentStep: 'retirement-plan',
-          goals: retirementGoals
-        }}
-        componentId="retirement-section"
-      />
+      {/* AI Guidance - Only show on retirement step */}
+      {state.currentStep === 3 && (
+        <AIGuidance 
+          step="retirement-plan" 
+          context={{
+            name: state.userProfile.name,
+            nationality: state.userProfile.nationality,
+            location: state.userProfile.location,
+            monthlyIncome: state.userProfile.monthlyIncome,
+            monthlyExpenses: state.monthlyExpenses,
+            currency: currency.code,
+            currentStep: 'retirement-plan',
+            goals: retirementGoals
+          }}
+          componentId="retirement-section"
+        />
+      )}
     </div>
   );
 };

@@ -9,6 +9,7 @@ import FinancialGoalsPlanner from './components/FinancialGoalsPlanner';
 import Dashboard from './pages/Dashboard';
 import Login from './pages/Login';
 import EmailConfirmation from './pages/EmailConfirmation';
+import Debug from './pages/Debug';
 
 function App() {
   return (
@@ -25,6 +26,7 @@ function App() {
                 <Route path="/plan" element={<FinancialGoalsPlanner />} />
                 <Route path="/plan/:step" element={<FinancialGoalsPlanner />} />
                 <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/debug" element={<Debug />} />
               </Routes>
             </PlannerProvider>
           </CurrencyProvider>

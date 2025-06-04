@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { usePlanner } from '../../context/PlannerContext';
+import { useAuth } from '../../context/AuthContext';
 import { useCurrency } from '../../context/CurrencyContext';
 import Button from '../ui/Button';
 import Card, { CardHeader, CardTitle, CardContent, CardFooter } from '../ui/Card';
@@ -15,6 +16,7 @@ interface EmergencyFundSectionProps {
 const EmergencyFundSection: React.FC<EmergencyFundSectionProps> = ({ onNext }) => {
   const { state, dispatch } = usePlanner();
   const { currency } = useCurrency();
+  const { user } = useAuth();
 
   // Find existing emergency fund goal by id
   const existing = state.goals.find(g => g.id === 'emergency-fund');
@@ -731,31 +733,47 @@ Include ALL banks mentioned with ANY rate information. Return only the JSON arra
   const userCountry = getCountryFromLocation(state.userProfile.location || 'UAE');
   const totalRetailBanks = filterRetailBanks(getBanksByCountry(userCountry)).length;
   
-  // Fetch real-time bank data when country changes
+  // Fetch real-time bank data when country changes - ONLY if user is on emergency fund step
   useEffect(() => {
     const fetchBankData = async () => {
-      if (userCountry) {
-        try {
-          const realTimeData = await fetchRealTimeBankData(userCountry);
-          setRealTimeBankData(realTimeData);
-          
-          // Validate and clear selected bank if it doesn't exist in new bank list
-          if (selectedBank && realTimeData.length > 0) {
-            const bankExists = realTimeData.some(bank => bank.id === selectedBank.id);
-            if (!bankExists) {
-              console.log(`🧹 Clearing invalid selected bank: "${selectedBank.id}" not found in ${userCountry} banks`);
-              setSelectedBank(null);
-              
-              // Also update the goal to remove the invalid bank selection
-              if (existing && existing.selectedBank) {
-                const updatedGoal = { ...existing, selectedBank: null };
-                dispatchRef.current({ type: 'UPDATE_GOAL', payload: updatedGoal });
-              }
+      // Only fetch AI data if user is on emergency fund step (step 1)
+      const currentPath = window.location.pathname;
+      const isOnPlannerRoute = currentPath.startsWith('/plan') || currentPath.startsWith('/dashboard');
+      const isEmergencyFundStep = state.currentStep === 1; // Emergency fund is step 1
+      
+      if (!isOnPlannerRoute || !isEmergencyFundStep || !userCountry) {
+        console.log('🚫 Skipping bank data fetch:', { 
+          isOnPlannerRoute, 
+          isEmergencyFundStep, 
+          currentStep: state.currentStep,
+          userCountry 
+        });
+        return;
+      }
+      
+      try {
+        console.log(`🏦 Fetching bank data for emergency fund step in ${userCountry}`);
+        const realTimeData = await fetchRealTimeBankData(userCountry);
+        setRealTimeBankData(realTimeData);
+        
+        // Validate and clear selected bank if it doesn't exist in new bank list
+        if (selectedBank && realTimeData.length > 0) {
+          const bankExists = realTimeData.some(bank => bank.id === selectedBank.id);
+          if (!bankExists) {
+            console.log(`🧹 Clearing invalid selected bank: "${selectedBank.id}" not found in ${userCountry} banks`);
+            setSelectedBank(null);
+            
+            // Also update the goal to remove the invalid bank selection
+            if (existing && existing.selectedBank) {
+              const updatedGoal = { ...existing, selectedBank: null };
+              dispatchRef.current({ type: 'UPDATE_GOAL', payload: updatedGoal });
             }
           }
-        } catch (error) {
-          console.error('Failed to fetch bank data:', error);
-          // Create manual fallback as last resort
+        }
+      } catch (error) {
+        console.error('Failed to fetch bank data:', error);
+        // Create manual fallback as last resort - but only if on emergency fund step
+        if (isEmergencyFundStep) {
           const staticBanks = getBanksByCountry(userCountry);
           const fallback = createManualCheckFallback(staticBanks);
           setRealTimeBankData(fallback);
@@ -771,7 +789,7 @@ Include ALL banks mentioned with ANY rate information. Return only the JSON arra
     };
 
     fetchBankData();
-  }, [userCountry]); // Remove selectedBank from dependencies to prevent loops
+  }, [userCountry, state.currentStep]); // Add state.currentStep dependency
 
   // Use real-time data (which includes cached data)
   const finalAvailableBanks = realTimeBankData;
@@ -1069,8 +1087,8 @@ Include ALL banks mentioned with ANY rate information. Return only the JSON arra
           </CardFooter>
         </Card>
         
-        {/* AI Money Coach */}
-        {(state.userProfile.nationality && state.userProfile.location) && (
+        {/* AI Money Coach - Only show on emergency fund step */}
+        {(state.userProfile.nationality && state.userProfile.location && state.currentStep === 1) && (
           <div className="mt-6">
             <AIGuidance 
               step="emergency-fund" 
@@ -1694,9 +1712,9 @@ Include ALL banks mentioned with ANY rate information. Return only the JSON arra
         )}
       </div>
       
-      {/* AI Money Coach - Show when user has valid profile data */}
-      {(state.userProfile.nationality && state.userProfile.location) && (
-        <div className="mt-8">
+      {/* AI Money Coach - Only show on emergency fund step */}
+      {(state.userProfile.nationality && state.userProfile.location && state.currentStep === 1) && (
+        <div className="mt-6">
           <AIGuidance 
             step="emergency-fund" 
             context={aiContext}

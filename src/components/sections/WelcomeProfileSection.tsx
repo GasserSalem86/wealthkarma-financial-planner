@@ -358,8 +358,8 @@ const WelcomeProfileSection: React.FC<WelcomeProfileSectionProps> = ({ onNext })
         </CardFooter>
       </Card>
       
-      {/* AI Guidance */}
-      {name && (
+      {/* AI Guidance - Only show on welcome/profile step */}
+      {(name && state.currentStep === 0) && (
         <AIGuidance 
           step="profile-setup"
           context={{

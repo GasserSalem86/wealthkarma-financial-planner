@@ -355,7 +355,7 @@ Keep responses conversational and provide portfolio-aware advice based on their 
           const searchPrompt = `Search for current 2024-2025 RETAIL bank savings account and time deposit interest rates in ${country}. Focus on personal/individual banking accounts suitable for emergency funds for expats, not corporate or investment banking. Return highest rates first.`;
           
           const response = await this.openai.responses.create({
-            model: 'gpt-4o',
+            model: 'gpt-4o-mini',
             input: searchPrompt,
             tools: [{ type: "web_search_preview" }],
             temperature: 0.7
@@ -393,7 +393,7 @@ ${stepPrompts[step as keyof typeof stepPrompts] || 'Please provide general finan
       }
 
       const completion = await this.openai.chat.completions.create({
-        model: "gpt-4",
+        model: "gpt-4o-mini",
         messages,
         max_tokens: 500,
         temperature: 0.7,
@@ -537,7 +537,7 @@ Please help with their goal planning request. Be specific and practical in your 
         });
 
       const completion = await this.openai.chat.completions.create({
-        model: "gpt-4",
+        model: "gpt-4o-mini",
         messages,
           max_tokens: 1500,
         temperature: 0.7,
@@ -595,7 +595,7 @@ For other searches: Provide specific, current data with realistic estimates in t
 Include sources where possible and verify information is current and from 2025.`;
 
           const response = await this.openai.responses.create({
-            model: 'gpt-4o',
+            model: 'gpt-4o-mini',
             input: searchPrompt,
             tools: [{ type: "web_search_preview" }],
             temperature: 0.7
@@ -642,7 +642,7 @@ Please search for current 2025 cost information to help with their goal planning
             });
 
             const completion = await this.openai.chat.completions.create({
-              model: 'gpt-4o-search-preview', // Official search model
+              model: 'gpt-4o-mini-search-preview',
               messages,
               max_tokens: 3000, // Increased from 2000 for comprehensive bank data
               temperature: 0.7,
@@ -705,7 +705,7 @@ Provide helpful, specific guidance for their goal planning question. Ask follow-
         });
 
         const completion = await this.openai.chat.completions.create({
-          model: "gpt-4",
+          model: "gpt-4o-mini",
           messages,
           max_tokens: 1200, // Increased from 800 for better responses
           temperature: 0.7,
@@ -724,8 +724,6 @@ Provide helpful, specific guidance for their goal planning question. Ask follow-
       };
     }
   }
-
-
 
   // Method to get bank options for a specific country
   private getBankOptionsForCountry(country: string): BankOption[] {
@@ -1072,6 +1070,18 @@ Provide helpful, specific guidance for their goal planning question. Ask follow-
     return result;
   }
 
+  // Helper function to clean JSON response from markdown formatting
+  private cleanJsonResponse(responseText: string): string {
+    // Remove markdown code blocks if present
+    const jsonMatch = responseText.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+    if (jsonMatch) {
+      return jsonMatch[1].trim();
+    }
+    
+    // If no code blocks, return the response as-is (it might already be clean JSON)
+    return responseText.trim();
+  }
+
   // Retirement Planning Assistance Methods
   async getRetirementDestinationSuggestions(context: UserContext): Promise<RetirementPlanningResponse> {
     if (!this.openai) {
@@ -1120,7 +1130,7 @@ For each destination, provide:
 
 Address the user by their name (${context.name || 'you'}) in your response to make it personal and engaging.
 
-Format as JSON with this structure:
+CRITICAL: Return ONLY a raw JSON object without any markdown formatting or code blocks. Use this exact structure:
 {
   "message": "Personalized introduction message mentioning that their home country is included",
   "destinations": [
@@ -1135,13 +1145,12 @@ Format as JSON with this structure:
       "visaRequirements": "Visa info"
     }
   ]
-}
-`;
+}`;
 
       const completion = await this.openai.chat.completions.create({
-        model: 'gpt-4',
+        model: 'gpt-4o-mini',
         messages: [
-          { role: 'system', content: 'You are a retirement planning expert for GCC expats. Always include the user\'s home country as the first destination option. Address the user by their actual name when provided, never use generic terms like "client" or nationality-based titles. CRITICAL: Always provide all cost estimates in the user\'s chosen currency, not USD unless they specifically use USD. Use accurate currency conversions. Provide practical, actionable advice in JSON format.' },
+          { role: 'system', content: 'You are a retirement planning expert for GCC expats. Always include the user\'s home country as the first destination option. Address the user by their actual name when provided, never use generic terms like "client" or nationality-based titles. CRITICAL: Always provide all cost estimates in the user\'s chosen currency, not USD unless they specifically use USD. Use accurate currency conversions. IMPORTANT: Return ONLY raw JSON without markdown code blocks or formatting.' },
           { role: 'user', content: prompt }
         ],
         temperature: 0.7
@@ -1152,7 +1161,9 @@ Format as JSON with this structure:
         throw new Error('No response received');
       }
 
-      const parsedResponse = JSON.parse(responseText);
+      // Clean the response before parsing
+      const cleanedResponse = this.cleanJsonResponse(responseText);
+      const parsedResponse = JSON.parse(cleanedResponse);
       
       const interactiveButtons: RetirementButton[] = parsedResponse.destinations?.map((dest: any, index: number) => ({
         id: `destination-${index}`,
@@ -1217,7 +1228,7 @@ Categories to include:
 
 Address the user by their name (${context.name || 'you'}) in your response to make it personal and engaging.
 
-Format as JSON:
+CRITICAL: Return ONLY a raw JSON object without any markdown formatting or code blocks. Use this exact structure:
 {
   "message": "Personalized explanation",
   "totalMonthlyCost": 1500,
@@ -1231,13 +1242,12 @@ Format as JSON:
     "other": 100
   },
   "tips": ["Tip 1", "Tip 2", "Tip 3"]
-}
-`;
+}`;
 
       const completion = await this.openai.chat.completions.create({
-        model: 'gpt-4',
+        model: 'gpt-4o-mini',
         messages: [
-          { role: 'system', content: 'You are a retirement cost analysis expert. Address the user by their actual name when provided, never use generic terms like "client" or nationality-based titles. CRITICAL: Always provide all cost estimates in the user\'s chosen currency, not USD unless they specifically use USD. Use accurate currency conversions from local prices. Provide accurate, realistic cost estimates in JSON format.' },
+          { role: 'system', content: 'You are a retirement cost analysis expert. Address the user by their actual name when provided, never use generic terms like "client" or nationality-based titles. CRITICAL: Always provide all cost estimates in the user\'s chosen currency, not USD unless they specifically use USD. Use accurate currency conversions from local prices. IMPORTANT: Return ONLY raw JSON without markdown code blocks or formatting.' },
           { role: 'user', content: prompt }
         ],
         temperature: 0.7
@@ -1248,7 +1258,9 @@ Format as JSON:
         throw new Error('No response received');
       }
 
-      const parsedResponse = JSON.parse(responseText);
+      // Clean the response before parsing
+      const cleanedResponse = this.cleanJsonResponse(responseText);
+      const parsedResponse = JSON.parse(cleanedResponse);
 
       return {
         message: parsedResponse.message,

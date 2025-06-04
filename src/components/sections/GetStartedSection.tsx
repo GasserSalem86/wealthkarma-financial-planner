@@ -3,6 +3,7 @@ import { usePlanner } from '../../context/PlannerContext';
 import { useCurrency } from '../../context/CurrencyContext';
 import { useAuth } from '../../context/AuthContext';
 import { formatCurrency } from '../../utils/calculations';
+import { saveUserDataOnSignup } from '../../services/autoDataService';
 import { 
   Mail, 
   CheckCircle, 
@@ -20,6 +21,7 @@ import {
 } from 'lucide-react';
 import Card, { CardHeader, CardTitle, CardContent } from '../ui/Card';
 import Button from '../ui/Button';
+import { supabase } from '../../lib/supabase';
 
 interface GetStartedSectionProps {
   onNext?: () => void;
@@ -29,7 +31,7 @@ interface GetStartedSectionProps {
 const GetStartedSection: React.FC<GetStartedSectionProps> = ({ onBack }) => {
   const { state } = usePlanner();
   const { currency } = useCurrency();
-  const { sendOTP, verifyOTP, user } = useAuth();
+  const { sendOTP, verifyOTP, user, session } = useAuth();
   const [isSigningUp, setIsSigningUp] = useState(false);
   const [email, setEmail] = useState('');
   const [otpCode, setOtpCode] = useState('');
@@ -133,41 +135,8 @@ const GetStartedSection: React.FC<GetStartedSectionProps> = ({ onBack }) => {
         }
 
         console.log('✅ OTP verified successfully, user authenticated');
-        setDebugStatus('Account created! Saving your planning data...');
+        setDebugStatus('Account created successfully!');
 
-        // Save planning data (non-blocking)
-        const saveDataWithTimeout = async () => {
-          try {
-            console.log('💾 Attempting to save planning data...');
-            
-            const { plannerPersistence } = await import('../../services/plannerPersistence');
-            
-            if (result.user) {
-              console.log('👤 Found authenticated user:', result.user.id);
-              const saveResult = await plannerPersistence.savePlanningData(result.user.id, state);
-              return saveResult;
-            }
-            return { success: false, error: 'No authenticated user found' };
-          } catch (error) {
-            console.warn('⚠️ Non-critical error saving planning data:', error);
-            setDebugStatus('Data save error (non-critical)');
-            return { success: false, error: 'Data save error (non-critical)' };
-          }
-        };
-
-        // Start data saving but don't wait for it to prevent blocking
-        saveDataWithTimeout().then(saveResult => {
-          if (saveResult.success) {
-            console.log('✅ Planning data saved successfully!');
-            setDebugStatus('Planning data saved successfully!');
-          } else {
-            console.warn('⚠️ Failed to save planning data:', saveResult.error);
-            setDebugStatus('Data save failed, but continuing...');
-          }
-        }).catch(error => {
-          console.warn('⚠️ Data save promise failed:', error);
-        });
-        
         // Track successful signup
         if (window.gtag) {
           window.gtag('event', 'signup_success', {
@@ -179,14 +148,64 @@ const GetStartedSection: React.FC<GetStartedSectionProps> = ({ onBack }) => {
 
         // OTP verification successful - user is now authenticated
         console.log('✅ User successfully authenticated via OTP');
-        setDebugStatus('Welcome! Your account is ready.');
+        
+        // Auto-save user financial planning data (using exact working manual save method)
+        // Give AuthContext a moment to update session, then try multiple approaches
+        if (result.user) {
+          console.log('💾 Auto-saving financial planning data...');
+          setDebugStatus('Saving your financial plan...');
+          
+          try {
+            // Small delay to let AuthContext update the session
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            let accessToken = session?.access_token;
+            
+            // If AuthContext session isn't ready, try getting session directly from Supabase
+            if (!accessToken) {
+              console.log('🔄 AuthContext session not ready, trying direct session fetch...');
+              try {
+                const { data: sessionData } = await supabase.auth.getSession();
+                accessToken = sessionData?.session?.access_token;
+                console.log('📱 Direct session fetch result:', accessToken ? 'Got token' : 'No token');
+              } catch (sessionError) {
+                console.warn('⚠️ Direct session fetch failed:', sessionError);
+              }
+            } else {
+              console.log('✅ Using access token from AuthContext');
+            }
+            
+            if (!accessToken) {
+              console.warn('⚠️ No access token available from any source');
+              setDebugStatus('Account created successfully! (Manual save may be needed)');
+            } else {
+              console.log('✅ Got access token for auto-save');
+              const saveResult = await saveUserDataOnSignup(result.user.id, state, accessToken);
+              
+              if (saveResult.success) {
+                console.log('✅ Financial planning data auto-saved successfully!');
+                setDebugStatus('Your financial plan has been saved securely!');
+              } else {
+                console.warn('⚠️ Financial planning data save failed:', saveResult.error);
+                setDebugStatus('Account created, but data save failed. You can manually save later.');
+              }
+            }
+          } catch (saveError) {
+            console.error('❌ Error auto-saving financial data:', saveError);
+            setDebugStatus('Account created, but data save failed. You can manually save later.');
+          }
+        } else {
+          console.warn('⚠️ No user data available for auto-save');
+          setDebugStatus('Account created successfully! (Manual save may be needed)');
+        }
+        
         setShowSuccess(true);
         
         // Redirect to dashboard after showing success message
         setTimeout(() => {
           console.log('🚀 Redirecting to dashboard...');
           window.location.href = '/dashboard';
-        }, 2000); // 2 second delay to let user see success message
+        }, 3000); // 3 second delay to let user see success and save status
       }
 
     } catch (error) {

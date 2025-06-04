@@ -334,9 +334,9 @@ const AllocationTable = ({ activeGoal, setActiveGoal }: { activeGoal: string, se
       <div className="bg-gradient-to-r from-green-500/10 to-orange-500/10 border-b border-theme p-6 rounded-t-xl">
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="heading-h3-sm text-theme-primary mb-2">
+        <h3 className="heading-h3-sm text-theme-primary mb-2">
               Step 2: Check if Your Plan is Feasible
-            </h3>
+        </h3>
             <p className="text-theme-secondary mb-4">See if your current goals fit within your monthly budget. If any goals appear challenging to achieve, simply revisit your Emergency Fund, Goals, or Retirement sections to adjust amounts or extend timelines for a more comfortable plan.</p>
           </div>
           <Button
@@ -372,11 +372,11 @@ const AllocationTable = ({ activeGoal, setActiveGoal }: { activeGoal: string, se
                       Monthly Amount
                     </th>
                     <th className="px-6 py-4 text-left heading-table">
-                      Extra Money
-                    </th>
-                    <th className="px-6 py-4 text-left heading-table">
-                      Final Monthly
-                    </th>
+                  Extra Money
+                </th>
+                <th className="px-6 py-4 text-left heading-table">
+                  Final Monthly
+                </th>
                   </>
                 )}
                 <th className="px-6 py-4 text-left heading-table">
@@ -438,32 +438,32 @@ const AllocationTable = ({ activeGoal, setActiveGoal }: { activeGoal: string, se
                     </td>
                     {showDetails && (
                       <>
-                        <td className="px-6 py-5">
-                          <div className="flex items-center gap-2">
-                            {firstNonZero > state.budget && (
-                              <span title="Exceeds current monthly budget">
-                                <AlertTriangle className="w-4 h-4 text-red-500" />
-                              </span>
-                            )}
-                            <span className="text-sm font-medium text-theme-primary" title={`Theoretical PMT: ${formatCurrency(allocation.initialPMT, currency)}`}>
-                              {formatCurrency(firstActual, currency)}
-                            </span>
-                          </div>
-                        </td>
-                        <td className="px-6 py-5">
-                          {reallocation > 0 ? (
-                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-500/20 text-green-400">
-                              +{formatCurrency(reallocation, currency)}
-                            </span>
-                          ) : (
-                            <span className="text-theme-muted text-sm">-</span>
-                          )}
-                        </td>
-                        <td className="px-6 py-5">
-                          <span className="text-sm font-bold text-theme-primary">
-                            {formatCurrency(finalPMT, currency)}
+                    <td className="px-6 py-5">
+                      <div className="flex items-center gap-2">
+                        {firstNonZero > state.budget && (
+                          <span title="Exceeds current monthly budget">
+                            <AlertTriangle className="w-4 h-4 text-red-500" />
                           </span>
-                        </td>
+                        )}
+                        <span className="text-sm font-medium text-theme-primary" title={`Theoretical PMT: ${formatCurrency(allocation.initialPMT, currency)}`}>
+                          {formatCurrency(firstActual, currency)}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-5">
+                      {reallocation > 0 ? (
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-500/20 text-green-400">
+                          +{formatCurrency(reallocation, currency)}
+                        </span>
+                      ) : (
+                        <span className="text-theme-muted text-sm">-</span>
+                      )}
+                    </td>
+                    <td className="px-6 py-5">
+                      <span className="text-sm font-bold text-theme-primary">
+                        {formatCurrency(finalPMT, currency)}
+                      </span>
+                    </td>
                       </>
                     )}
                     <td className="px-6 py-5">
