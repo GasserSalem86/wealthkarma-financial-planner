@@ -394,11 +394,13 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
             ...g,
             targetDate: new Date(g.targetDate),
           }));
+          // Always ensure loading is false on init
           return { ...init, ...parsed, isLoading: false, isDataLoaded: true };
         }
       } catch (error) {
         console.warn('Failed to parse localStorage data:', error);
       }
+      // Ensure loading is false when no localStorage data
       return { ...init, isLoading: false, isDataLoaded: true };
     }
   );
@@ -406,6 +408,7 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
   // Load data from Supabase when user is authenticated
   useEffect(() => {
     let isLoading = false; // Prevent multiple simultaneous loads
+    let timeoutId: NodeJS.Timeout;
     
     const loadUserData = async () => {
       console.log('🔍 Load check:', { 
@@ -413,11 +416,16 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
         userId: user?.id, 
         hasSession: !!session, 
         hasAccessToken: !!session?.access_token,
-        isLoading 
+        isLoading,
+        currentIsLoading: state.isLoading
       });
 
       if (!user) {
-        console.log('🚫 No user during init, keeping current state from localStorage');
+        console.log('🚫 No user during init, ensuring loading is false');
+        // Ensure loading state is false when no user
+        if (state.isLoading) {
+          dispatch({ type: 'SET_LOADING', payload: false });
+        }
         return;
       }
 
@@ -431,9 +439,14 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
         return;
       }
 
-      if (isLoading) {
-        console.log('🔄 Already loading, skipping...');
-        return;
+      // Check if we already have data loaded and it's recent
+      const lastLoaded = sessionStorage.getItem('last_data_load');
+      if (lastLoaded) {
+        const timeSinceLoad = Date.now() - parseInt(lastLoaded);
+        if (timeSinceLoad < 30000 && state.isDataLoaded) { // 30 seconds
+          console.log('📊 Recent data load detected, skipping reload');
+          return;
+        }
       }
 
       isLoading = true;
@@ -442,6 +455,14 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
       
       dispatch({ type: 'SET_LOADING', payload: true });
 
+      // Set a maximum timeout for the entire loading process
+      const maxLoadTime = 60000; // 60 seconds maximum
+      timeoutId = setTimeout(() => {
+        console.error('⏰ Load operation timed out after 60 seconds, forcing loading to false');
+        dispatch({ type: 'SET_LOADING', payload: false });
+        isLoading = false;
+      }, maxLoadTime);
+
       try {
         const { plannerPersistence } = await import('../services/plannerPersistence');
         console.log('🎯 Calling plannerPersistence.loadPlanningData...');
@@ -449,7 +470,7 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
         const result = await plannerPersistence.loadPlanningData(user.id, session.access_token);
         console.log('📋 Load result:', { success: result.success, hasData: !!result.data, error: result.error });
 
-        if (result.success && result.data) {
+        if (result.success && result.data && Object.keys(result.data).length > 0) {
           console.log('✅ Successfully loaded data from Supabase');
           console.log('📊 Loaded data summary:', {
             userProfile: !!result.data.userProfile,
@@ -463,30 +484,46 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
           // Clear localStorage only on successful load
           localStorage.removeItem('planner-state');
           console.log('🗑️ Cleared localStorage - Supabase data loaded successfully');
+          
+          // Mark successful load time
+          sessionStorage.setItem('last_data_load', Date.now().toString());
         } else {
-          console.warn('⚠️ Failed to load from Supabase:', result.error);
-          console.log('📱 Keeping existing data - Supabase load failed');
-          // DO NOT clear localStorage or reset to empty state
-          // Keep existing data (from localStorage init or current state)
+          console.warn('⚠️ Failed to load from Supabase or no data found:', result.error);
+          console.log('📱 Keeping existing data - Supabase load failed or returned empty');
+          
+          // If we have existing data from localStorage, keep it
+          if (state.userProfile?.name || state.goals?.length > 0) {
+            console.log('✅ Using existing localStorage data since Supabase had no data');
+          } else {
+            console.log('ℹ️ No existing data and no Supabase data - user likely needs to start planning');
+          }
         }
         
       } catch (error) {
         console.error('❌ Error loading user data:', error);
         console.log('📱 Keeping existing data - error occurred');
-        // DO NOT clear localStorage or reset to empty state
-        // Keep existing data
+        
+        // If we have existing data, keep it, otherwise ensure we're not stuck loading
+        if (!state.userProfile?.name && (!state.goals || state.goals.length === 0)) {
+          console.log('ℹ️ No existing data and load failed - user likely needs to start planning');
+        }
       } finally {
+        // Always clear loading state and timeout
+        clearTimeout(timeoutId);
         dispatch({ type: 'SET_LOADING', payload: false });
         isLoading = false;
-        console.log('🏁 Load attempt finished');
+        console.log('🏁 Load attempt finished, loading state cleared');
       }
     };
 
     // Add a small delay to ensure session is available
-    const timeoutId = setTimeout(loadUserData, 100);
+    const initTimeoutId = setTimeout(loadUserData, 100);
     
-    return () => clearTimeout(timeoutId);
-  }, [user, session]); // Dependency on both user and session
+    return () => {
+      clearTimeout(initTimeoutId);
+      if (timeoutId) clearTimeout(timeoutId);
+    };
+  }, [user, session]);
 
   // Handle sign out - ONLY reset when user explicitly signs out
   useEffect(() => {
@@ -514,8 +551,9 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
         }
       });
       
-      // Clear the authentication flag
+      // Clear the authentication flag and load time
       sessionStorage.removeItem('was-authenticated');
+      sessionStorage.removeItem('last_data_load');
       
       console.log('✅ Planner state reset complete');
     } else if (user && session) {
@@ -524,15 +562,19 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
   }, [user, session]); // Listen to both user and session changes
 
-  // Persist on every state change - ALWAYS save to localStorage for progress preservation
+  // Persist on every state change - but avoid saving when loading
   useEffect(() => {
-    console.log('💾 Saving planner state to localStorage');
-    try {
-      localStorage.setItem('planner-state', JSON.stringify(state));
-    } catch (error) {
-      console.warn('Failed to save to localStorage:', error);
+    if (!state.isLoading) {
+      console.log('💾 Saving planner state to localStorage');
+      try {
+        localStorage.setItem('planner-state', JSON.stringify(state));
+      } catch (error) {
+        console.warn('Failed to save to localStorage:', error);
+      }
+    } else {
+      console.log('🚫 Not saving to localStorage (currently loading)');
     }
-  }, [state]); // Removed dependency on user - always save to preserve anonymous progress
+  }, [state]);
 
   // Save function to persist changes to Supabase (kept for manual use)
   const saveToSupabase = async (): Promise<{ success: boolean; error?: string }> => {
