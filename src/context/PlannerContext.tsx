@@ -483,20 +483,32 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
       console.log('🔑 Access token available:', session.access_token.substring(0, 20) + '...');
 
       // Set a maximum timeout for the entire loading process
-      const maxLoadTime = 60000; // 60 seconds maximum
+      const maxLoadTime = 30000; // 30 seconds maximum (reduced from 60)
       timeoutId = setTimeout(() => {
-        console.error('⏰ Load operation timed out after 60 seconds, forcing loading to false');
+        console.error('⏰ Load operation timed out after 30 seconds, forcing loading to false');
+        console.log('🔄 This might be a network connectivity issue. Dashboard will load with localStorage data if available.');
         dispatch({ type: 'SET_LOADING', payload: false });
         isLoadingRef.current = false;
         globalLoadingFlag = false;
-        // Mark as failure to prevent immediate retry
-        sessionStorage.setItem(failureKey, Date.now().toString());
+        // Don't mark as failure for timeout - might be temporary network issue
+        console.log('💡 TIP: If you have a slow connection, your data might still be saved. Try refreshing if needed.');
       }, maxLoadTime);
 
       try {
         console.log('🎯 Calling plannerPersistence.loadPlanningData...');
         
+        // Add connection timeout warning
+        const connectionWarningTimeout = setTimeout(() => {
+          console.log('⚠️ Data loading is taking longer than expected (15s). This might be due to:');
+          console.log('   • Slow network connection');
+          console.log('   • Supabase server latency');
+          console.log('   • Large amount of data to load');
+          console.log('   Dashboard will continue loading in background...');
+        }, 15000);
+        
         const result = await plannerPersistence.loadPlanningData(user.id, session.access_token);
+        clearTimeout(connectionWarningTimeout);
+        
         console.log('📋 Load result:', { success: result.success, hasData: !!result.data, error: result.error });
 
         if (result.success && result.data && Object.keys(result.data).length > 0) {
