@@ -593,6 +593,14 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
       sessionStorage.removeItem('was-authenticated');
       sessionStorage.removeItem('last_data_load');
       
+      // Clear any failure markers to ensure smooth sign-in later
+      Object.keys(sessionStorage).forEach(key => {
+        if (key.startsWith('load_failures_')) {
+          sessionStorage.removeItem(key);
+          console.log('🗑️ Cleared failure marker:', key);
+        }
+      });
+      
       // IMMEDIATELY clear ALL localStorage data (before state updates)
       localStorage.removeItem('planner-state');
       console.log('🗑️ IMMEDIATELY cleared localStorage on sign-out');
