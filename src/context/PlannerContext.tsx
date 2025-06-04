@@ -520,15 +520,33 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
             hasAllocations: !!result.data.allocations
           });
           
-          dispatch({ type: 'LOAD_PLANNING_DATA', payload: result.data });
+          // Check if Supabase data is actually meaningful (not just empty objects)
+          const hasUserProfile = result.data.userProfile?.name || result.data.userProfile?.monthlyIncome;
+          const hasGoals = result.data.goals && result.data.goals.length > 0;
+          const hasBudget = result.data.budget && result.data.budget > 0;
+          const hasProgress = result.data.currentStep && result.data.currentStep > 0;
+          const hasMeaningfulData = hasUserProfile || hasGoals || hasBudget || hasProgress;
           
-          // Clear localStorage only on successful load
-          localStorage.removeItem('planner-state');
-          console.log('🗑️ Cleared localStorage - Supabase data loaded successfully');
-          
-          // Mark successful load time and clear any failure markers
-          sessionStorage.setItem('last_data_load', Date.now().toString());
-          sessionStorage.removeItem(failureKey);
+          if (hasMeaningfulData) {
+            console.log('✅ Supabase has meaningful data - replacing localStorage');
+            dispatch({ type: 'LOAD_PLANNING_DATA', payload: result.data });
+            
+            // Only clear localStorage when we have actual meaningful data from Supabase
+            localStorage.removeItem('planner-state');
+            console.log('🗑️ Cleared localStorage - Supabase data loaded successfully');
+            
+            // Mark successful load time and clear any failure markers
+            sessionStorage.setItem('last_data_load', Date.now().toString());
+            sessionStorage.removeItem(failureKey);
+          } else {
+            console.log('⚠️ Supabase returned empty/minimal data - keeping localStorage progress');
+            console.log('📱 Preserving user\'s work-in-progress from localStorage');
+            
+            // Don't replace state or clear localStorage - user's progress is more valuable
+            // Just mark that we attempted to load from Supabase
+            sessionStorage.setItem('last_data_load', Date.now().toString());
+            sessionStorage.removeItem(failureKey);
+          }
         } else {
           console.warn('⚠️ Failed to load from Supabase or no data found:', result.error);
           console.log('📱 Keeping existing data - Supabase load failed or returned empty');
