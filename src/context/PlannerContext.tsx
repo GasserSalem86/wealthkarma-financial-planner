@@ -407,7 +407,6 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   // Load data from Supabase when user is authenticated
   useEffect(() => {
-    let isLoading = false; // Prevent multiple simultaneous loads
     let timeoutId: NodeJS.Timeout;
     
     const loadUserData = async () => {
@@ -416,7 +415,6 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
         userId: user?.id, 
         hasSession: !!session, 
         hasAccessToken: !!session?.access_token,
-        isLoading,
         currentIsLoading: state.isLoading
       });
 
@@ -439,6 +437,12 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
         return;
       }
 
+      // CRITICAL: Use state.isLoading to prevent duplicate loads
+      if (state.isLoading) {
+        console.log('🔄 Already loading (state.isLoading = true), skipping...');
+        return;
+      }
+
       // Check if we already have data loaded and it's recent
       const lastLoaded = sessionStorage.getItem('last_data_load');
       if (lastLoaded) {
@@ -449,10 +453,10 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
         }
       }
 
-      isLoading = true;
       console.log('👤 User authenticated with valid session, loading data from Supabase...');
       console.log('🔑 Access token available:', session.access_token.substring(0, 20) + '...');
       
+      // Set loading state immediately to prevent race conditions
       dispatch({ type: 'SET_LOADING', payload: true });
 
       // Set a maximum timeout for the entire loading process
@@ -460,7 +464,6 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
       timeoutId = setTimeout(() => {
         console.error('⏰ Load operation timed out after 60 seconds, forcing loading to false');
         dispatch({ type: 'SET_LOADING', payload: false });
-        isLoading = false;
       }, maxLoadTime);
 
       try {
@@ -511,19 +514,25 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
         // Always clear loading state and timeout
         clearTimeout(timeoutId);
         dispatch({ type: 'SET_LOADING', payload: false });
-        isLoading = false;
         console.log('🏁 Load attempt finished, loading state cleared');
       }
     };
 
-    // Add a small delay to ensure session is available
-    const initTimeoutId = setTimeout(loadUserData, 100);
+    // Add a small delay to ensure session is available, but check loading state first
+    const initTimeoutId = setTimeout(() => {
+      // Double-check loading state before starting
+      if (!state.isLoading) {
+        loadUserData();
+      } else {
+        console.log('🔄 Skipping load - already in loading state');
+      }
+    }, 100);
     
     return () => {
       clearTimeout(initTimeoutId);
       if (timeoutId) clearTimeout(timeoutId);
     };
-  }, [user, session]);
+  }, [user, session, state.isLoading]); // Add state.isLoading to dependencies
 
   // Handle sign out - ONLY reset when user explicitly signs out
   useEffect(() => {
