@@ -1,6 +1,6 @@
-import React, { createContext, useContext, useReducer, useEffect, useRef } from 'react';
-import { Goal, Profile, ReturnPhase, FundingStyle } from '../types/plannerTypes';
-import { calculateRequiredPMT, calculateSequentialAllocations, GoalResult } from '../utils/calculations';
+import React, { createContext, useContext, useReducer, useEffect } from 'react';
+import { Goal, GoalResult, Profile, ReturnPhase, FundingStyle } from '../types/plannerTypes';
+import { calculateSequentialAllocations, calculateRequiredPMT } from '../utils/calculations';
 import { useAuth } from './AuthContext';
 
 // Define the context state type
@@ -134,9 +134,6 @@ const buildReturnPhases = (
     { length: low, rate: rates.low },
   ];
 };
-
-// Global flag to prevent duplicate loading across component re-mounts
-const globalLoadingTracker = new Map<string, boolean>();
 
 // Create the reducer function
 const plannerReducer = (state: PlannerState, action: PlannerAction): PlannerState => {
@@ -380,36 +377,8 @@ const PlannerContext = createContext<PlannerContextType | undefined>(undefined);
 
 // Create a provider component with localStorage persistence
 export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { user } = useAuth(); // Use auth context instead of direct supabase calls
-  const isLoadingRef = useRef(false); // Prevent multiple simultaneous loads
-  const hasAttemptedLoadRef = useRef(false); // Track if we've attempted to load data
-  const lastUserIdRef = useRef<string | null>(null); // Track user changes
-  const componentMountedRef = useRef(false); // Track if component is mounted
+  const { user, session } = useAuth(); // Get both user and session from AuthContext
   
-  // Reset loading state when user changes
-  const currentUserId = user?.id || null;
-  
-  // Check global tracker for this user
-  const globalKey = currentUserId || 'no-user';
-  const hasGloballyAttempted = globalLoadingTracker.get(globalKey) || false;
-  
-  // Only reset on actual user changes, not on initial mount
-  if (componentMountedRef.current && currentUserId !== lastUserIdRef.current) {
-    console.log('User changed from', lastUserIdRef.current, 'to', currentUserId, '- resetting loading state');
-    lastUserIdRef.current = currentUserId;
-    hasAttemptedLoadRef.current = false;
-    isLoadingRef.current = false;
-    // Clear global tracker for old user if they changed
-    if (lastUserIdRef.current) {
-      globalLoadingTracker.delete(lastUserIdRef.current);
-    }
-  } else if (!componentMountedRef.current) {
-    // First mount
-    lastUserIdRef.current = currentUserId;
-    componentMountedRef.current = true;
-    hasAttemptedLoadRef.current = hasGloballyAttempted;
-  }
-
   // Lazy init: attempt to load from localStorage
   const [state, dispatch] = useReducer(
     plannerReducer,
@@ -418,116 +387,154 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
       try {
         const saved = localStorage.getItem('planner-state');
         if (saved) {
+          console.log('📱 Loading saved state from localStorage on init');
           const parsed = JSON.parse(saved);
           // Revive Date objects
           parsed.goals = (parsed.goals || []).map((g: any) => ({
             ...g,
             targetDate: new Date(g.targetDate),
           }));
-          return { ...init, ...parsed, isLoading: false, isDataLoaded: false };
+          return { ...init, ...parsed, isLoading: false, isDataLoaded: true };
         }
-      } catch (_) {}
-      return { ...init, isLoading: false };
+      } catch (error) {
+        console.warn('Failed to parse localStorage data:', error);
+      }
+      return { ...init, isLoading: false, isDataLoaded: true };
     }
   );
 
-  // Load data from Supabase for authenticated users
+  // Load data from Supabase when user is authenticated
   useEffect(() => {
-    const loadDataFromSupabase = async (userId: string) => {
-      try {
-        console.log('Loading planning data from Supabase for user:', userId);
-        dispatch({ type: 'SET_LOADING', payload: true });
-        
-        // In development, if we've had persistent timeout issues, use shorter timeout
-        const isDevelopment = window.location.hostname === 'localhost';
-        const timeoutDuration = isDevelopment ? 3000 : 5000;
-        
-        // Add timeout to prevent hanging
-        const loadPromise = (async () => {
-          const { plannerPersistence } = await import('../services/plannerPersistence');
-          return await plannerPersistence.loadPlanningData(userId);
-        })();
-        
-        const timeoutPromise = new Promise((_, reject) => {
-          setTimeout(() => reject(new Error(`Data loading timeout after ${timeoutDuration/1000} seconds`)), timeoutDuration);
-        });
+    let isLoading = false; // Prevent multiple simultaneous loads
+    
+    const loadUserData = async () => {
+      console.log('🔍 Load check:', { 
+        hasUser: !!user, 
+        userId: user?.id, 
+        hasSession: !!session, 
+        hasAccessToken: !!session?.access_token,
+        isLoading 
+      });
 
-        console.log('Waiting for data loading to complete...');
-        const result = await Promise.race([loadPromise, timeoutPromise]) as any;
+      if (!user) {
+        console.log('🚫 No user during init, keeping current state from localStorage');
+        return;
+      }
+
+      if (!session) {
+        console.log('📭 No session available yet, waiting...');
+        return;
+      }
+
+      if (!session.access_token) {
+        console.log('📭 No access token in session, waiting...');
+        return;
+      }
+
+      if (isLoading) {
+        console.log('🔄 Already loading, skipping...');
+        return;
+      }
+
+      isLoading = true;
+      console.log('👤 User authenticated with valid session, loading data from Supabase...');
+      console.log('🔑 Access token available:', session.access_token.substring(0, 20) + '...');
+      
+      dispatch({ type: 'SET_LOADING', payload: true });
+
+      try {
+        const { plannerPersistence } = await import('../services/plannerPersistence');
+        console.log('🎯 Calling plannerPersistence.loadPlanningData...');
+        
+        const result = await plannerPersistence.loadPlanningData(user.id, session.access_token);
+        console.log('📋 Load result:', { success: result.success, hasData: !!result.data, error: result.error });
 
         if (result.success && result.data) {
-          console.log('Successfully loaded planning data from Supabase:', result.data);
-          
-          // Revive Date objects in goals
-          if (result.data.goals) {
-            result.data.goals = result.data.goals.map((goal: any) => ({
-              ...goal,
-              targetDate: new Date(goal.targetDate),
-            }));
-          }
-
-          dispatch({ 
-            type: 'LOAD_PLANNING_DATA', 
-            payload: { 
-              ...result.data, 
-              isLoading: false, 
-              isDataLoaded: true 
-            } 
+          console.log('✅ Successfully loaded data from Supabase');
+          console.log('📊 Loaded data summary:', {
+            userProfile: !!result.data.userProfile,
+            goalsCount: result.data.goals?.length || 0,
+            budget: result.data.budget,
+            hasAllocations: !!result.data.allocations
           });
+          
+          dispatch({ type: 'LOAD_PLANNING_DATA', payload: result.data });
+          
+          // Clear localStorage only on successful load
+          localStorage.removeItem('planner-state');
+          console.log('🗑️ Cleared localStorage - Supabase data loaded successfully');
         } else {
-          console.log('No planning data found in Supabase or failed to load');
-          dispatch({ type: 'SET_LOADING', payload: false });
-          dispatch({ type: 'SET_DATA_LOADED', payload: true });
+          console.warn('⚠️ Failed to load from Supabase:', result.error);
+          console.log('📱 Keeping existing data - Supabase load failed');
+          // DO NOT clear localStorage or reset to empty state
+          // Keep existing data (from localStorage init or current state)
         }
+        
       } catch (error) {
-        console.error('Error/timeout loading planning data from Supabase:', error);
-        console.log('Using default empty state since data loading failed');
-        dispatch({ type: 'SET_LOADING', payload: false });
-        dispatch({ type: 'SET_DATA_LOADED', payload: true });
+        console.error('❌ Error loading user data:', error);
+        console.log('📱 Keeping existing data - error occurred');
+        // DO NOT clear localStorage or reset to empty state
+        // Keep existing data
       } finally {
-        isLoadingRef.current = false;
-        hasAttemptedLoadRef.current = true;
+        dispatch({ type: 'SET_LOADING', payload: false });
+        isLoading = false;
+        console.log('🏁 Load attempt finished');
       }
     };
 
-    // Only load data once when user becomes available and we haven't attempted yet
-    if (user && !hasAttemptedLoadRef.current && !isLoadingRef.current && !hasGloballyAttempted) {
-      console.log('User authenticated, loading data from Supabase...', {
-        userId: user.id,
-        hasAttempted: hasAttemptedLoadRef.current,
-        isLoading: isLoadingRef.current,
-        hasGloballyAttempted
-      });
-      isLoadingRef.current = true;
-      hasAttemptedLoadRef.current = true;
-      globalLoadingTracker.set(globalKey, true);
-      loadDataFromSupabase(user.id);
-    } else if (!user && !hasAttemptedLoadRef.current && !hasGloballyAttempted) {
-      console.log('No user authenticated, marking as loaded');
-      dispatch({ type: 'SET_LOADING', payload: false });
-      dispatch({ type: 'SET_DATA_LOADED', payload: true });
-      hasAttemptedLoadRef.current = true;
-      globalLoadingTracker.set(globalKey, true);
-    } else {
-      console.log('Skipping data load:', {
-        hasUser: !!user,
-        hasAttempted: hasAttemptedLoadRef.current,
-        isLoading: isLoadingRef.current,
-        hasGloballyAttempted
-      });
-    }
-  }, [user, hasGloballyAttempted]); // Add hasGloballyAttempted to dependencies
+    // Add a small delay to ensure session is available
+    const timeoutId = setTimeout(loadUserData, 100);
+    
+    return () => clearTimeout(timeoutId);
+  }, [user, session]); // Dependency on both user and session
 
-  // Persist on every state change (but not while loading)
+  // Handle sign out - ONLY reset when user explicitly signs out
   useEffect(() => {
-    if (!state.isLoading) {
+    // Check if user was previously authenticated and is now signed out
+    const wasAuthenticated = sessionStorage.getItem('was-authenticated') === 'true';
+    
+    if (!user && !session && wasAuthenticated) {
+      console.log('🔄 User signed out, performing complete cleanup...');
+      
+      // Reset state to initial state
+      dispatch({ type: 'LOAD_PLANNING_DATA', payload: {
+        ...initialState,
+        isLoading: false,
+        isDataLoaded: false
+      }});
+      
+      // Clear all localStorage data
+      localStorage.removeItem('planner-state');
+      console.log('🗑️ Cleared all user data from localStorage in PlannerContext');
+      
+      // Force clear any other planner-related localStorage
+      Object.keys(localStorage).forEach(key => {
+        if (key.includes('planner') || key.includes('financial')) {
+          localStorage.removeItem(key);
+        }
+      });
+      
+      // Clear the authentication flag
+      sessionStorage.removeItem('was-authenticated');
+      
+      console.log('✅ Planner state reset complete');
+    } else if (user && session) {
+      // Mark that user was authenticated
+      sessionStorage.setItem('was-authenticated', 'true');
+    }
+  }, [user, session]); // Listen to both user and session changes
+
+  // Persist on every state change - ALWAYS save to localStorage for progress preservation
+  useEffect(() => {
+    console.log('💾 Saving planner state to localStorage');
     try {
       localStorage.setItem('planner-state', JSON.stringify(state));
-    } catch (_) {}
+    } catch (error) {
+      console.warn('Failed to save to localStorage:', error);
     }
-  }, [state, state.isLoading]);
+  }, [state]); // Removed dependency on user - always save to preserve anonymous progress
 
-  // Save function to persist changes to Supabase
+  // Save function to persist changes to Supabase (kept for manual use)
   const saveToSupabase = async (): Promise<{ success: boolean; error?: string }> => {
     try {
       const { supabase } = await import('../lib/supabase');

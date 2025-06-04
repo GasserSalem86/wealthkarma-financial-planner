@@ -130,6 +130,10 @@ interface BankSearchCache {
 class AIService {
   private openai?: OpenAI;
   private apiKey: string;
+  private rateLimitDelay: number = 1000; // 1 second delay between calls
+  private lastCallTime: number = 0;
+  private retryAttempts: number = 3;
+  private rateLimitedUntil: number = 0; // Timestamp when rate limiting ends
 
   constructor() {
     // In production, this should come from environment variables
@@ -144,6 +148,33 @@ class AIService {
       apiKey: this.apiKey,
       dangerouslyAllowBrowser: true // Only for development/demo
     });
+  }
+
+  private async rateLimitedCall<T>(apiCall: () => Promise<T>): Promise<T> {
+    // Check if we're still rate limited
+    if (Date.now() < this.rateLimitedUntil) {
+      const waitTime = Math.ceil((this.rateLimitedUntil - Date.now()) / 1000);
+      throw new Error(`Rate limited. Please wait ${waitTime} seconds before trying again.`);
+    }
+
+    // Ensure minimum delay between calls
+    const timeSinceLastCall = Date.now() - this.lastCallTime;
+    if (timeSinceLastCall < this.rateLimitDelay) {
+      await new Promise(resolve => setTimeout(resolve, this.rateLimitDelay - timeSinceLastCall));
+    }
+
+    try {
+      this.lastCallTime = Date.now();
+      return await apiCall();
+    } catch (error: any) {
+      if (error?.status === 429) {
+        // Rate limited - wait 5 minutes before allowing more calls
+        this.rateLimitedUntil = Date.now() + (5 * 60 * 1000);
+        console.warn('OpenAI API rate limit exceeded. Blocking calls for 5 minutes.');
+        throw new Error('API rate limit exceeded. Please wait 5 minutes before trying again. Check your OpenAI billing and usage limits.');
+      }
+      throw error;
+    }
   }
 
   private buildSystemPrompt(): string {
@@ -343,127 +374,32 @@ Always provide specific, actionable advice relevant to their expat status.`;
   async getStepGuidance(step: string, context: UserContext): Promise<AIGuidanceResponse> {
     if (!this.openai) {
       return {
-        message: "AI guidance is currently unavailable. Please check your API configuration.",
+        message: "AI guidance is currently unavailable. Please check your configuration.",
       };
     }
 
-    const stepPrompts = {
-      'welcome-&-profile': `Provide a brief welcome (2-3 sentences max) focusing only on:
-- Quick encouragement for starting their financial journey
-- Why the profile information matters for personalized advice
-- What they can expect next
-
-DO NOT discuss financial advice, emergency funds, investments, or specific planning. Keep it short and encouraging. Use plain text without any markdown formatting.`,
-      
-      'emergency-fund': `Provide a friendly introduction and ask how you can help following this structure:
-
-1. BRIEF WELCOME (1-2 sentences): Greet them as their money coach and acknowledge they're working on their emergency fund.
-
-2. OVERVIEW (1-2 sentences): Give a quick overview of what you see about their emergency fund plan (buffer months, target amount, timeline) without detailed analysis.
-
-3. HOW CAN I HELP: End with: "How can I help you with your emergency fund today? I can advise on bank selection, timeline adjustments, or answer any questions you have."
-
-Do NOT list bank options or provide bank selection buttons. Users will select banks from the dropdown on the page. Only provide bank advice when specifically asked. Keep it conversational and approachable. Use plain text without any markdown formatting.`,
-      
-      'financial-goals': `You are a specialized goal planning coach for GCC expats. Your job is to help users plan specific life goals through interactive conversations.
-
-${context.currentGoalContext?.isEditingGoal ? 
-`CURRENT CONTEXT: You are helping the user EDIT their existing goal "${context.currentGoalContext.goalBeingEdited?.name}" (${context.currentGoalContext.goalBeingEdited?.category}). 
-- Current Amount: ${context.currentGoalContext.goalBeingEdited?.amount?.toLocaleString()} ${context.currency || 'USD'}
-- Target Date: ${context.currentGoalContext.goalBeingEdited?.targetDate ? new Date(context.currentGoalContext.goalBeingEdited.targetDate).toLocaleDateString() : 'Not set'}
-- Monthly Required: ${context.currentGoalContext.goalBeingEdited?.requiredPMT?.toLocaleString()} ${context.currency || 'USD'}
-
-Focus specifically on helping them improve or adjust this existing goal. ALWAYS consider inflation when reviewing their existing amounts and suggesting updates.` :
-context.currentGoalContext?.isCreatingNew ? 
-`CURRENT CONTEXT: You are helping the user CREATE A NEW ${context.currentFormData?.goalCategory || 'financial'} goal.
-- Goal Name: ${context.currentFormData?.goalName || 'Not set yet'}
-- Amount: ${context.currentFormData?.goalAmount ? context.currentFormData.goalAmount.toLocaleString() + ' ' + (context.currency || 'USD') : 'Not set yet'}
-- Target: ${context.currentFormData?.targetMonth && context.currentFormData?.targetYear ? `${context.currentFormData.targetMonth}/${context.currentFormData.targetYear}` : 'Not set yet'}
-
-Focus specifically on helping them plan this new goal. ALWAYS factor inflation into all cost estimates and recommendations.` :
-'CURRENT CONTEXT: You are in the general goals overview. Help them decide what to do next with their goal portfolio. When discussing any goals or costs, always consider inflation impact.'
-}
-
-CRITICAL INFLATION REQUIREMENT:
-🔥 ALWAYS FACTOR INFLATION INTO ALL COST DISCUSSIONS AND RECOMMENDATIONS 🔥
-- Apply 3-5% annual inflation rate to all cost projections
-- Education costs: 4-6% annual inflation
-- Travel costs: 3-4% annual inflation  
-- Property costs: 2-8% annual inflation (location-dependent)
-- Lifestyle/Gift costs: 3-5% annual inflation
-- ALWAYS mention inflation when discussing goal amounts or costs
-- Explain how inflation affects purchasing power over time
-
-RESPONSE STRUCTURE:
-1. BRIEF WELCOME (1-2 sentences): Greet them warmly and acknowledge their existing goal portfolio if they have any.
-
-2. PORTFOLIO AWARENESS: If they have existing goals, briefly acknowledge what you see and comment on their goal portfolio balance or missing areas.
-
-3. ASK HOW TO HELP: Based on their existing goals, offer targeted suggestions:
-   - If no goals yet: "What goal would you like to work on today?"
-   - If they have goals: "What would you like to add to your goal portfolio?" or suggest areas they haven't covered yet
-   
-Available categories:
-   - Education planning (university costs, school fees, degree programs) - ALWAYS inflate tuition by 4-6% annually
-   - Travel planning (destination suggestions, budget estimation) - ALWAYS consider travel cost inflation 3-4% annually
-   - Home purchases (down payments, market research) - ALWAYS factor property inflation 2-8% annually by region
-   - Gift planning (appropriate amounts, special occasions) - ALWAYS consider lifestyle inflation 3-5% annually
-
-4. BE INTERACTIVE: Ask follow-up questions to understand their specific situation.
-
-PORTFOLIO ANALYSIS GUIDANCE:
-- Check if their total monthly commitment is sustainable (ideally under 50% of income)
-- Look for goal category balance (education, travel, home, gifts)
-- Identify timeline conflicts (multiple goals with similar target dates)
-- Suggest prioritization if they're overcommitted
-- Recommend goal diversification if they're too focused on one category
-- ALWAYS mention if their existing goal amounts may need inflation adjustments
-
-SPECIALIZED HELP BY CATEGORY:
-
-EDUCATION:
-- Help choose universities/schools for their kids based on degree, location preferences
-- Estimate realistic costs for tuition, living expenses, education abroad WITH INFLATION ADJUSTMENTS
-- Apply 4-6% annual tuition inflation rates (higher for international education)
-- Plan timeline based on child's age and when education will START (target date)
-- Understand payment schedules: target date = when education begins, payment period = duration of ongoing payments after that date
-- Always provide both "today's cost" and "inflation-adjusted future cost"
-
-TRAVEL:
-- Suggest destinations based on their interests, budget, or bucket list
-- Help estimate realistic travel costs for different trip types WITH INFLATION ADJUSTMENTS
-- Apply 3-4% annual travel cost inflation (flights, hotels, activities)
-- Plan timing around work schedules, family commitments
-- Consider multiple trips vs one big vacation
-- Account for destination-specific inflation rates
-
-HOME:
-- Help calculate down payment requirements for their target location WITH INFLATION ADJUSTMENTS
-- Research typical property prices in areas they're considering
-- Apply property-specific inflation rates (2-8% annually depending on location and market)
-- Plan timeline for purchase based on market conditions
-- Consider ongoing vs lump sum payment strategies
-- Factor in mortgage rate changes and property appreciation
-
-GIFT:
-- Suggest appropriate amounts for major life events WITH INFLATION ADJUSTMENTS
-- Help plan for multiple gifts or big occasions
-- Consider cultural and family expectations with lifestyle inflation (3-5% annually)
-- Account for how gift expectations rise with inflation
-
-Keep responses conversational and provide portfolio-aware advice based on their existing goals and financial capacity. ALWAYS emphasize the importance of inflation-adjusted planning.`,
-      
-      'risk-assessment': `Give BRIEF guidance (3-4 sentences max) on risk tolerance for expats in their location. Consider currency risk, visa uncertainty, and investment platform limitations. Provide specific platform recommendations available in their country. Use plain text without any markdown formatting.`,
-      
-      'budget-projections': `Provide CONCISE analysis (3-4 sentences max) of their complete financial plan. Focus on savings rate optimization and realistic goal achievement timelines. Give specific next steps for implementation. Use plain text without any markdown formatting.`
-    };
-
     try {
-      let messages: any[] = [
+      // Check rate limiting first
+      if (Date.now() < this.rateLimitedUntil) {
+        return {
+          message: "AI guidance is temporarily unavailable due to API limits. Please try again later or continue with the form manually.",
+        };
+      }
+
+      const stepPrompts = {
+        'welcome': 'Provide a warm welcome and overview of the financial planning process for this GCC expat.',
+        'profile-setup': 'Help the user understand why their profile information is important for personalized financial planning.',
+        'emergency-fund': 'Explain the importance of emergency funds for expats and provide guidance on building one.',
+        'financial-goals': 'Help the user understand how to set and prioritize their financial goals.',
+        'retirement-plan': 'Provide guidance on retirement planning considerations for expats.',
+        'risk-&-returns': 'Explain investment risk and return concepts in simple terms.',
+      };
+
+      const messages: any[] = [
         { role: "system", content: this.buildSystemPrompt() }
       ];
 
-      // For emergency fund step, try to get live bank information using web search
+      // Only add web search for emergency fund step to reduce API calls
       if (step === 'emergency-fund' && context.location) {
         const location = context.location || 'UAE';
         const country = this.getCountryFromLocation(location);
@@ -475,7 +411,7 @@ Keep responses conversational and provide portfolio-aware advice based on their 
           const searchPrompt = `Search for current 2024-2025 RETAIL bank savings account and time deposit interest rates in ${country}. Focus on personal/individual banking accounts suitable for emergency funds for expats, not corporate or investment banking. Return highest rates first.`;
           
           const response = await this.openai.responses.create({
-            model: 'gpt-4o',
+            model: 'gpt-4o-mini',
             input: searchPrompt,
             tools: [{ type: "web_search_preview" }],
             temperature: 0.7
@@ -512,22 +448,30 @@ ${stepPrompts[step as keyof typeof stepPrompts] || 'Please provide general finan
         });
       }
 
-      const completion = await this.openai.chat.completions.create({
-        model: "gpt-4",
-        messages,
-        max_tokens: 500,
-        temperature: 0.7,
+      return await this.rateLimitedCall(async () => {
+        const completion = await this.openai!.chat.completions.create({
+          model: "gpt-4o-mini",
+          messages,
+          max_tokens: 500,
+          temperature: 0.7,
+        });
+
+        const message = completion.choices[0]?.message?.content || "I'm sorry, I couldn't generate guidance at this time.";
+
+        return {
+          message,
+        };
       });
 
-      const message = completion.choices[0]?.message?.content || "I'm sorry, I couldn't generate guidance at this time.";
-
-      return {
-        message,
-      };
-    } catch (error) {
+    } catch (error: any) {
       console.error('AI Service Error:', error);
+      if (error.message?.includes('rate limit')) {
+        return {
+          message: "AI guidance is temporarily unavailable due to high demand. You can continue with the planning process manually, and AI features will be restored shortly.",
+        };
+      }
       return {
-        message: "I'm having trouble connecting right now. Please try again in a moment.",
+        message: "I'm having trouble connecting right now. Please continue with your planning, and try the AI guidance again later.",
       };
     }
   }
@@ -674,7 +618,7 @@ Please help with their goal planning request. Be specific and practical in your 
         });
 
       const completion = await this.openai.chat.completions.create({
-        model: "gpt-4",
+        model: "gpt-4o-mini",
         messages,
           max_tokens: 1500,
         temperature: 0.7,
@@ -733,7 +677,7 @@ For other searches: Provide specific, current data with realistic estimates in t
 Include sources where possible and verify information is current and from 2025.`;
 
           const response = await this.openai.responses.create({
-            model: 'gpt-4o',
+            model: 'gpt-4o-mini',
             input: searchPrompt,
             tools: [{ type: "web_search_preview" }],
             temperature: 0.7
@@ -780,7 +724,7 @@ Please search for current 2025 cost information to help with their goal planning
             });
 
             const completion = await this.openai.chat.completions.create({
-              model: 'gpt-4o-search-preview', // Official search model
+              model: 'gpt-4o-mini-search-preview',
               messages,
               max_tokens: 3000, // Increased from 2000 for comprehensive bank data
               temperature: 0.7,
@@ -884,7 +828,7 @@ Provide helpful, specific guidance for their goal planning question. Ask follow-
         });
 
         const completion = await this.openai.chat.completions.create({
-          model: "gpt-4",
+          model: "gpt-4o-mini",
           messages,
           max_tokens: 1200, // Increased from 800 for better responses
           temperature: 0.7,
@@ -1249,6 +1193,18 @@ Provide helpful, specific guidance for their goal planning question. Ask follow-
     return result;
   }
 
+  // Helper function to clean JSON response from markdown formatting
+  private cleanJsonResponse(responseText: string): string {
+    // Remove markdown code blocks if present
+    const jsonMatch = responseText.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+    if (jsonMatch) {
+      return jsonMatch[1].trim();
+    }
+    
+    // If no code blocks, return the response as-is (it might already be clean JSON)
+    return responseText.trim();
+  }
+
   // Retirement Planning Assistance Methods
   async getRetirementDestinationSuggestions(context: UserContext): Promise<RetirementPlanningResponse> {
     if (!this.openai) {
@@ -1297,7 +1253,7 @@ For each destination, provide:
 
 Address the user by their name (${context.name || 'you'}) in your response to make it personal and engaging.
 
-Format as JSON with this structure:
+CRITICAL: Return ONLY a raw JSON object without any markdown formatting or code blocks. Use this exact structure:
 {
   "message": "Personalized introduction message mentioning that their home country is included",
   "destinations": [
@@ -1312,13 +1268,12 @@ Format as JSON with this structure:
       "visaRequirements": "Visa info"
     }
   ]
-}
-`;
+}`;
 
       const completion = await this.openai.chat.completions.create({
-        model: 'gpt-4',
+        model: 'gpt-4o-mini',
         messages: [
-          { role: 'system', content: 'You are a retirement planning expert for GCC expats. Always include the user\'s home country as the first destination option. Address the user by their actual name when provided, never use generic terms like "client" or nationality-based titles. CRITICAL: Always provide all cost estimates in the user\'s chosen currency, not USD unless they specifically use USD. Use accurate currency conversions. Provide practical, actionable advice in JSON format.' },
+          { role: 'system', content: 'You are a retirement planning expert for GCC expats. Always include the user\'s home country as the first destination option. Address the user by their actual name when provided, never use generic terms like "client" or nationality-based titles. CRITICAL: Always provide all cost estimates in the user\'s chosen currency, not USD unless they specifically use USD. Use accurate currency conversions. IMPORTANT: Return ONLY raw JSON without markdown code blocks or formatting.' },
           { role: 'user', content: prompt }
         ],
         temperature: 0.7
@@ -1329,7 +1284,9 @@ Format as JSON with this structure:
         throw new Error('No response received');
       }
 
-      const parsedResponse = JSON.parse(responseText);
+      // Clean the response before parsing
+      const cleanedResponse = this.cleanJsonResponse(responseText);
+      const parsedResponse = JSON.parse(cleanedResponse);
       
       const interactiveButtons: RetirementButton[] = parsedResponse.destinations?.map((dest: any, index: number) => ({
         id: `destination-${index}`,
@@ -1394,7 +1351,7 @@ Categories to include:
 
 Address the user by their name (${context.name || 'you'}) in your response to make it personal and engaging.
 
-Format as JSON:
+CRITICAL: Return ONLY a raw JSON object without any markdown formatting or code blocks. Use this exact structure:
 {
   "message": "Personalized explanation",
   "totalMonthlyCost": 1500,
@@ -1408,13 +1365,12 @@ Format as JSON:
     "other": 100
   },
   "tips": ["Tip 1", "Tip 2", "Tip 3"]
-}
-`;
+}`;
 
       const completion = await this.openai.chat.completions.create({
-        model: 'gpt-4',
+        model: 'gpt-4o-mini',
         messages: [
-          { role: 'system', content: 'You are a retirement cost analysis expert. Address the user by their actual name when provided, never use generic terms like "client" or nationality-based titles. CRITICAL: Always provide all cost estimates in the user\'s chosen currency, not USD unless they specifically use USD. Use accurate currency conversions from local prices. Provide accurate, realistic cost estimates in JSON format.' },
+          { role: 'system', content: 'You are a retirement cost analysis expert. Address the user by their actual name when provided, never use generic terms like "client" or nationality-based titles. CRITICAL: Always provide all cost estimates in the user\'s chosen currency, not USD unless they specifically use USD. Use accurate currency conversions from local prices. IMPORTANT: Return ONLY raw JSON without markdown code blocks or formatting.' },
           { role: 'user', content: prompt }
         ],
         temperature: 0.7
@@ -1425,7 +1381,9 @@ Format as JSON:
         throw new Error('No response received');
       }
 
-      const parsedResponse = JSON.parse(responseText);
+      // Clean the response before parsing
+      const cleanedResponse = this.cleanJsonResponse(responseText);
+      const parsedResponse = JSON.parse(cleanedResponse);
 
       return {
         message: parsedResponse.message,

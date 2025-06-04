@@ -1,6 +1,7 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { MessageCircle, Send, Bot, User, Loader2, Sparkles } from 'lucide-react';
 import { aiService, UserContext, AIGuidanceResponse, InteractiveButton } from '../services/aiService';
+import { useAuth } from '../context/AuthContext';
 
 interface AIGuidanceProps {
   step: string;
@@ -20,7 +21,12 @@ interface ChatMessage {
   buttons?: InteractiveButton[];
 }
 
+// Global cache for AI responses to prevent duplicate calls
+const aiResponseCache = new Map<string, { response: AIGuidanceResponse; timestamp: number }>();
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+
 const AIGuidance: React.FC<AIGuidanceProps> = ({ step, context, className = '', onBankSelected, onBankSelectionStatusChange, onGoalFormFill, componentId }) => {
+  const { user } = useAuth();
   const [isExpanded, setIsExpanded] = useState(false);
   const [guidance, setGuidance] = useState<AIGuidanceResponse | null>(null);
   const [isLoadingGuidance, setIsLoadingGuidance] = useState(false);
@@ -28,12 +34,17 @@ const AIGuidance: React.FC<AIGuidanceProps> = ({ step, context, className = '', 
   const [userQuestion, setUserQuestion] = useState('');
   const [isLoadingResponse, setIsLoadingResponse] = useState(false);
   const [isBankSelectionInProgress, setIsBankSelectionInProgress] = useState(false);
-  
+
   // Track current goal context to detect changes and reset conversation
   const [currentGoalContext, setCurrentGoalContext] = useState<string>('');
 
+  // Debounce timer to prevent rapid API calls
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const isLoadingRef = useRef(false);
+  const lastLoadTimeRef = useRef(0);
+
   // Function to create a unique context identifier
-  const createContextId = (context: UserContext): string => {
+  const createContextId = useCallback((context: UserContext): string => {
     const goalContext = context.currentGoalContext;
     if (goalContext?.isEditingGoal && goalContext.goalBeingEdited) {
       return `editing-${goalContext.goalBeingEdited.id}`;
@@ -42,7 +53,22 @@ const AIGuidance: React.FC<AIGuidanceProps> = ({ step, context, className = '', 
       return `creating-${context.currentFormData.goalCategory}-${context.currentFormData.goalName || 'new'}`;
     }
     return 'overview';
-  };
+  }, []);
+
+  // Create cache key for AI responses
+  const createCacheKey = useCallback((step: string, context: UserContext): string => {
+    return `${step}-${context.currentStep}-${context.location}-${createContextId(context)}`;
+  }, [createContextId]);
+
+  // Clean expired cache entries
+  const cleanCache = useCallback(() => {
+    const now = Date.now();
+    for (const [key, value] of aiResponseCache.entries()) {
+      if (now - value.timestamp > CACHE_DURATION) {
+        aiResponseCache.delete(key);
+      }
+    }
+  }, []);
 
   // Reset conversation when goal context changes
   useEffect(() => {
@@ -59,7 +85,7 @@ const AIGuidance: React.FC<AIGuidanceProps> = ({ step, context, className = '', 
       }
     }
     setCurrentGoalContext(newContextId);
-  }, [context.currentGoalContext, context.currentFormData?.goalCategory, context.currentFormData?.goalName]);
+  }, [context.currentGoalContext, context.currentFormData?.goalCategory, context.currentFormData?.goalName, createContextId, isExpanded]);
 
   // Function to convert URLs in text to clickable links
   const parseMessageWithLinks = (text: string) => {
@@ -110,7 +136,7 @@ const AIGuidance: React.FC<AIGuidanceProps> = ({ step, context, className = '', 
   const chatMessagesRef = useRef<HTMLDivElement>(null);
   
   // Auto-scroll to start of last message when new messages are added
-  const scrollToLastMessage = () => {
+  const scrollToLastMessage = useCallback(() => {
     if (chatMessagesRef.current && chatMessages.length > 0) {
       // Wait for next tick to ensure DOM is updated
       setTimeout(() => {
@@ -141,7 +167,7 @@ const AIGuidance: React.FC<AIGuidanceProps> = ({ step, context, className = '', 
         }
       }, 50); // Small delay to ensure DOM updates are complete
     }
-  };
+  }, [chatMessages, isLoadingResponse]);
   
   // Update refs when props change
   useEffect(() => {
@@ -152,89 +178,116 @@ const AIGuidance: React.FC<AIGuidanceProps> = ({ step, context, className = '', 
   // Auto-scroll when messages change
   useEffect(() => {
     scrollToLastMessage();
-  }, [chatMessages, isLoadingResponse]);
+  }, [scrollToLastMessage]);
   
-  // Debug logging for onBankSelected prop
+  // Debug logging for onBankSelected prop (reduced frequency)
   useEffect(() => {
-    console.log(`AIGuidance component [${componentId || step}] rendered/updated with:`, {
-      step,
-      onBankSelected: !!onBankSelected,
-      onBankSelectedType: typeof onBankSelected,
-      onBankSelectedRef: !!onBankSelectedRef.current,
-      onBankSelectedRefType: typeof onBankSelectedRef.current,
-      contextLocation: context?.location,
-      isBankSelectionInProgress,
-      componentId: componentId || 'default'
-    });
-  }, [step, onBankSelected, context?.location, isBankSelectionInProgress, componentId]);
-  
-  // Check for pending bank selection when component loads or step changes
-  useEffect(() => {
-    const checkPendingBankSelection = () => {
-      try {
-        const pendingSelectionStr = localStorage.getItem('pendingBankSelection');
-        if (pendingSelectionStr && step === 'emergency-fund' && onBankSelectedRef.current) {
-          const pendingSelection = JSON.parse(pendingSelectionStr);
-          
-          // Check if the pending selection is recent (within 5 minutes)
-          const fiveMinutesAgo = Date.now() - (5 * 60 * 1000);
-          if (pendingSelection.timestamp > fiveMinutesAgo) {
-            console.log('Found pending bank selection, executing callback:', pendingSelection);
-            
-            // Execute the callback
-            onBankSelectedRef.current(pendingSelection.bankId, pendingSelection.bankData);
-            
-            // Add a message to the chat
-            const restoreMessage: ChatMessage = {
-              id: Date.now().toString(),
-              type: 'ai',
-              content: `Your bank selection for ${pendingSelection.bankData.bankName} has been restored and applied to your emergency fund.`,
-              timestamp: new Date()
-            };
-            setChatMessages(prev => [...prev, restoreMessage]);
-            
-            // Clear the pending selection
-            localStorage.removeItem('pendingBankSelection');
-          } else {
-            // Clean up old pending selections
-            localStorage.removeItem('pendingBankSelection');
-          }
-        }
-      } catch (error) {
-        console.error('Error checking pending bank selection:', error);
-        localStorage.removeItem('pendingBankSelection');
-      }
-    };
-    
-    // Small delay to ensure component is fully loaded
-    const timeoutId = setTimeout(checkPendingBankSelection, 1000);
-    
-    return () => clearTimeout(timeoutId);
-  }, [step]);
-
-  // Load initial step guidance when component mounts
-  useEffect(() => {
-    loadStepGuidance();
-  }, []);
-
-  // Refresh guidance when chat is expanded (user clicks the AI button)
-  useEffect(() => {
-    if (isExpanded) {
-      loadStepGuidance();
+    if (componentId && componentId !== step) {
+      console.log(`AIGuidance component [${componentId}] rendered/updated with:`, {
+        step,
+        onBankSelected: !!onBankSelected,
+        contextLocation: context?.location,
+        isBankSelectionInProgress,
+        componentId: componentId || 'default'
+      });
     }
-  }, [isExpanded]);
+  }, [step, componentId, context?.location, isBankSelectionInProgress]);
 
-  const loadStepGuidance = async () => {
+  // Only load step guidance when expanded to reduce API calls
+  const loadStepGuidance = useCallback(async () => {
+    // Only make AI calls if user is actually on a planner step (not on landing page)
+    const currentPath = window.location.pathname;
+    const isOnPlannerRoute = currentPath.startsWith('/plan') || currentPath.startsWith('/dashboard');
+    
+    if (!isOnPlannerRoute) {
+      console.log('🚫 AIGuidance: Skipping AI call - not on planner route:', currentPath);
+      return;
+    }
+
+    // Prevent rapid successive calls
+    if (isLoadingRef.current || Date.now() - lastLoadTimeRef.current < 2000) {
+      console.log('🚫 AIGuidance: Throttling AI call - too soon since last call');
+      return;
+    }
+
+    // Step-specific validation to prevent cross-step AI calls
+    const currentPlannerStep = context.currentStep;
+    const stepToCurrentStepMapping: { [key: string]: number } = {
+      'profile-setup': 0,
+      'emergency-fund': 1,
+      'financial-goals': 2,
+      'retirement-plan': 3,
+      'risk-&-returns': 4,
+      'budget-projections': 5,
+      'monthly-plan': 6,
+      'final-get-started': 7,
+      'welcome': 0,
+      '0': 0, '1': 1, '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7
+    };
+
+    const expectedStep = stepToCurrentStepMapping[step];
+    
+    if (expectedStep !== undefined) {
+      let actualCurrentStep: number;
+      
+      if (typeof context.currentStep === 'string') {
+        actualCurrentStep = stepToCurrentStepMapping[context.currentStep] ?? -1;
+      } else if (typeof context.currentStep === 'number') {
+        actualCurrentStep = context.currentStep;
+      } else {
+        actualCurrentStep = expectedStep;
+      }
+
+      if (expectedStep !== actualCurrentStep) {
+        console.log(`🚫 AIGuidance [${componentId || step}]: Skipping AI call - wrong step. Expected: ${expectedStep}, Current: ${actualCurrentStep}`);
+        return;
+      }
+    }
+
+    // Check cache first
+    cleanCache();
+    const cacheKey = createCacheKey(step, context);
+    const cachedResponse = aiResponseCache.get(cacheKey);
+    
+    if (cachedResponse && Date.now() - cachedResponse.timestamp < CACHE_DURATION) {
+      console.log(`🔄 AIGuidance [${componentId || step}]: Using cached response`);
+      setGuidance(cachedResponse.response);
+      
+      if (cachedResponse.response.message) {
+        const cleanedMessage = cleanAIMessage(cachedResponse.response.message);
+        const aiMessage: ChatMessage = {
+          id: Date.now().toString(),
+          type: 'ai',
+          content: cleanedMessage,
+          timestamp: new Date(),
+          buttons: cachedResponse.response.interactiveButtons
+        };
+        
+        setChatMessages(prev => {
+          if (prev.length > 0 && prev[0].type === 'ai') {
+            return [aiMessage, ...prev.slice(1)];
+          }
+          return [aiMessage];
+        });
+      }
+      return;
+    }
+
     setIsLoadingGuidance(true);
+    isLoadingRef.current = true;
+    lastLoadTimeRef.current = Date.now();
+
     try {
+      console.log(`🤖 AIGuidance [${componentId || step}]: Making AI call for step: ${step} on route: ${currentPath}`);
       const response = await aiService.getStepGuidance(step, context);
+      
+      // Cache the response
+      aiResponseCache.set(cacheKey, { response, timestamp: Date.now() });
+      
       setGuidance(response);
       
-      // Add initial guidance as first AI message, or update existing guidance
       if (response.message) {
-        // Clean up AI message
         const cleanedMessage = cleanAIMessage(response.message);
-        
         const aiMessage: ChatMessage = {
           id: Date.now().toString(),
           type: 'ai',
@@ -243,7 +296,6 @@ const AIGuidance: React.FC<AIGuidanceProps> = ({ step, context, className = '', 
           buttons: response.interactiveButtons
         };
         
-        // If this is an update to existing guidance, replace the first message
         setChatMessages(prev => {
           if (prev.length > 0 && prev[0].type === 'ai') {
             return [aiMessage, ...prev.slice(1)];
@@ -255,11 +307,44 @@ const AIGuidance: React.FC<AIGuidanceProps> = ({ step, context, className = '', 
       console.error('Failed to load AI guidance:', error);
     } finally {
       setIsLoadingGuidance(false);
+      isLoadingRef.current = false;
     }
-  };
+  }, [step, context, componentId, createCacheKey, cleanCache]);
+
+  // Debounced expansion handler
+  const handleExpand = useCallback(() => {
+    setIsExpanded(true);
+    
+    // Clear existing debounce timer
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+    
+    // Debounce the AI call
+    debounceTimerRef.current = setTimeout(() => {
+      loadStepGuidance();
+    }, 500);
+  }, [loadStepGuidance]);
+
+  // Cleanup debounce timer
+  useEffect(() => {
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+    };
+  }, []);
 
   const handleSendQuestion = async () => {
     if (!userQuestion.trim() || isLoadingResponse) return;
+
+    const currentPath = window.location.pathname;
+    const isOnPlannerRoute = currentPath.startsWith('/plan') || currentPath.startsWith('/dashboard');
+    
+    if (!isOnPlannerRoute) {
+      console.log('🚫 AIGuidance: Skipping AI call - not on planner route:', currentPath);
+      return;
+    }
 
     // Add user message
     const userMessage: ChatMessage = {
@@ -274,7 +359,6 @@ const AIGuidance: React.FC<AIGuidanceProps> = ({ step, context, className = '', 
     setIsLoadingResponse(true);
 
     try {
-      // Prepare conversation history (exclude the current question which will be sent separately)
       const conversationHistory = chatMessages.map(msg => ({
         type: msg.type,
         content: msg.content
@@ -282,15 +366,12 @@ const AIGuidance: React.FC<AIGuidanceProps> = ({ step, context, className = '', 
 
       const response = await aiService.askQuestion(userQuestion, context, conversationHistory);
       
-      // Handle form fill data if provided
       if (response.formFillData && onGoalFormFill) {
         onGoalFormFill(response.formFillData);
       }
       
-      // Clean up AI message
       const cleanedMessage = cleanAIMessage(response.message);
       
-      // Add AI response
       const aiMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
         type: 'ai',
@@ -304,7 +385,7 @@ const AIGuidance: React.FC<AIGuidanceProps> = ({ step, context, className = '', 
       const errorMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
         type: 'ai',
-        content: "I'm sorry, I couldn't process your question right now. Please try again.",
+        content: "I'm sorry, I couldn't process your question right now. Please try again later.",
         timestamp: new Date()
       };
       setChatMessages(prev => [...prev, errorMessage]);
@@ -321,8 +402,6 @@ const AIGuidance: React.FC<AIGuidanceProps> = ({ step, context, className = '', 
   };
 
   const handleButtonClick = async (button: InteractiveButton) => {
-    // Bank selection is now handled by the dropdown on the page
-    // This function is kept for future interactive features
     console.log('Interactive button clicked:', button);
   };
 
@@ -334,7 +413,7 @@ const AIGuidance: React.FC<AIGuidanceProps> = ({ step, context, className = '', 
           <div className="absolute -inset-1 bg-green-400 rounded-full blur opacity-30 group-hover:opacity-50 animate-pulse"></div>
           
           <button
-            onClick={() => setIsExpanded(true)}
+            onClick={handleExpand}
             className="relative bg-green-500 hover:bg-green-600 text-theme-primary rounded-full p-3 lg:p-4 shadow-theme-xl transition-all duration-300 flex items-center gap-2 lg:gap-3 hover:scale-105 transform"
           >
             <div className="w-5 h-5 lg:w-6 lg:h-6 flex items-center justify-center">
@@ -479,23 +558,27 @@ const AIGuidance: React.FC<AIGuidanceProps> = ({ step, context, className = '', 
         </div>
 
         {/* Enhanced Input */}
-        <div className="p-3 lg:p-4 border-t border-theme bg-theme-secondary backdrop-blur-sm">
-          <div className="flex gap-2">
+        <div className="border-t border-theme bg-theme-section p-3 lg:p-4 rounded-b-2xl">
+          <div className="flex gap-2 lg:gap-3">
             <input
               type="text"
               value={userQuestion}
               onChange={(e) => setUserQuestion(e.target.value)}
               onKeyPress={handleKeyPress}
-              placeholder="Ask me anything about saving money..."
-              className="input-dark flex-1 px-3 lg:px-4 py-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-xs lg:text-sm"
+              placeholder="Ask your money coach..."
               disabled={isLoadingResponse}
+              className="flex-1 bg-theme-tertiary border border-theme rounded-xl px-3 lg:px-4 py-2 lg:py-3 text-xs lg:text-sm text-theme-primary placeholder-theme-muted focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-transparent transition-all duration-200 disabled:opacity-50"
             />
             <button
               onClick={handleSendQuestion}
               disabled={!userQuestion.trim() || isLoadingResponse}
-              className="bg-green-500 hover:bg-green-600 text-theme-primary px-3 lg:px-4 py-2 rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-theme hover:shadow-theme-lg hover:scale-105 transform"
+              className="bg-green-500 hover:bg-green-600 disabled:bg-theme-muted disabled:opacity-50 text-white rounded-xl p-2 lg:p-3 transition-all duration-200 hover:scale-105 active:scale-95 disabled:hover:scale-100"
             >
-              <Send className="w-3 h-3 lg:w-4 lg:h-4" />
+              {isLoadingResponse ? (
+                <Loader2 className="w-4 h-4 lg:w-5 lg:h-5 animate-spin" />
+              ) : (
+                <Send className="w-4 h-4 lg:w-5 lg:h-5" />
+              )}
             </button>
           </div>
         </div>

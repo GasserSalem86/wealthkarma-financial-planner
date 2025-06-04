@@ -54,6 +54,22 @@ const GoalProgressChart: React.FC<GoalProgressChartProps> = ({ goal, monthlyAllo
 
   const dataPoints = createDataPoints();
 
+  // Early return if no valid data to prevent sizing issues
+  if (!dataPoints.length || dataPoints.length < 2) {
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center">
+          <h3 className="heading-h4-sm text-theme-primary">
+            Track Your Progress to {goal.name}
+          </h3>
+        </div>
+        <div className="w-full bg-theme-card rounded-xl shadow-theme border border-theme p-6 text-center">
+          <p className="text-theme-secondary">Chart will appear once your goal timeline is calculated.</p>
+        </div>
+      </div>
+    );
+  }
+
   const formatYAxis = (value: number) => {
     if (value >= 1000000) {
       return `${(value / 1000000).toFixed(1)}M`;
@@ -134,82 +150,85 @@ const GoalProgressChart: React.FC<GoalProgressChartProps> = ({ goal, monthlyAllo
         </h3>
       </div>
       
-      <div className="w-full bg-theme-card rounded-xl shadow-theme border border-theme p-4" style={{ height: '400px' }}>
-        <ResponsiveContainer width="100%" height="100%">
-          <ComposedChart 
-            data={dataPoints} 
-            margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
-          >
-            <CartesianGrid 
-              strokeDasharray="3 3" 
-              stroke="var(--wk-border)" 
-              opacity={0.6} 
-            />
-            <XAxis
-              dataKey="monthLabel"
-              tick={{ fill: 'var(--wk-text-muted)', fontSize: 12 }}
-              stroke="var(--wk-border)"
-              interval="preserveStartEnd"
-            />
-            <YAxis
-              tickFormatter={formatYAxis}
-              tick={{ fill: 'var(--wk-text-muted)', fontSize: 12 }}
-              domain={yAxisDomain}
-              stroke="var(--wk-border)"
-            />
-            
-            {/* Goal line */}
-            <ReferenceLine
-              y={goal.amount}
-              stroke="var(--wk-text-muted)"
-              strokeDasharray="5 5"
-              label={{
-                value: 'Target Goal',
-                position: 'top',
-                fill: 'var(--wk-text-muted)',
-                fontSize: 12
-              }}
-            />
-            
-            {/* Monthly contributions as bars */}
-            <Bar 
-              dataKey="contribution" 
-              fill="#10B981" 
-              name="Monthly Contributions" 
-              barSize={6} 
-              radius={[2,2,0,0]} 
-            />
-            
-            {/* Area under the curve for total savings */}
-            <Area
-              type="monotone"
-              dataKey="balance"
-              stroke="#059669"
-              strokeWidth={3}
-              fill="url(#colorBalance)"
-              name="Total Saved"
-            />
-            
-            <Tooltip
-              content={<CustomTooltip />}
-              cursor={{ fill: 'rgba(16, 185, 129, 0.1)' }}
-            />
-            
-            <Legend
-              content={<CustomLegend />}
-              verticalAlign="top"
-              height={50}
-            />
-            
-            {/* Gradient definition */}
-            <defs>
-              <linearGradient id="colorBalance" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#10B981" stopOpacity={0.3}/>
-                <stop offset="95%" stopColor="#10B981" stopOpacity={0.1}/>
-              </linearGradient>
-            </defs>
-          </ComposedChart>
-        </ResponsiveContainer>
+      {/* Fixed container with explicit dimensions and aspect ratio */}
+      <div className="w-full bg-theme-card rounded-xl shadow-theme border border-theme p-4">
+        <div style={{ width: '100%', height: '400px', minHeight: '400px', position: 'relative' }}>
+          <ResponsiveContainer width="100%" height="100%" minWidth={300} minHeight={300}>
+            <ComposedChart 
+              data={dataPoints} 
+              margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
+            >
+              <CartesianGrid 
+                strokeDasharray="3 3" 
+                stroke="var(--wk-border)" 
+                opacity={0.6} 
+              />
+              <XAxis
+                dataKey="monthLabel"
+                tick={{ fill: 'var(--wk-text-muted)', fontSize: 12 }}
+                stroke="var(--wk-border)"
+                interval="preserveStartEnd"
+              />
+              <YAxis
+                tickFormatter={formatYAxis}
+                tick={{ fill: 'var(--wk-text-muted)', fontSize: 12 }}
+                domain={yAxisDomain}
+                stroke="var(--wk-border)"
+              />
+              
+              {/* Goal line */}
+              <ReferenceLine
+                y={goal.amount}
+                stroke="var(--wk-text-muted)"
+                strokeDasharray="5 5"
+                label={{
+                  value: 'Target Goal',
+                  position: 'top',
+                  fill: 'var(--wk-text-muted)',
+                  fontSize: 12
+                }}
+              />
+              
+              {/* Monthly contributions as bars */}
+              <Bar 
+                dataKey="contribution" 
+                fill="#10B981" 
+                name="Monthly Contributions" 
+                barSize={6} 
+                radius={[2,2,0,0]} 
+              />
+              
+              {/* Area under the curve for total savings */}
+              <Area
+                type="monotone"
+                dataKey="balance"
+                stroke="#059669"
+                strokeWidth={3}
+                fill="url(#colorBalance)"
+                name="Total Saved"
+              />
+              
+              <Tooltip
+                content={<CustomTooltip />}
+                cursor={{ fill: 'rgba(16, 185, 129, 0.1)' }}
+              />
+              
+              <Legend
+                content={<CustomLegend />}
+                verticalAlign="top"
+                height={50}
+              />
+              
+              {/* Gradient definition */}
+              <defs>
+                <linearGradient id="colorBalance" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#10B981" stopOpacity={0.3}/>
+                  <stop offset="95%" stopColor="#10B981" stopOpacity={0.1}/>
+                </linearGradient>
+              </defs>
+            </ComposedChart>
+          </ResponsiveContainer>
+        </div>
       </div>
     </div>
   );
