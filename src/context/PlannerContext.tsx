@@ -378,6 +378,9 @@ interface PlannerContextType {
 
 const PlannerContext = createContext<PlannerContextType | undefined>(undefined);
 
+// Global flag to prevent race conditions across all PlannerProvider instances
+let globalLoadingFlag = false;
+
 // Create a provider component with localStorage persistence
 export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, session } = useAuth(); // Get both user and session from AuthContext
@@ -413,11 +416,32 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   // Load data from Supabase when user is authenticated
   useEffect(() => {
-    // IMMEDIATE race condition prevention - check and set ref at the very start
-    if (isLoadingRef.current) {
-      console.log('🚫 IMMEDIATE: Already loading via ref, aborting useEffect');
+    // ATOMIC check and set - this must be synchronous and immediate
+    if (globalLoadingFlag || isLoadingRef.current || state.isLoading) {
+      console.log('🚫 ATOMIC: Loading in progress, aborting', {
+        globalFlag: globalLoadingFlag,
+        refFlag: isLoadingRef.current,
+        stateFlag: state.isLoading
+      });
       return;
     }
+
+    // Check basic conditions first
+    if (!user || !session || !session.access_token) {
+      console.log('🚫 Skipping load - conditions not met', {
+        hasUser: !!user,
+        hasSession: !!session,
+        hasAccessToken: !!session?.access_token
+      });
+      return;
+    }
+
+    // IMMEDIATELY set all flags to block any other attempts
+    globalLoadingFlag = true;
+    isLoadingRef.current = true;
+    dispatch({ type: 'SET_LOADING', payload: true });
+
+    console.log('🔒 ATOMIC: Flags set, proceeding with load');
 
     let timeoutId: NodeJS.Timeout;
     
@@ -428,39 +452,9 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
         hasSession: !!session, 
         hasAccessToken: !!session?.access_token,
         currentIsLoading: state.isLoading,
-        refIsLoading: isLoadingRef.current
+        refIsLoading: isLoadingRef.current,
+        globalFlag: globalLoadingFlag
       });
-
-      if (!user) {
-        console.log('🚫 No user during init, ensuring loading is false');
-        // Ensure loading state is false when no user
-        if (state.isLoading) {
-          dispatch({ type: 'SET_LOADING', payload: false });
-        }
-        isLoadingRef.current = false; // Clear ref since we're not loading
-        return;
-      }
-
-      if (!session) {
-        console.log('📭 No session available yet, waiting...');
-        isLoadingRef.current = false; // Clear ref since we're not loading
-        return;
-      }
-
-      if (!session.access_token) {
-        console.log('📭 No access token in session, waiting...');
-        isLoadingRef.current = false; // Clear ref since we're not loading
-        return;
-      }
-
-      // Double-check ref again inside the async function
-      if (isLoadingRef.current && state.isLoading) { // Only skip if BOTH are true (actual loading)
-        console.log('🔄 Already loading (ref AND state), skipping...', {
-          refLoading: isLoadingRef.current,
-          stateLoading: state.isLoading
-        });
-        return;
-      }
 
       // Circuit breaker: Check for recent failures to prevent infinite retry loops
       const failureKey = `load_failures_${user.id}`;
@@ -469,7 +463,6 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
         const timeSinceFailure = Date.now() - parseInt(lastFailure);
         if (timeSinceFailure < 60000) { // 1 minute cooldown after failure
           console.log('🚫 Recent load failure detected, cooling down for 1 minute');
-          isLoadingRef.current = false; // Clear ref since we're not loading
           return;
         }
         // Clear old failure marker
@@ -482,17 +475,12 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
         const timeSinceLoad = Date.now() - parseInt(lastLoaded);
         if (timeSinceLoad < 30000 && state.isDataLoaded) { // 30 seconds
           console.log('📊 Recent data load detected, skipping reload');
-          isLoadingRef.current = false; // Clear ref since we're not loading
           return;
         }
       }
 
-      // Now we're actually proceeding with the load - keep ref set
       console.log('👤 User authenticated with valid session, loading data from Supabase...');
       console.log('🔑 Access token available:', session.access_token.substring(0, 20) + '...');
-      
-      // Set loading state to sync with component state
-      dispatch({ type: 'SET_LOADING', payload: true });
 
       // Set a maximum timeout for the entire loading process
       const maxLoadTime = 60000; // 60 seconds maximum
@@ -500,6 +488,7 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
         console.error('⏰ Load operation timed out after 60 seconds, forcing loading to false');
         dispatch({ type: 'SET_LOADING', payload: false });
         isLoadingRef.current = false;
+        globalLoadingFlag = false;
         // Mark as failure to prevent immediate retry
         sessionStorage.setItem(failureKey, Date.now().toString());
       }, maxLoadTime);
@@ -557,40 +546,25 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
           console.log('ℹ️ No existing data and load failed - user likely needs to start planning');
         }
       } finally {
-        // Always clear loading state and timeout
+        // Always clear ALL flags and timeout
         clearTimeout(timeoutId);
         dispatch({ type: 'SET_LOADING', payload: false });
         isLoadingRef.current = false;
-        console.log('🏁 Load attempt finished, loading state cleared');
+        globalLoadingFlag = false;
+        console.log('🏁 Load attempt finished, all flags cleared');
       }
     };
 
-    // Only proceed if conditions are met and not already loading
-    if (user && session && session.access_token && !state.isLoading) {
-      // Set ref immediately to block any other simultaneous calls
-      isLoadingRef.current = true;
-      
-      // Add a small delay to ensure session is stable, then execute
-      const initTimeoutId = setTimeout(() => {
-        loadUserData();
-      }, 100);
-      
-      return () => {
-        clearTimeout(initTimeoutId);
-        if (timeoutId) clearTimeout(timeoutId);
-        // Clear ref on cleanup
-        isLoadingRef.current = false;
-      };
-    } else {
-      console.log('🚫 Skipping load - conditions not met', {
-        hasUser: !!user,
-        hasSession: !!session,
-        hasAccessToken: !!session?.access_token,
-        refLoading: isLoadingRef.current,
-        stateLoading: state.isLoading
-      });
-    }
-  }, [user, session]); // Remove state.isLoading from dependencies to fix the loop
+    // Execute immediately without setTimeout to prevent race conditions
+    loadUserData();
+    
+    return () => {
+      if (timeoutId) clearTimeout(timeoutId);
+      // Clear flags on cleanup
+      isLoadingRef.current = false;
+      globalLoadingFlag = false;
+    };
+  }, [user, session]);
 
   // Handle sign out - ONLY reset when user explicitly signs out
   useEffect(() => {
