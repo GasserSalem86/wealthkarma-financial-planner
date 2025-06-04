@@ -413,6 +413,12 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   // Load data from Supabase when user is authenticated
   useEffect(() => {
+    // IMMEDIATE race condition prevention - check and set ref at the very start
+    if (isLoadingRef.current) {
+      console.log('🚫 IMMEDIATE: Already loading via ref, aborting useEffect');
+      return;
+    }
+
     let timeoutId: NodeJS.Timeout;
     
     const loadUserData = async () => {
@@ -445,7 +451,7 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
         return;
       }
 
-      // CRITICAL: Use ref for immediate synchronization to prevent race conditions
+      // Double-check ref again inside the async function
       if (isLoadingRef.current || state.isLoading) {
         console.log('🔄 Already loading (ref or state), skipping...', {
           refLoading: isLoadingRef.current,
@@ -557,23 +563,33 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
       }
     };
 
-    // Add a small delay to ensure session is available, but check loading state first
-    const initTimeoutId = setTimeout(() => {
-      // Double-check loading state before starting
-      if (!isLoadingRef.current && !state.isLoading) {
+    // Only proceed if conditions are met and not already loading
+    if (user && session && session.access_token && !isLoadingRef.current && !state.isLoading) {
+      // Set ref immediately to block any other simultaneous calls
+      isLoadingRef.current = true;
+      
+      // Add a small delay to ensure session is stable, then execute
+      const initTimeoutId = setTimeout(() => {
         loadUserData();
-      } else {
-        console.log('🔄 Skipping load - already in loading state', {
-          refLoading: isLoadingRef.current,
-          stateLoading: state.isLoading
-        });
-      }
-    }, 100);
-    
-    return () => {
-      clearTimeout(initTimeoutId);
-      if (timeoutId) clearTimeout(timeoutId);
-    };
+      }, 100);
+      
+      return () => {
+        clearTimeout(initTimeoutId);
+        if (timeoutId) clearTimeout(timeoutId);
+        // Only clear ref if this effect set it
+        if (isLoadingRef.current) {
+          isLoadingRef.current = false;
+        }
+      };
+    } else {
+      console.log('🚫 Skipping load - conditions not met', {
+        hasUser: !!user,
+        hasSession: !!session,
+        hasAccessToken: !!session?.access_token,
+        refLoading: isLoadingRef.current,
+        stateLoading: state.isLoading
+      });
+    }
   }, [user, session]); // Remove state.isLoading from dependencies to fix the loop
 
   // Handle sign out - ONLY reset when user explicitly signs out
