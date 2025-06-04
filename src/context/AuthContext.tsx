@@ -223,6 +223,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       sessionStorage.removeItem('temp_user_data');
       localStorage.removeItem('last-save-timestamp');
       
+      // CRITICAL: Clear planner data immediately on sign-out
+      // This ensures cleanup happens even if user navigates away from PlannerProvider pages
+      localStorage.removeItem('planner-state');
+      console.log('🗑️ AuthContext: Cleared planner-state from localStorage');
+      
+      // Clear any other planner-related data
+      Object.keys(localStorage).forEach(key => {
+        if (key.includes('planner') || key.includes('financial')) {
+          localStorage.removeItem(key);
+          console.log(`🗑️ AuthContext: Cleared ${key} from localStorage`);
+        }
+      });
+      
+      // Clear planner-related sessionStorage
+      sessionStorage.removeItem('was-authenticated');
+      sessionStorage.removeItem('last_data_load');
+      
+      // Clear any failure markers
+      Object.keys(sessionStorage).forEach(key => {
+        if (key.startsWith('load_failures_')) {
+          sessionStorage.removeItem(key);
+          console.log(`🗑️ AuthContext: Cleared failure marker ${key}`);
+        }
+      });
+      
       // Clear any Supabase-related localStorage/sessionStorage
       Object.keys(localStorage).forEach(key => {
         if (key.startsWith('supabase') || key.includes('auth')) {
