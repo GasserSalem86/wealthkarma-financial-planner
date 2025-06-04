@@ -593,7 +593,7 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
         isDataLoaded: false
       }});
       
-      // Clear all localStorage data
+      // Clear all localStorage data immediately
       localStorage.removeItem('planner-state');
       console.log('🗑️ Cleared all user data from localStorage in PlannerContext');
       
@@ -608,6 +608,13 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
       sessionStorage.removeItem('was-authenticated');
       sessionStorage.removeItem('last_data_load');
       
+      // Additional cleanup: Force clear localStorage again after a short delay
+      // This ensures any async state updates don't re-save the data
+      setTimeout(() => {
+        localStorage.removeItem('planner-state');
+        console.log('🗑️ Final localStorage cleanup after sign-out');
+      }, 100);
+      
       console.log('✅ Planner state reset complete');
     } else if (user && session) {
       // Mark that user was authenticated
@@ -615,19 +622,32 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
   }, [user, session]); // Listen to both user and session changes
 
-  // Persist on every state change - but avoid saving when loading
+  // Persist on every state change - but avoid saving when loading or user signed out
   useEffect(() => {
-    if (!state.isLoading) {
-      console.log('💾 Saving planner state to localStorage');
-      try {
-        localStorage.setItem('planner-state', JSON.stringify(state));
-      } catch (error) {
-        console.warn('Failed to save to localStorage:', error);
-      }
-    } else {
-      console.log('🚫 Not saving to localStorage (currently loading)');
+    // Don't save to localStorage if:
+    // 1. Currently loading
+    // 2. User is signed out (no user/session)
+    // 3. State was just reset during sign-out cleanup
+    const shouldNotSave = state.isLoading || 
+                         (!user && !session) ||
+                         (!state.userProfile?.name && state.goals?.length === 0 && state.currentStep === 0);
+    
+    if (shouldNotSave) {
+      console.log('🚫 Not saving to localStorage:', {
+        isLoading: state.isLoading,
+        hasUserSession: !!(user && session),
+        hasData: !!(state.userProfile?.name || state.goals?.length > 0 || state.currentStep > 0)
+      });
+      return;
     }
-  }, [state]);
+    
+    console.log('💾 Saving planner state to localStorage');
+    try {
+      localStorage.setItem('planner-state', JSON.stringify(state));
+    } catch (error) {
+      console.warn('Failed to save to localStorage:', error);
+    }
+  }, [state, user, session]); // Include user and session in dependencies
 
   // Save function to persist changes to Supabase (kept for manual use)
   const saveToSupabase = async (): Promise<{ success: boolean; error?: string }> => {
