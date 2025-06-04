@@ -388,7 +388,7 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
   // Use ref to immediately track loading state and prevent race conditions
   const isLoadingRef = useRef(false);
   
-  // Lazy init: attempt to load from localStorage
+  // Lazy init: attempt to load from localStorage (works for both anonymous and authenticated users)
   const [state, dispatch] = useReducer(
     plannerReducer,
     initialState,
@@ -410,7 +410,7 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
         console.warn('Failed to parse localStorage data:', error);
       }
       // Ensure loading is false when no localStorage data
-      return { ...init, isLoading: false, isDataLoaded: true };
+      return { ...init, isLoading: false, isDataLoaded: false };
     }
   );
 
@@ -584,18 +584,18 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
     const wasAuthenticated = sessionStorage.getItem('was-authenticated') === 'true';
     
     if (!user && !session && wasAuthenticated) {
-      console.log('🔄 User signed out, performing complete cleanup...');
+      console.log('🔄 User signed out, performing IMMEDIATE complete cleanup...');
       
-      // Reset state to initial state
-      dispatch({ type: 'LOAD_PLANNING_DATA', payload: {
-        ...initialState,
-        isLoading: false,
-        isDataLoaded: false
-      }});
+      // Set a temporary flag to prevent any localStorage saving during cleanup
+      sessionStorage.setItem('cleanup-in-progress', 'true');
       
-      // Clear all localStorage data immediately
+      // IMMEDIATELY clear the authentication flag to prevent re-loading
+      sessionStorage.removeItem('was-authenticated');
+      sessionStorage.removeItem('last_data_load');
+      
+      // IMMEDIATELY clear ALL localStorage data (before state updates)
       localStorage.removeItem('planner-state');
-      console.log('🗑️ Cleared all user data from localStorage in PlannerContext');
+      console.log('🗑️ IMMEDIATELY cleared localStorage on sign-out');
       
       // Force clear any other planner-related localStorage
       Object.keys(localStorage).forEach(key => {
@@ -604,18 +604,31 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
         }
       });
       
-      // Clear the authentication flag and load time
-      sessionStorage.removeItem('was-authenticated');
-      sessionStorage.removeItem('last_data_load');
+      // Reset state to initial state
+      dispatch({ type: 'LOAD_PLANNING_DATA', payload: {
+        ...initialState,
+        isLoading: false,
+        isDataLoaded: false
+      }});
       
-      // Additional cleanup: Force clear localStorage again after a short delay
-      // This ensures any async state updates don't re-save the data
-      setTimeout(() => {
+      // Additional cleanup: Force clear localStorage multiple times to ensure it's gone
+      const clearLocalStorage = () => {
         localStorage.removeItem('planner-state');
-        console.log('🗑️ Final localStorage cleanup after sign-out');
-      }, 100);
+        console.log('🗑️ Forced localStorage clear');
+      };
       
-      console.log('✅ Planner state reset complete');
+      // Clear immediately and then again after delays to catch any async updates
+      setTimeout(clearLocalStorage, 50);
+      setTimeout(clearLocalStorage, 100);
+      setTimeout(clearLocalStorage, 200);
+      
+      // Remove the cleanup flag after all cleanup is done
+      setTimeout(() => {
+        sessionStorage.removeItem('cleanup-in-progress');
+        console.log('🏁 Cleanup process completed');
+      }, 300);
+      
+      console.log('✅ Planner state reset complete - localStorage should be empty');
     } else if (user && session) {
       // Mark that user was authenticated
       sessionStorage.setItem('was-authenticated', 'true');
@@ -626,16 +639,20 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
   useEffect(() => {
     // Don't save to localStorage if:
     // 1. Currently loading
-    // 2. User is signed out (no user/session)
+    // 2. User is signed out (no user/session) 
     // 3. State was just reset during sign-out cleanup
+    // 4. Cleanup is in progress
+    const isCleanupInProgress = sessionStorage.getItem('cleanup-in-progress') === 'true';
     const shouldNotSave = state.isLoading || 
                          (!user && !session) ||
+                         isCleanupInProgress ||
                          (!state.userProfile?.name && state.goals?.length === 0 && state.currentStep === 0);
     
     if (shouldNotSave) {
       console.log('🚫 Not saving to localStorage:', {
         isLoading: state.isLoading,
         hasUserSession: !!(user && session),
+        isCleanupInProgress,
         hasData: !!(state.userProfile?.name || state.goals?.length > 0 || state.currentStep > 0)
       });
       return;
