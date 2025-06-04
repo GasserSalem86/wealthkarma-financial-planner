@@ -437,23 +437,25 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
         if (state.isLoading) {
           dispatch({ type: 'SET_LOADING', payload: false });
         }
-        isLoadingRef.current = false;
+        isLoadingRef.current = false; // Clear ref since we're not loading
         return;
       }
 
       if (!session) {
         console.log('📭 No session available yet, waiting...');
+        isLoadingRef.current = false; // Clear ref since we're not loading
         return;
       }
 
       if (!session.access_token) {
         console.log('📭 No access token in session, waiting...');
+        isLoadingRef.current = false; // Clear ref since we're not loading
         return;
       }
 
       // Double-check ref again inside the async function
-      if (isLoadingRef.current || state.isLoading) {
-        console.log('🔄 Already loading (ref or state), skipping...', {
+      if (isLoadingRef.current && state.isLoading) { // Only skip if BOTH are true (actual loading)
+        console.log('🔄 Already loading (ref AND state), skipping...', {
           refLoading: isLoadingRef.current,
           stateLoading: state.isLoading
         });
@@ -467,6 +469,7 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
         const timeSinceFailure = Date.now() - parseInt(lastFailure);
         if (timeSinceFailure < 60000) { // 1 minute cooldown after failure
           console.log('🚫 Recent load failure detected, cooling down for 1 minute');
+          isLoadingRef.current = false; // Clear ref since we're not loading
           return;
         }
         // Clear old failure marker
@@ -479,13 +482,12 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
         const timeSinceLoad = Date.now() - parseInt(lastLoaded);
         if (timeSinceLoad < 30000 && state.isDataLoaded) { // 30 seconds
           console.log('📊 Recent data load detected, skipping reload');
+          isLoadingRef.current = false; // Clear ref since we're not loading
           return;
         }
       }
 
-      // IMMEDIATELY set ref to prevent race conditions
-      isLoadingRef.current = true;
-      
+      // Now we're actually proceeding with the load - keep ref set
       console.log('👤 User authenticated with valid session, loading data from Supabase...');
       console.log('🔑 Access token available:', session.access_token.substring(0, 20) + '...');
       
@@ -564,7 +566,7 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
     };
 
     // Only proceed if conditions are met and not already loading
-    if (user && session && session.access_token && !isLoadingRef.current && !state.isLoading) {
+    if (user && session && session.access_token && !state.isLoading) {
       // Set ref immediately to block any other simultaneous calls
       isLoadingRef.current = true;
       
@@ -576,10 +578,8 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
       return () => {
         clearTimeout(initTimeoutId);
         if (timeoutId) clearTimeout(timeoutId);
-        // Only clear ref if this effect set it
-        if (isLoadingRef.current) {
-          isLoadingRef.current = false;
-        }
+        // Clear ref on cleanup
+        isLoadingRef.current = false;
       };
     } else {
       console.log('🚫 Skipping load - conditions not met', {
