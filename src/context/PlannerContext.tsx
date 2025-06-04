@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useReducer, useEffect } from 'react';
+import React, { createContext, useContext, useReducer, useEffect, useRef } from 'react';
 import { Goal, GoalResult, Profile, ReturnPhase, FundingStyle } from '../types/plannerTypes';
 import { calculateSequentialAllocations, calculateRequiredPMT } from '../utils/calculations';
 import { useAuth } from './AuthContext';
@@ -382,6 +382,9 @@ const PlannerContext = createContext<PlannerContextType | undefined>(undefined);
 export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, session } = useAuth(); // Get both user and session from AuthContext
   
+  // Use ref to immediately track loading state and prevent race conditions
+  const isLoadingRef = useRef(false);
+  
   // Lazy init: attempt to load from localStorage
   const [state, dispatch] = useReducer(
     plannerReducer,
@@ -418,7 +421,8 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
         userId: user?.id, 
         hasSession: !!session, 
         hasAccessToken: !!session?.access_token,
-        currentIsLoading: state.isLoading
+        currentIsLoading: state.isLoading,
+        refIsLoading: isLoadingRef.current
       });
 
       if (!user) {
@@ -427,6 +431,7 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
         if (state.isLoading) {
           dispatch({ type: 'SET_LOADING', payload: false });
         }
+        isLoadingRef.current = false;
         return;
       }
 
@@ -440,9 +445,12 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
         return;
       }
 
-      // CRITICAL: Use state.isLoading to prevent duplicate loads
-      if (state.isLoading) {
-        console.log('🔄 Already loading (state.isLoading = true), skipping...');
+      // CRITICAL: Use ref for immediate synchronization to prevent race conditions
+      if (isLoadingRef.current || state.isLoading) {
+        console.log('🔄 Already loading (ref or state), skipping...', {
+          refLoading: isLoadingRef.current,
+          stateLoading: state.isLoading
+        });
         return;
       }
 
@@ -469,10 +477,13 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
         }
       }
 
+      // IMMEDIATELY set ref to prevent race conditions
+      isLoadingRef.current = true;
+      
       console.log('👤 User authenticated with valid session, loading data from Supabase...');
       console.log('🔑 Access token available:', session.access_token.substring(0, 20) + '...');
       
-      // Set loading state immediately to prevent race conditions
+      // Set loading state to sync with component state
       dispatch({ type: 'SET_LOADING', payload: true });
 
       // Set a maximum timeout for the entire loading process
@@ -480,6 +491,7 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
       timeoutId = setTimeout(() => {
         console.error('⏰ Load operation timed out after 60 seconds, forcing loading to false');
         dispatch({ type: 'SET_LOADING', payload: false });
+        isLoadingRef.current = false;
         // Mark as failure to prevent immediate retry
         sessionStorage.setItem(failureKey, Date.now().toString());
       }, maxLoadTime);
@@ -540,6 +552,7 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
         // Always clear loading state and timeout
         clearTimeout(timeoutId);
         dispatch({ type: 'SET_LOADING', payload: false });
+        isLoadingRef.current = false;
         console.log('🏁 Load attempt finished, loading state cleared');
       }
     };
@@ -547,10 +560,13 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
     // Add a small delay to ensure session is available, but check loading state first
     const initTimeoutId = setTimeout(() => {
       // Double-check loading state before starting
-      if (!state.isLoading) {
+      if (!isLoadingRef.current && !state.isLoading) {
         loadUserData();
       } else {
-        console.log('🔄 Skipping load - already in loading state');
+        console.log('🔄 Skipping load - already in loading state', {
+          refLoading: isLoadingRef.current,
+          stateLoading: state.isLoading
+        });
       }
     }, 100);
     
