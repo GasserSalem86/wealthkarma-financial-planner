@@ -2,6 +2,9 @@ import React, { createContext, useContext, useReducer, useEffect } from 'react';
 import { Goal, GoalResult, Profile, ReturnPhase, FundingStyle } from '../types/plannerTypes';
 import { calculateSequentialAllocations, calculateRequiredPMT } from '../utils/calculations';
 import { useAuth } from './AuthContext';
+// Static import to avoid dynamic import failures in production
+import { plannerPersistence } from '../services/plannerPersistence';
+import { supabase } from '../lib/supabase';
 
 // Define the context state type
 export interface PlannerState {
@@ -443,6 +446,19 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
         return;
       }
 
+      // Circuit breaker: Check for recent failures to prevent infinite retry loops
+      const failureKey = `load_failures_${user.id}`;
+      const lastFailure = sessionStorage.getItem(failureKey);
+      if (lastFailure) {
+        const timeSinceFailure = Date.now() - parseInt(lastFailure);
+        if (timeSinceFailure < 60000) { // 1 minute cooldown after failure
+          console.log('🚫 Recent load failure detected, cooling down for 1 minute');
+          return;
+        }
+        // Clear old failure marker
+        sessionStorage.removeItem(failureKey);
+      }
+
       // Check if we already have data loaded and it's recent
       const lastLoaded = sessionStorage.getItem('last_data_load');
       if (lastLoaded) {
@@ -464,10 +480,11 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
       timeoutId = setTimeout(() => {
         console.error('⏰ Load operation timed out after 60 seconds, forcing loading to false');
         dispatch({ type: 'SET_LOADING', payload: false });
+        // Mark as failure to prevent immediate retry
+        sessionStorage.setItem(failureKey, Date.now().toString());
       }, maxLoadTime);
 
       try {
-        const { plannerPersistence } = await import('../services/plannerPersistence');
         console.log('🎯 Calling plannerPersistence.loadPlanningData...');
         
         const result = await plannerPersistence.loadPlanningData(user.id, session.access_token);
@@ -488,8 +505,9 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
           localStorage.removeItem('planner-state');
           console.log('🗑️ Cleared localStorage - Supabase data loaded successfully');
           
-          // Mark successful load time
+          // Mark successful load time and clear any failure markers
           sessionStorage.setItem('last_data_load', Date.now().toString());
+          sessionStorage.removeItem(failureKey);
         } else {
           console.warn('⚠️ Failed to load from Supabase or no data found:', result.error);
           console.log('📱 Keeping existing data - Supabase load failed or returned empty');
@@ -500,11 +518,19 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
           } else {
             console.log('ℹ️ No existing data and no Supabase data - user likely needs to start planning');
           }
+          
+          // Don't mark as failure if it's just no data - only mark as failure for actual errors
+          if (result.error && !result.success) {
+            sessionStorage.setItem(failureKey, Date.now().toString());
+          }
         }
         
       } catch (error) {
         console.error('❌ Error loading user data:', error);
         console.log('📱 Keeping existing data - error occurred');
+        
+        // Mark as failure to prevent immediate retry
+        sessionStorage.setItem(failureKey, Date.now().toString());
         
         // If we have existing data, keep it, otherwise ensure we're not stuck loading
         if (!state.userProfile?.name && (!state.goals || state.goals.length === 0)) {
@@ -532,7 +558,7 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
       clearTimeout(initTimeoutId);
       if (timeoutId) clearTimeout(timeoutId);
     };
-  }, [user, session, state.isLoading]); // Add state.isLoading to dependencies
+  }, [user, session]); // Remove state.isLoading from dependencies to fix the loop
 
   // Handle sign out - ONLY reset when user explicitly signs out
   useEffect(() => {
@@ -588,7 +614,6 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
   // Save function to persist changes to Supabase (kept for manual use)
   const saveToSupabase = async (): Promise<{ success: boolean; error?: string }> => {
     try {
-      const { supabase } = await import('../lib/supabase');
       const { data: { user } } = await supabase.auth.getUser();
       
       if (!user) {
@@ -596,7 +621,6 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
       }
 
       console.log('Saving planning data to Supabase...');
-      const { plannerPersistence } = await import('../services/plannerPersistence');
       const result = await plannerPersistence.savePlanningData(user.id, state);
       
       if (result.success) {
