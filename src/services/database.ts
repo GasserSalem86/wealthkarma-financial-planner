@@ -1,7 +1,7 @@
 import { supabase } from '../lib/supabase';
 import { Goal } from '../types/plannerTypes';
 
-export interface UserProfile {
+export interface Profile {
   id: string;
   email: string | null;
   full_name: string | null;
@@ -12,6 +12,10 @@ export interface UserProfile {
   current_savings: number | null;
   currency: string | null;
   risk_profile: 'Conservative' | 'Balanced' | 'Growth' | null;
+  planning_type: 'individual' | 'family' | null;
+  family_size: number | null;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface FinancialPlan {
@@ -41,7 +45,7 @@ export interface GoalProgress {
 
 // Profile operations
 export const profileService = {
-  async getProfile(userId: string): Promise<UserProfile | null> {
+  async getProfile(userId: string): Promise<Profile | null> {
     const { data, error } = await supabase
       .from('profiles')
       .select('*')
@@ -55,7 +59,7 @@ export const profileService = {
     return data;
   },
 
-  async updateProfile(userId: string, updates: Partial<UserProfile>): Promise<boolean> {
+  async updateProfile(userId: string, updates: Partial<Profile>): Promise<boolean> {
     const { error } = await supabase
       .from('profiles')
       .update({
@@ -103,6 +107,9 @@ export const goalsService = {
       monthlyAllocations: goal.monthly_allocations || [],
       bufferMonths: goal.buffer_months,
       selectedBank: goal.selected_bank,
+      initialAmount: goal.initial_amount || 0,
+      remainingAmount: goal.remaining_amount || goal.amount,
+      familyRetirementProfile: goal.family_retirement_profile,
       returnPhases: [] // Will be calculated client-side
     }));
   },
@@ -123,6 +130,8 @@ export const goalsService = {
       monthly_allocations: goal.monthlyAllocations,
       buffer_months: goal.bufferMonths,
       selected_bank: goal.selectedBank,
+      initial_amount: goal.initialAmount || 0,
+      remaining_amount: goal.remainingAmount || goal.amount,
       updated_at: new Date().toISOString()
     };
 

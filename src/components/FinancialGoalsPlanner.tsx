@@ -35,15 +35,32 @@ const FinancialGoalsPlanner: React.FC = () => {
   };
 
   useEffect(() => {
-    if (sectionsRef.current) {
-      const sections = sectionsRef.current.children;
-      if (sections[state.currentStep]) {
-        sections[state.currentStep].scrollIntoView({
-          behavior: 'smooth',
-          block: 'start',
-        });
+    // Scroll to top of the new section when step changes
+    const scrollToSectionTop = () => {
+      if (sectionsRef.current) {
+        const sections = sectionsRef.current.children;
+        if (sections[state.currentStep]) {
+          // First, scroll the main window to the very top
+          window.scrollTo({
+            top: 0,
+            left: 0,
+            behavior: 'smooth'
+          });
+          
+          // Also scroll the section container to ensure proper positioning
+          sections[state.currentStep].scrollIntoView({
+            behavior: 'smooth',
+            block: 'start',
+            inline: 'nearest'
+          });
+        }
       }
-    }
+    };
+
+    // Add a small delay to ensure DOM is ready
+    const timeoutId = setTimeout(scrollToSectionTop, 100);
+    
+    return () => clearTimeout(timeoutId);
   }, [state.currentStep]);
 
   const handleStepClick = (index: number) => {
@@ -311,50 +328,50 @@ const FinancialGoalsPlanner: React.FC = () => {
         <div ref={sectionsRef} className="h-full">
           {state.currentStep === 0 && (
             <section className="min-h-screen p-4 lg:p-8">
-              <WelcomeProfileSection onNext={handleNext} />
-            </section>
+            <WelcomeProfileSection onNext={handleNext} />
+          </section>
           )}
 
           {state.currentStep === 1 && (
             <section className="min-h-screen p-4 lg:p-8">
-              <EmergencyFundSection onNext={handleNext} />
-            </section>
+            <EmergencyFundSection onNext={handleNext} />
+          </section>
           )}
 
           {state.currentStep === 2 && (
             <section className="min-h-screen p-4 lg:p-8">
-              <GoalsSection onNext={handleNext} onBack={handleBack} />
-            </section>
+            <GoalsSection onNext={handleNext} onBack={handleBack} />
+          </section>
           )}
 
           {state.currentStep === 3 && (
             <section className="min-h-screen p-4 lg:p-8">
-              <RetirementSection onNext={handleNext} onBack={handleBack} />
-            </section>
+            <RetirementSection onNext={handleNext} onBack={handleBack} />
+          </section>
           )}
 
           {state.currentStep === 4 && (
             <section className="min-h-screen p-4 lg:p-8">
-              <RiskReturnsSection onNext={handleNext} onBack={handleBack} />
-            </section>
+            <RiskReturnsSection onNext={handleNext} onBack={handleBack} />
+          </section>
           )}
 
           {state.currentStep === 5 && (
             <section className="min-h-screen p-4 lg:p-8">
-              <BudgetProjections onNext={handleNext} onBack={handleBack} />
-            </section>
+            <BudgetProjections onNext={handleNext} onBack={handleBack} />
+          </section>
           )}
 
           {state.currentStep === 6 && (
             <section className="min-h-screen p-4 lg:p-8">
-              <MonthlyPlanView onContinue={handleNext} />
-            </section>
+            <MonthlyPlanView onContinue={handleNext} />
+          </section>
           )}
 
           {state.currentStep === 7 && (
             <section className="min-h-screen p-4 lg:p-8">
-              <GetStartedSection onBack={handleBack} />
-            </section>
+            <GetStartedSection onBack={handleBack} />
+          </section>
           )}
         </div>
 

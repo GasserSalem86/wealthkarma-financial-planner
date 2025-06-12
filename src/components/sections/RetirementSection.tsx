@@ -5,7 +5,7 @@ import Button from '../ui/Button';
 import Card, { CardHeader, CardTitle, CardContent, CardFooter } from '../ui/Card';
 import RetirementCalculator from './RetirementCalculator';
 import AIGuidance from '../AIGuidance';
-import { formatCurrency } from '../../utils/calculations';
+import { formatCurrency, calculateRetirementScenarios } from '../../utils/calculations';
 import { 
   Edit, 
   Trash2, 
@@ -22,7 +22,11 @@ import {
   Globe,
   Shield,
   Zap,
-  Heart
+  Heart,
+  Users,
+  User,
+  Info,
+  HelpCircle
 } from 'lucide-react';
 
 interface RetirementSectionProps {
@@ -35,23 +39,48 @@ const RetirementSection: React.FC<RetirementSectionProps> = ({ onNext, onBack })
   const { currency } = useCurrency();
   const [showRetirementCalculator, setShowRetirementCalculator] = useState(false);
   const [editingGoal, setEditingGoal] = useState<string | null>(null);
+  const [showStrategySelector, setShowStrategySelector] = useState(false);
+  const [selectedStrategy, setSelectedStrategy] = useState<'joint' | 'staggered'>('joint');
 
   // Find all retirement goals
   const retirementGoals = state.goals.filter(goal => goal.category === 'Retirement');
+  
+  // Note: Family retirement features available but banner not displayed
+  
+  // Get family context for internal logic (but don't show banner)
+  const planningType = state.userProfile.planningType || 'individual';
+  const familySize = state.userProfile.familySize || 1;
+  const isFamily = planningType === 'family' && familySize > 1;
 
-  const handleRetirementCalculation = (amount: number, targetDate: Date) => {
+  // Calculate retirement scenarios for family planning
+  const retirementScenarios = isFamily ? calculateRetirementScenarios(
+    planningType,
+    35, // Default primary age - could be user input
+    32, // Default spouse age - could be user input
+    selectedStrategy
+  ) : [];
+
+  const handleRetirementCalculation = (amount: number, targetDate: Date, familyRetirementProfile?: any) => {
     const horizonMonths = Math.max(1, Math.floor((targetDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24 * 30)));
     
     const newGoal = {
       id: editingGoal || `retirement-${Date.now()}`,
-      name: 'Your Golden Years',
+      name: isFamily ? `Family Retirement Plan (${selectedStrategy})` : 'Your Golden Years',
       category: 'Retirement' as const,
       targetDate,
       amount,
       horizonMonths,
       profile: 'Growth' as const,
       returnPhases: [{ length: horizonMonths, rate: 0.07 }],
-      requiredPMT: 0 // Will be calculated by the system
+      requiredPMT: 0, // Will be calculated by the system
+      familyRetirementProfile: isFamily ? {
+        primaryAge: familyRetirementProfile?.primaryAge || 35,
+        spouseAge: familyRetirementProfile?.spouseAge || 32,
+        primaryRetirementAge: familyRetirementProfile?.primaryRetirementAge || 65,
+        spouseRetirementAge: familyRetirementProfile?.spouseRetirementAge || 65,
+        strategy: familyRetirementProfile?.strategy || selectedStrategy,
+        expenseRatio: 0.8 // 80% of current expenses in retirement
+      } : undefined
     };
 
     if (editingGoal) {
@@ -61,12 +90,21 @@ const RetirementSection: React.FC<RetirementSectionProps> = ({ onNext, onBack })
     }
 
     setShowRetirementCalculator(false);
+    setShowStrategySelector(false);
     setEditingGoal(null);
   };
 
   const handleEditGoal = (goalId: string) => {
     setEditingGoal(goalId);
-    setShowRetirementCalculator(true);
+    const goal = retirementGoals.find(g => g.id === goalId);
+    if (goal?.familyRetirementProfile) {
+      setSelectedStrategy(goal.familyRetirementProfile.strategy);
+    }
+    if (isFamily) {
+      setShowStrategySelector(true);
+    } else {
+      setShowRetirementCalculator(true);
+    }
   };
 
   const handleDeleteGoal = (goalId: string) => {
@@ -77,8 +115,194 @@ const RetirementSection: React.FC<RetirementSectionProps> = ({ onNext, onBack })
 
   const handleCancel = () => {
     setShowRetirementCalculator(false);
+    setShowStrategySelector(false);
     setEditingGoal(null);
   };
+
+  const handleStrategySelect = (strategy: 'joint' | 'staggered') => {
+    setSelectedStrategy(strategy);
+    setShowStrategySelector(false);
+    setShowRetirementCalculator(true);
+  };
+
+  const handleStartPlanning = () => {
+    if (isFamily) {
+      setShowStrategySelector(true);
+    } else {
+      setShowRetirementCalculator(true);
+    }
+  };
+
+  // Family retirement strategy selector
+  if (showStrategySelector) {
+    return (
+      <div className="container mx-auto max-w-4xl px-4 lg:px-0">
+        <div className="mb-4 lg:mb-6">
+          <Button 
+            variant="outline" 
+            onClick={handleCancel}
+            className="transition-all duration-200"
+          >
+            ← Back to Retirement Planning
+          </Button>
+        </div>
+        
+        <Card className="border-0 shadow-xl bg-theme-card">
+          <CardHeader className="text-center pb-4">
+            <CardTitle className="heading-gradient heading-h1 flex items-center justify-center space-x-3">
+              <div className="w-12 h-12 bg-gradient-to-r from-green-400 to-orange-400 rounded-full flex items-center justify-center">
+                <Users className="w-7 h-7 text-white" />
+              </div>
+              <span>Choose Your Family Retirement Strategy</span>
+            </CardTitle>
+            <p className="text-lg text-theme-secondary mt-4">
+              How would you like to plan your family's retirement? Both approaches have their benefits.
+            </p>
+          </CardHeader>
+          
+          <CardContent className="space-y-6">
+            {/* Strategy Options */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Joint Retirement */}
+              <div 
+                className={`p-6 rounded-xl border-2 cursor-pointer transition-all duration-300 ${
+                  selectedStrategy === 'joint' 
+                    ? 'border-emerald-500 bg-emerald-500/10 shadow-lg transform scale-105' 
+                    : 'border-theme bg-theme-section hover:border-emerald-300'
+                }`}
+                onClick={() => setSelectedStrategy('joint')}
+              >
+                <div className="flex items-center space-x-3 mb-4">
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                    selectedStrategy === 'joint' ? 'bg-emerald-500' : 'bg-theme-muted'
+                  }`}>
+                    <Users className={`w-5 h-5 ${selectedStrategy === 'joint' ? 'text-white' : 'text-theme-secondary'}`} />
+                  </div>
+                  <h3 className="heading-h3-sm text-theme-primary">Joint Retirement</h3>
+                  {selectedStrategy === 'joint' && <CheckCircle className="w-5 h-5 text-emerald-500" />}
+                </div>
+                
+                <div className="space-y-3">
+                  <p className="text-theme-secondary">
+                    <strong>Both retire at the same time</strong> - typically when the younger spouse reaches retirement age.
+                  </p>
+                  
+                  <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-lg p-3">
+                    <h4 className="font-semibold text-emerald-600 mb-2">✨ Benefits:</h4>
+                    <ul className="text-sm text-emerald-600 space-y-1">
+                      <li>• Start retirement journey together</li>
+                      <li>• Synchronized lifestyle changes</li>
+                      <li>• Shared retirement activities and travel</li>
+                      <li>• Simplified financial planning</li>
+                    </ul>
+                  </div>
+                  
+                  <div className="bg-theme-warning/10 border border-theme-warning/30 rounded-lg p-3">
+                    <h4 className="font-semibold text-theme-warning mb-2">⚠️ Considerations:</h4>
+                    <ul className="text-sm text-theme-warning space-y-1">
+                      <li>• May require higher savings if one retires early</li>
+                      <li>• Potential income loss if higher earner retires early</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+              {/* Staggered Retirement */}
+              <div 
+                className={`p-6 rounded-xl border-2 cursor-pointer transition-all duration-300 ${
+                  selectedStrategy === 'staggered' 
+                    ? 'border-orange-500 bg-orange-500/10 shadow-lg transform scale-105' 
+                    : 'border-theme bg-theme-section hover:border-orange-300'
+                }`}
+                onClick={() => setSelectedStrategy('staggered')}
+              >
+                <div className="flex items-center space-x-3 mb-4">
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                    selectedStrategy === 'staggered' ? 'bg-orange-500' : 'bg-theme-muted'
+                  }`}>
+                    <Clock className={`w-5 h-5 ${selectedStrategy === 'staggered' ? 'text-white' : 'text-theme-secondary'}`} />
+                  </div>
+                  <h3 className="heading-h3-sm text-theme-primary">Staggered Retirement</h3>
+                  {selectedStrategy === 'staggered' && <CheckCircle className="w-5 h-5 text-orange-500" />}
+                </div>
+                
+                <div className="space-y-3">
+                  <p className="text-theme-secondary">
+                    <strong>Each person retires when optimal</strong> - typically based on age, career stage, or financial readiness.
+                  </p>
+                  
+                  <div className="bg-orange-500/10 border border-orange-500/30 rounded-lg p-3">
+                    <h4 className="font-semibold text-orange-600 mb-2">✨ Benefits:</h4>
+                    <ul className="text-sm text-orange-600 space-y-1">
+                      <li>• Optimized timing for each person's career</li>
+                      <li>• Continued income from working spouse</li>
+                      <li>• Gradual lifestyle transition</li>
+                      <li>• Potentially lower overall savings needed</li>
+                    </ul>
+                  </div>
+                  
+                  <div className="bg-theme-warning/10 border border-theme-warning/30 rounded-lg p-3">
+                    <h4 className="font-semibold text-theme-warning mb-2">⚠️ Considerations:</h4>
+                    <ul className="text-sm text-theme-warning space-y-1">
+                      <li>• Different schedules and availability</li>
+                      <li>• More complex planning and coordination</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Decision Helper */}
+            <Card className="bg-blue-500/10 border-blue-500/30">
+              <CardContent className="pt-6">
+                <div className="flex items-start space-x-3">
+                  <Info className="w-5 h-5 text-blue-500 mt-1 flex-shrink-0" />
+                  <div>
+                    <h4 className="font-semibold text-blue-600 mb-2">💡 Need Help Deciding?</h4>
+                    <p className="text-sm text-blue-600 mb-3">
+                      Consider your family's priorities, career stages, and financial goals. You can always adjust this later.
+                    </p>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                      <div>
+                        <p className="font-medium text-blue-600">Choose Joint if:</p>
+                        <ul className="text-blue-600 ml-4 space-y-1">
+                          <li>• You want to enjoy retirement together</li>
+                          <li>• Similar ages and career stages</li>
+                          <li>• Comfortable with higher savings target</li>
+                        </ul>
+                      </div>
+                      <div>
+                        <p className="font-medium text-blue-600">Choose Staggered if:</p>
+                        <ul className="text-blue-600 ml-4 space-y-1">
+                          <li>• Significant age difference</li>
+                          <li>• Different career timelines</li>
+                          <li>• Want to optimize each person's timing</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </CardContent>
+          
+          <CardFooter className="flex justify-between">
+            <Button variant="outline" onClick={handleCancel}>
+              ← Back
+            </Button>
+            <Button 
+              onClick={() => handleStrategySelect(selectedStrategy)}
+              className="bg-gradient-to-r from-emerald-500 to-orange-500 text-white"
+            >
+              Continue with {selectedStrategy === 'joint' ? 'Joint' : 'Staggered'} Strategy
+              <ArrowRight className="w-5 h-5 ml-2" />
+            </Button>
+          </CardFooter>
+        </Card>
+      </div>
+    );
+  }
 
   if (showRetirementCalculator) {
     return (
@@ -95,6 +319,11 @@ const RetirementSection: React.FC<RetirementSectionProps> = ({ onNext, onBack })
         <RetirementCalculator
           onCalculate={handleRetirementCalculation}
           onCancel={handleCancel}
+          familyContext={isFamily ? {
+            strategy: selectedStrategy,
+            familySize,
+            planningType
+          } : undefined}
         />
       </div>
     );
@@ -102,6 +331,8 @@ const RetirementSection: React.FC<RetirementSectionProps> = ({ onNext, onBack })
 
   return (
     <div className="container mx-auto max-w-4xl px-4 lg:px-0">
+
+
       {/* Congratulations Section - Show when user has goals (excluding emergency fund) */}
       {state.goals.filter(goal => goal.id !== 'emergency-fund' && goal.category !== 'Retirement').length > 0 && (
         <div className="space-y-6 lg:space-y-8 mb-8 lg:mb-12">
@@ -146,13 +377,13 @@ const RetirementSection: React.FC<RetirementSectionProps> = ({ onNext, onBack })
                       <span className="text-white text-sm font-bold">3</span>
                     </div>
                     <span className="text-sm text-orange-600 font-medium">Retirement Plan</span>
-          </div>
-        </div>
+                  </div>
+                </div>
                 <div className="bg-orange-500/10 border border-orange-500/30 rounded-lg p-3 max-w-lg mx-auto">
                   <p className="text-sm text-orange-600 font-medium">
                     🌟 Fantastic momentum! You've built a solid foundation. Now let's secure your future with a retirement plan that gives you true financial freedom.
-        </p>
-      </div>
+                  </p>
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -241,7 +472,7 @@ const RetirementSection: React.FC<RetirementSectionProps> = ({ onNext, onBack })
               calculate exactly how much you need to save for your dream retirement.
             </p>
             <Button
-              onClick={() => setShowRetirementCalculator(true)}
+              onClick={handleStartPlanning}
               className="bg-white text-green-700 hover:bg-gray-50 dark:bg-gray-800 dark:text-green-300 dark:hover:bg-gray-700 shadow-lg hover:shadow-xl transition-all duration-300 font-semibold px-8 py-3"
               size="lg"
             >
@@ -378,20 +609,20 @@ const RetirementSection: React.FC<RetirementSectionProps> = ({ onNext, onBack })
 
       {/* AI Guidance - Only show on retirement step */}
       {state.currentStep === 3 && (
-        <AIGuidance 
-          step="retirement-plan" 
-          context={{
-            name: state.userProfile.name,
-            nationality: state.userProfile.nationality,
-            location: state.userProfile.location,
-            monthlyIncome: state.userProfile.monthlyIncome,
-            monthlyExpenses: state.monthlyExpenses,
-            currency: currency.code,
-            currentStep: 'retirement-plan',
-            goals: retirementGoals
-          }}
-          componentId="retirement-section"
-        />
+      <AIGuidance 
+        step="retirement-plan" 
+        context={{
+          name: state.userProfile.name,
+          nationality: state.userProfile.nationality,
+          location: state.userProfile.location,
+          monthlyIncome: state.userProfile.monthlyIncome,
+          monthlyExpenses: state.monthlyExpenses,
+          currency: currency.code,
+          currentStep: 'retirement-plan',
+          goals: retirementGoals
+        }}
+        componentId="retirement-section"
+      />
       )}
     </div>
   );

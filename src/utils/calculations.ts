@@ -95,7 +95,8 @@ export const calculateRequiredPMT = (
 export const calculateSequentialAllocations = (
   goals: Goal[],
   budget: number,
-  fundingStyle: FundingStyle = 'hybrid'
+  fundingStyle: FundingStyle = 'hybrid',
+  leftoverSavings?: number
 ): GoalResult[] => {
   if (!goals.length || budget <= 0) return [];
 
@@ -108,22 +109,27 @@ export const calculateSequentialAllocations = (
   // Initialize results array with initial PMT calculations
   const results: GoalResult[] = sortedGoals.map(goal => {
     const horizonMonths = monthDiff(today, goal.targetDate);
-    const initialPMT = calculateRequiredPMT(
-      goal.amount,
+    
+    // Use remaining amount if goal has initial amount applied from current savings
+    const targetAmount = goal.remainingAmount || goal.amount;
+    const initialAmount = goal.initialAmount || 0;
+    
+    const initialPMT = targetAmount > 0 ? calculateRequiredPMT(
+      targetAmount,
       goal.returnPhases,
       horizonMonths,
       goal.paymentFrequency,
       goal.paymentPeriod
-    );
+    ) : 0;
 
     return {
       goal,
       requiredPMT: initialPMT,
-      amountAtTarget: 0,
-      remainingGap: goal.amount,
+      amountAtTarget: initialAmount, // Start with initial amount from current savings
+      remainingGap: targetAmount,    // Only need to fund remaining amount
       monthlyAllocations: new Array(totalMonths).fill(0),
       initialPMT,
-      runningBalances: new Array(totalMonths).fill(0)
+      runningBalances: new Array(totalMonths).fill(initialAmount) // Start with initial amount
     };
   });
 
@@ -211,7 +217,7 @@ export const calculateSequentialAllocations = (
         monthlyBudget -= allocation;
 
         // Update running balance with compound interest
-        const prevBalance = month === 0 ? 0 : result.runningBalances[month - 1];
+        const prevBalance = month === 0 ? (result.goal.initialAmount || 0) : result.runningBalances[month - 1];
 
         const horizonMonths = monthDiff(today, result.goal.targetDate);
         if (month >= horizonMonths) {
@@ -305,4 +311,325 @@ export const formatCurrency = (amount: number, currency: Currency): string => {
 
 export const formatPercentage = (rate: number): string => {
   return `${(rate * 100).toFixed(1)}%`;
+};
+
+// New utility functions for current savings allocation
+export interface SavingsAllocationResult {
+  allocatedGoals: Goal[];
+  leftoverAmount: number;
+  totalAllocated: number;
+}
+
+/**
+ * Apply current savings to goals in priority order:
+ * 1. Emergency Fund first
+ * 2. Remaining goals by target date (earliest first)
+ */
+export const applySavingsToGoals = (
+  goals: Goal[],
+  currentSavings: number
+): SavingsAllocationResult => {
+  if (currentSavings <= 0 || goals.length === 0) {
+    return {
+      allocatedGoals: goals,
+      leftoverAmount: currentSavings,
+      totalAllocated: 0
+    };
+  }
+
+  // Sort goals by priority: Emergency fund first, then by target date
+  const sortedGoals = [...goals].sort((a, b) => {
+    // Emergency fund gets highest priority
+    if (a.id === 'emergency-fund' && b.id !== 'emergency-fund') return -1;
+    if (b.id === 'emergency-fund' && a.id !== 'emergency-fund') return 1;
+    
+    // Otherwise sort by target date (earliest first)
+    return a.targetDate.getTime() - b.targetDate.getTime();
+  });
+
+  let remainingSavings = currentSavings;
+  let totalAllocated = 0;
+  const allocatedGoals: Goal[] = [];
+
+  for (const goal of sortedGoals) {
+    const goalAmount = goal.amount;
+    const amountToAllocate = Math.min(remainingSavings, goalAmount);
+    
+    if (amountToAllocate > 0) {
+      // Create updated goal with allocated savings
+      const updatedGoal: Goal = {
+        ...goal,
+        initialAmount: amountToAllocate,
+        remainingAmount: goalAmount - amountToAllocate
+      };
+      
+      allocatedGoals.push(updatedGoal);
+      remainingSavings -= amountToAllocate;
+      totalAllocated += amountToAllocate;
+    } else {
+      // No savings left, just add goal as-is
+      allocatedGoals.push({
+        ...goal,
+        initialAmount: 0,
+        remainingAmount: goalAmount
+      });
+    }
+
+    // If no savings left, add remaining goals without allocation
+    if (remainingSavings <= 0) {
+      const remainingGoals = sortedGoals.slice(allocatedGoals.length);
+      remainingGoals.forEach(g => {
+        allocatedGoals.push({
+          ...g,
+          initialAmount: 0,
+          remainingAmount: g.amount
+        });
+      });
+      break;
+    }
+  }
+
+  return {
+    allocatedGoals,
+    leftoverAmount: remainingSavings,
+    totalAllocated
+  };
+};
+
+/**
+ * Recalculate required PMT for a goal considering initial amount from savings
+ */
+export const calculateAdjustedPMT = (
+  goal: Goal,
+  horizonMonths: number
+): number => {
+  const remainingAmount = goal.remainingAmount || goal.amount;
+  
+  if (remainingAmount <= 0) {
+    return 0; // Goal fully funded by current savings
+  }
+
+  return calculateRequiredPMT(
+    remainingAmount,
+    goal.returnPhases,
+    horizonMonths,
+    goal.paymentFrequency,
+    goal.paymentPeriod
+  );
+};
+
+// Family-Specific Calculation Functions
+
+/**
+ * Calculate family emergency fund amount considering family size
+ */
+export const calculateFamilyEmergencyFund = (
+  monthlyExpenses: number,
+  bufferMonths: number,
+  planningType: 'individual' | 'family',
+  familySize?: number
+): number => {
+  // Base emergency fund calculation
+  const baseAmount = monthlyExpenses * bufferMonths;
+  
+  // For family planning, use total household expenses as provided
+  // No additional family size multiplier needed since expenses should already reflect family needs
+  return baseAmount;
+};
+
+/**
+ * Get recommended buffer months for families vs individuals
+ */
+export const getRecommendedBufferMonths = (
+  planningType: 'individual' | 'family',
+  familySize?: number
+): { min: number; recommended: number; max: number } => {
+  if (planningType === 'family') {
+    return {
+      min: 6,        // Families need more stability
+      recommended: 9, // 9 months is ideal for families
+      max: 12
+    };
+  }
+  
+  return {
+    min: 3,        // Individuals can be more flexible
+    recommended: 6, // Standard recommendation
+    max: 9
+  };
+};
+
+/**
+ * Calculate retirement scenarios for families with different strategies
+ */
+export const calculateRetirementScenarios = (
+  planningType: 'individual' | 'family',
+  primaryAge: number,
+  spouseAge: number,
+  strategy: 'joint' | 'staggered'
+) => {
+  if (planningType === 'individual') {
+    return [];
+  }
+
+  const scenarios = [];
+  
+  if (strategy === 'joint') {
+    // Joint retirement - both retire when younger spouse reaches 65
+    const youngerAge = Math.min(primaryAge, spouseAge);
+    const yearsToRetirement = 65 - youngerAge;
+    
+    scenarios.push({
+      name: 'Joint Retirement',
+      description: 'Both retire together when younger spouse turns 65',
+      retirementAge: 65,
+      yearsToRetirement,
+      benefits: [
+        'Start retirement journey together',
+        'Synchronized lifestyle changes',
+        'Shared activities and travel',
+        'Simplified financial planning'
+      ],
+      considerations: [
+        'May require higher savings if older spouse retires early',
+        'Potential income loss if higher earner retires early'
+      ]
+    });
+  } else {
+    // Staggered retirement - each person retires optimally
+    scenarios.push({
+      name: 'Primary Retirement',
+      description: 'Primary earner retires at 65',
+      retirementAge: 65,
+      yearsToRetirement: 65 - primaryAge,
+      benefits: [
+        'Optimal career timing',
+        'Continued household income from spouse',
+        'Gradual lifestyle transition'
+      ]
+    });
+    
+    scenarios.push({
+      name: 'Spouse Retirement', 
+      description: 'Spouse retires at 65',
+      retirementAge: 65,
+      yearsToRetirement: 65 - spouseAge,
+      benefits: [
+        'Optimal career timing',
+        'Potentially reduced overall savings needed',
+        'Flexible retirement transition'
+      ]
+    });
+  }
+  
+  return scenarios;
+};
+
+/**
+ * Adjust goal amounts based on family size for certain goal types
+ */
+export const adjustGoalAmountForFamily = (
+  baseAmount: number,
+  goalCategory: string,
+  planningType: 'individual' | 'family',
+  familySize?: number
+): number => {
+  if (planningType === 'individual' || !familySize || familySize <= 1) {
+    return baseAmount;
+  }
+  
+  // Family-specific adjustments for certain goal types
+  switch (goalCategory) {
+    case 'Home':
+      // Larger families may need bigger homes
+      if (familySize >= 4) return baseAmount * 1.3;
+      if (familySize >= 3) return baseAmount * 1.15;
+      return baseAmount;
+      
+    case 'Education':
+      // Multiple children increase education costs
+      if (familySize >= 4) return baseAmount * (familySize - 1); // Assuming 2 parents + children
+      if (familySize >= 3) return baseAmount * 1.5;
+      return baseAmount;
+      
+    case 'Travel':
+      // Travel costs scale with family size
+      return baseAmount * Math.min(familySize, 6); // Cap at reasonable family size
+      
+    case 'Gift':
+      // Gift/vehicle costs may scale with family size
+      if (familySize >= 5) return baseAmount * 1.5;
+      if (familySize >= 4) return baseAmount * 1.2;
+      return baseAmount;
+      
+    default:
+      // Most other goals don't scale directly with family size
+      return baseAmount;
+  }
+};
+
+/**
+ * Calculate leftover savings redistribution prioritization for families
+ */
+export const redistributeLeftoverSavings = (
+  leftoverAmount: number,
+  goals: Goal[],
+  planningType: 'individual' | 'family',
+  familySize?: number
+): Goal[] => {
+  if (leftoverAmount <= 0 || goals.length === 0) {
+    return goals;
+  }
+  
+  // Sort goals by family priority
+  const sortedGoals = [...goals].sort((a, b) => {
+    const getFamilyPriority = (goal: Goal): number => {
+      if (planningType === 'individual') return 0;
+      
+      // Family-specific prioritization
+      switch (goal.category) {
+        case 'Other': return 1; // Emergency fund falls under Other, highest priority
+        case 'Home': return 2;
+        case 'Education': return 3;
+        case 'Retirement': return 4;
+        case 'Gift': return 5;
+        case 'Travel': return 6;
+        default: return 7;
+      }
+    };
+    
+    const aPriority = getFamilyPriority(a);
+    const bPriority = getFamilyPriority(b);
+    
+    if (aPriority !== bPriority) {
+      return aPriority - bPriority;
+    }
+    
+    // If same priority, sort by target date
+    return a.targetDate.getTime() - b.targetDate.getTime();
+  });
+  
+  // Apply additional leftover savings to highest priority goals
+  let remainingLeftover = leftoverAmount;
+  const updatedGoals = sortedGoals.map(goal => {
+    if (remainingLeftover <= 0) return goal;
+    
+    const currentInitial = goal.initialAmount || 0;
+    const currentRemaining = goal.remainingAmount || goal.amount;
+    
+    const additionalAmount = Math.min(remainingLeftover, currentRemaining);
+    
+    if (additionalAmount > 0) {
+      remainingLeftover -= additionalAmount;
+      return {
+        ...goal,
+        initialAmount: currentInitial + additionalAmount,
+        remainingAmount: currentRemaining - additionalAmount
+      };
+    }
+    
+    return goal;
+  });
+  
+  return updatedGoals;
 };

@@ -23,11 +23,13 @@ export const saveUserDataOnSignup = async (userId: string, plannerState: any, ac
       id: userId,
       monthly_income: plannerState.userProfile.monthlyIncome || 0,
       monthly_expenses: plannerState.monthlyExpenses || 0,
-      current_savings: 0,
+      current_savings: plannerState.userProfile.currentSavings || 0,
       currency: plannerState.userProfile.currency || 'AED',
       full_name: plannerState.userProfile.name || '',
       country: plannerState.userProfile.location || '',
       nationality: plannerState.userProfile.nationality || '',
+      planning_type: plannerState.userProfile.planningType || 'individual',
+      family_size: plannerState.userProfile.familySize || 1,
       risk_profile: (plannerState.selectedPhase === 0 ? 'Conservative' : 
                    plannerState.selectedPhase === 1 ? 'Balanced' : 'Growth'),
       updated_at: new Date().toISOString()
@@ -76,6 +78,9 @@ export const saveUserDataOnSignup = async (userId: string, plannerState: any, ac
           monthly_allocations: goal.monthlyAllocations || [],
           buffer_months: goal.bufferMonths,
           selected_bank: goal.selectedBank,
+          initial_amount: goal.initialAmount || 0,
+          remaining_amount: goal.remainingAmount || goal.amount,
+          family_retirement_profile: goal.familyRetirementProfile,
           is_active: true,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
@@ -109,6 +114,7 @@ export const saveUserDataOnSignup = async (userId: string, plannerState: any, ac
         selectedPhase: plannerState.selectedPhase,
         allocations: plannerState.allocations,
         userProfile: plannerState.userProfile,
+        leftoverSavings: plannerState.leftoverSavings || 0,
         completedAt: new Date().toISOString()
       },
       is_active: true,

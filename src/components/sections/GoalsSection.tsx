@@ -6,7 +6,7 @@ import { calculateRequiredPMT, monthDiff, getRecommendedProfile } from '../../ut
 import { formatCurrency } from '../../utils/calculations';
 import Button from '../ui/Button';
 import Card, { CardHeader, CardTitle, CardContent, CardFooter } from '../ui/Card';
-import { Calendar, DollarSign, Edit, Trash2, GraduationCap, Plane, Gift, Home, Target, Plus, HelpCircle } from 'lucide-react';
+import { Calendar, DollarSign, Edit, Trash2, GraduationCap, Plane, Gift, Home, Target, Plus, HelpCircle, CheckCircle } from 'lucide-react';
 import AIGuidance from '../AIGuidance';
 import { UserContext, aiService } from '../../services/aiService';
 
@@ -70,6 +70,12 @@ const GoalsSection: React.FC<GoalsSectionProps> = ({ onNext, onBack }) => {
   const yearOptions = Array.from({ length: 41 }, (_, i) => currentYear + i);
 
   const displayGoals = state.goals.filter((goal) => goal.id !== 'emergency-fund' && goal.category !== 'Retirement');
+  
+  // Get current savings and leftover amount
+  const currentSavings = state.userProfile.currentSavings || 0;
+  const leftoverSavings = state.leftoverSavings || 0;
+  
+  // Note: Family planning features available but not displayed in goals section
 
   const shouldShowPaymentOptions = (category: GoalCategory) => {
     return category === 'Education' || category === 'Home';
@@ -392,6 +398,9 @@ const GoalsSection: React.FC<GoalsSectionProps> = ({ onNext, onBack }) => {
       monthlyExpenses: state.monthlyExpenses,
       currency: currency.code,
       currentStep: 'financial-goals',
+      // Add family planning context
+      planningType: state.userProfile.planningType || 'individual',
+      familySize: state.userProfile.familySize || 1,
       goals: state.goals.map(goal => ({
         id: goal.id,
         name: goal.name,
@@ -426,69 +435,140 @@ const GoalsSection: React.FC<GoalsSectionProps> = ({ onNext, onBack }) => {
   const renderStep = () => {
     switch (currentStep) {
       case 'intro':
-  return (
-          <div className="space-y-6 lg:space-y-8">
-            {/* Congratulations Section */}
-            <Card className="border-green-500/30 bg-green-500/5">
-              <CardContent className="pt-6">
-                <div className="text-center space-y-4">
-                  <div className="text-4xl">🎉</div>
-                  <h3 className="text-xl lg:text-2xl font-bold text-green-600">
-                    Congratulations! Your Safety Net is Ready!
-                  </h3>
-                  <p className="text-sm lg:text-base text-theme-secondary max-w-2xl mx-auto">
-                    You've taken the most important step in financial planning by securing your emergency fund. 
-                    Now you're financially protected against unexpected events, giving you the confidence to pursue your dreams!
-        </p>
-      </div>
-              </CardContent>
-            </Card>
+        return (
+          <div className="space-y-8">
+            {/* Progress Tracker and Motivation - Show when user has emergency fund but hasn't started goals yet */}
+            {state.goals.some(goal => goal.id === 'emergency-fund') && displayGoals.length === 0 && (
+              <div className="space-y-6 lg:space-y-8 mb-8 lg:mb-12">
+                {/* Congratulations Section */}
+                <Card className="border-green-500/30 bg-green-500/5">
+                  <CardContent className="pt-6">
+                    <div className="text-center space-y-4">
+                      <div className="text-4xl">🎉</div>
+                      <h3 className="text-xl lg:text-2xl font-bold text-green-600">
+                        Excellent Work! Your Safety Net is Ready!
+                      </h3>
+                      <p className="text-sm lg:text-base text-theme-secondary max-w-2xl mx-auto">
+                        You've successfully built your emergency fund - the foundation of financial security. 
+                        Now it's time for the exciting part: planning and achieving your life goals and dreams!
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
 
-            {/* Progress Overview */}
-            <Card className="border-blue-500/30 bg-blue-500/5">
-              <CardContent className="pt-6">
-                <div className="text-center space-y-4">
-                  <h3 className="text-xl font-semibold text-theme-primary">Your Financial Journey</h3>
-                  <div className="flex items-center justify-center space-x-4">
-                    <div className="flex items-center space-x-2">
-                      <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
-                        <span className="text-white text-sm font-bold">✓</span>
+                {/* Progress Overview */}
+                <Card className="border-blue-500/30 bg-blue-500/5">
+                  <CardContent className="pt-6">
+                    <div className="text-center space-y-4">
+                      <h3 className="text-xl font-semibold text-theme-primary">Your Financial Journey</h3>
+                      <div className="flex items-center justify-center space-x-4">
+                        <div className="flex items-center space-x-2">
+                          <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+                            <span className="text-white text-sm font-bold">✓</span>
+                          </div>
+                          <span className="text-sm text-green-600 font-medium">Emergency Fund</span>
+                        </div>
+                        <div className="w-8 h-1 bg-blue-500"></div>
+                        <div className="flex items-center space-x-2">
+                          <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center animate-pulse">
+                            <span className="text-white text-sm font-bold">2</span>
+                          </div>
+                          <span className="text-sm text-blue-600 font-medium">Your Goals</span>
+                        </div>
+                        <div className="w-8 h-1 bg-theme-muted"></div>
+                        <div className="flex items-center space-x-2">
+                          <div className="w-8 h-8 bg-theme-muted rounded-full flex items-center justify-center">
+                            <span className="text-theme-secondary text-sm font-bold">3</span>
+                          </div>
+                          <span className="text-sm text-theme-secondary">Retirement Plan</span>
+                        </div>
                       </div>
-                      <span className="text-sm text-green-600 font-medium">Emergency Fund</span>
+                      <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-3 max-w-lg mx-auto">
+                        <p className="text-sm text-blue-600 font-medium">
+                          🌟 Outstanding! You've built a solid foundation. Now let's turn your dreams into achievable financial goals with clear timelines and savings plans.
+                        </p>
+                      </div>
                     </div>
-                    <div className="w-8 h-1 bg-green-500"></div>
-                    <div className="flex items-center space-x-2">
-                      <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center animate-pulse">
-                        <span className="text-white text-sm font-bold">2</span>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+
+            {/* Progress Indicator - Show when there are existing goals */}
+            {displayGoals.length > 0 && (
+              <div className="mb-8">
+                <div className="bg-theme-success/10 border border-theme-success/30 rounded-xl p-6 shadow-theme">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-8 h-8 bg-theme-success rounded-full flex items-center justify-center">
+                        <Target className="w-5 h-5 text-white" />
                       </div>
-                      <span className="text-sm text-blue-600 font-medium">Your Goals</span>
+                      <div>
+                        <h3 className="heading-brand-success">Amazing Progress!</h3>
+                        <p className="text-sm text-theme-success">You have {displayGoals.length} goal{displayGoals.length > 1 ? 's' : ''} actively planned</p>
+                      </div>
                     </div>
-                    <div className="w-8 h-1 bg-theme-muted"></div>
-                    <div className="flex items-center space-x-2">
-                      <div className="w-8 h-8 bg-theme-muted rounded-full flex items-center justify-center">
-                        <span className="text-theme-secondary text-sm font-bold">3</span>
-                      </div>
-                      <span className="text-sm text-theme-secondary">Retirement Plan</span>
+                    <div className="text-right">
+                      <p className="text-2xl font-bold text-theme-success">
+                        {formatCurrency(displayGoals.reduce((sum, goal) => sum + goal.amount, 0), currency)}
+                      </p>
+                      <p className="text-sm text-theme-success">Total goal targets</p>
                     </div>
                   </div>
-                  <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-3 max-w-lg mx-auto">
-                    <p className="text-sm text-blue-600 font-medium">
-                      🚀 You're building momentum! Let's turn your dreams into achievable financial goals.
+                  <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-3">
+                    <p className="text-sm text-green-600 font-medium text-center">
+                      🚀 Fantastic momentum! You're building a comprehensive financial plan. Add more goals or continue to retirement planning.
                     </p>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            )}
 
-            {/* Introduction */}
-            <Card className="border-purple-500/30">
-        <CardHeader>
+            {/* Current Savings Impact Banner - Only show if there are leftover savings for goals */}
+            {leftoverSavings > 0 && (
+              <Card className="border-emerald-500/30 bg-emerald-500/5">
+                <CardContent className="pt-6">
+                  <div className="text-center space-y-4">
+                    <div className="w-16 h-16 bg-emerald-500 rounded-full flex items-center justify-center mx-auto">
+                      <DollarSign className="w-8 h-8 text-white" />
+                    </div>
+                    <h3 className="text-xl lg:text-2xl font-bold text-emerald-600">
+                      Perfect! You Have Savings Available for Goals
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl mx-auto">
+                      <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-lg p-4">
+                        <div className="text-emerald-600 font-semibold">Available for Goals</div>
+                        <div className="text-2xl font-bold text-emerald-600">
+                          {formatCurrency(leftoverSavings, currency)}
+                        </div>
+                        <div className="text-xs text-emerald-600">After emergency fund allocation</div>
+                      </div>
+                      <div className="bg-purple-500/10 border border-purple-500/30 rounded-lg p-4">
+                        <div className="text-purple-600 font-semibold">Smart Impact</div>
+                        <div className="text-lg font-bold text-purple-600">
+                          Reduced monthly requirements
+                        </div>
+                        <div className="text-xs text-purple-600">For new goals you create</div>
+                      </div>
+                    </div>
+                    <p className="text-emerald-600 font-medium">
+                      💡 Your {formatCurrency(leftoverSavings, currency)} will be automatically applied to new goals, significantly reducing the monthly amount you need to save!
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+            
+
+
+            <Card>
+              <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-purple-600 text-xl lg:text-2xl">
                   <Target className="w-6 h-6" />
                   Now Let's Plan Your Life Dreams
                 </CardTitle>
-        </CardHeader>
-        <CardContent>
+              </CardHeader>
+              <CardContent>
                 <div className="space-y-4 text-theme-secondary">
                   <p className="text-sm lg:text-base leading-relaxed">
                     With your safety net secured, you're ready to plan for the exciting things in life! 
@@ -534,12 +614,12 @@ const GoalsSection: React.FC<GoalsSectionProps> = ({ onNext, onBack }) => {
               </CardFooter>
             </Card>
 
-            {/* Existing Goals Display */}
+            {/* Detailed Goals List - Show when there are existing goals */}
             {displayGoals.length > 0 && (
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center justify-between">
-                    <span>Your Current Goals</span>
+                    <span>Your Goal Details</span>
                     <Button onClick={() => setCurrentStep('category')} className="text-sm px-4 py-2">
                       <Plus className="w-4 h-4 mr-1" />
                       Add New Goal
@@ -550,31 +630,72 @@ const GoalsSection: React.FC<GoalsSectionProps> = ({ onNext, onBack }) => {
                   <div className="space-y-3">
                     {displayGoals
                       .sort((a, b) => a.targetDate.getTime() - b.targetDate.getTime())
-                      .map((goal) => (
-                        <div key={goal.id} className="flex items-center justify-between p-4 bg-theme-section rounded-lg border border-theme">
-                          <div className="flex items-center space-x-3">
-                            <div className="text-theme-secondary">
-                              {getCategoryIcon(goal.category)}
-                            </div>
-            <div>
-                              <h4 className="font-medium text-theme-primary">{goal.name}</h4>
-                              <p className="text-sm text-theme-secondary">
-                                {formatCurrency(goal.amount, currency)} • {monthOptions[goal.targetDate.getMonth()]} {goal.targetDate.getFullYear()}
-                              </p>
+                      .map((goal) => {
+                        const initialAmount = goal.initialAmount || 0;
+                        const remainingAmount = goal.remainingAmount || goal.amount;
+                        const hasCurrentSavings = initialAmount > 0;
+                        
+                        return (
+                          <div key={goal.id} className="p-4 bg-theme-section rounded-lg border border-theme">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center space-x-3 flex-1">
+                                <div className="text-theme-secondary">
+                                  {getCategoryIcon(goal.category)}
+                                </div>
+                                <div className="flex-1">
+                                  <div className="flex items-center space-x-2 mb-1">
+                                    <h4 className="font-medium text-theme-primary">{goal.name}</h4>
+                                    {hasCurrentSavings && (
+                                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-emerald-500/20 text-emerald-600">
+                                        <DollarSign className="w-3 h-3 mr-1" />
+                                        Savings Applied
+                                      </span>
+                                    )}
+                                  </div>
+                                  
+                                  <div className="text-sm space-y-1">
+                                    <div className="flex items-center space-x-4 text-theme-secondary">
+                                      <span>
+                                        {formatCurrency(goal.amount, currency)} • {monthOptions[goal.targetDate.getMonth()]} {goal.targetDate.getFullYear()}
+                                      </span>
+                                    </div>
+                                    
+                                    {hasCurrentSavings && (
+                                      <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-lg p-2 mt-2">
+                                        <div className="grid grid-cols-2 gap-3 text-xs">
+                                          <div>
+                                            <span className="text-emerald-600 font-medium">From Current Savings:</span>
+                                            <div className="font-bold text-emerald-600">{formatCurrency(initialAmount, currency)}</div>
+                                          </div>
+                                          <div>
+                                            <span className="text-blue-600 font-medium">Still Need to Save:</span>
+                                            <div className="font-bold text-blue-600">{formatCurrency(remainingAmount, currency)}</div>
+                                          </div>
+                                        </div>
+                                        <div className="mt-2 pt-2 border-t border-emerald-500/20">
+                                          <span className="text-emerald-600 text-xs font-medium">
+                                            ✨ Reduced monthly requirement by using your current savings
+                                          </span>
+                                        </div>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                              <div className="flex items-center space-x-2">
+                                <Button variant="outline" onClick={() => handleEditGoal(goal)} className="text-xs px-3 py-1">
+                                  <Edit className="w-3 h-3 mr-1" />
+                                  Edit
+                                </Button>
+                                <Button variant="outline" onClick={() => handleDeleteGoal(goal.id)} className="text-xs px-3 py-1 text-red-600 hover:text-red-700">
+                                  <Trash2 className="w-3 h-3 mr-1" />
+                                  Delete
+                                </Button>
+                              </div>
                             </div>
                           </div>
-                          <div className="flex items-center space-x-2">
-                            <Button variant="outline" onClick={() => handleEditGoal(goal)} className="text-xs px-3 py-1">
-                              <Edit className="w-3 h-3 mr-1" />
-                              Edit
-                            </Button>
-                            <Button variant="outline" onClick={() => handleDeleteGoal(goal.id)} className="text-xs px-3 py-1 text-red-600 hover:text-red-700">
-                              <Trash2 className="w-3 h-3 mr-1" />
-                              Delete
-                            </Button>
-                          </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                   </div>
                 </CardContent>
               </Card>

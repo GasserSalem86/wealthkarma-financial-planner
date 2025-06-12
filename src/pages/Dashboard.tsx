@@ -1,18 +1,21 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { PlannerProvider, usePlanner } from '../context/PlannerContext';
 import { CurrencyProvider } from '../context/CurrencyContext';
 import { ThemeProvider } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
+import { plannerPersistence } from '../services/plannerPersistence';
 import LiveDashboard from '../components/LiveDashboard';
+import EditPlanWizard from '../components/EditPlanWizard';
 import ThemeToggle from '../components/ui/ThemeToggle';
 import CurrencySelector from '../components/CurrencySelector';
-import { Home, ArrowLeft, LogOut, Loader2 } from 'lucide-react';
+import { Home, ArrowLeft, LogOut, Loader2, Edit3 } from 'lucide-react';
 import Button from '../components/ui/Button';
 
 const DashboardContent: React.FC = () => {
   const { user, signOut } = useAuth();
   const { state } = usePlanner();
+  const [isEditWizardOpen, setIsEditWizardOpen] = useState(false);
 
   // Handle URL hash tokens for email confirmation
   useEffect(() => {
@@ -157,6 +160,34 @@ const DashboardContent: React.FC = () => {
     }
   };
 
+  const handleEditPlan = () => {
+    setIsEditWizardOpen(true);
+  };
+
+  const handleSaveEditedPlan = async () => {
+    try {
+      console.log('💾 Saving edited plan...');
+      
+      if (!user) {
+        console.error('❌ No user found for saving');
+        return;
+      }
+
+      // Save the updated planner state to Supabase
+      const result = await plannerPersistence.savePlanningData(user.id, state);
+      
+      if (result.success) {
+        console.log('✅ Plan saved successfully');
+        // You could show a success toast notification here
+      } else {
+        console.error('❌ Failed to save plan:', result.error);
+        // You could show an error toast notification here
+      }
+    } catch (error) {
+      console.error('❌ Error saving edited plan:', error);
+    }
+  };
+
   return (
     <div className="min-h-screen app-background">
       {/* Header */}
@@ -196,16 +227,26 @@ const DashboardContent: React.FC = () => {
                   <Home className="w-3 h-3 lg:w-4 lg:h-4" />
                   <span className="hidden lg:block">Home</span>
                 </Button>
+
+                <Button
+                  variant="primary"
+                  size="sm"
+                  onClick={handleEditPlan}
+                  className="flex items-center gap-1 lg:gap-2 text-xs lg:text-sm px-2 lg:px-3 py-1 lg:py-2 bg-green-600 hover:bg-green-700"
+                >
+                  <Edit3 className="w-3 h-3 lg:w-4 lg:h-4" />
+                  <span className="hidden sm:block">Edit Plan</span>
+                  <span className="sm:hidden">Edit</span>
+                </Button>
                 
                 <Button
                   variant="secondary"
                   size="sm"
                   onClick={handleBackToPlanning}
-                  className="flex items-center gap-1 lg:gap-2 text-xs lg:text-sm px-2 lg:px-3 py-1 lg:py-2"
+                  className="hidden lg:flex items-center gap-1 lg:gap-2 text-xs lg:text-sm px-2 lg:px-3 py-1 lg:py-2"
                 >
                   <ArrowLeft className="w-3 h-3 lg:w-4 lg:h-4" />
-                  <span className="hidden sm:block">Back to Planning</span>
-                  <span className="sm:hidden">Plan</span>
+                  <span>Back to Planning</span>
                 </Button>
 
                 <Button
@@ -248,6 +289,13 @@ const DashboardContent: React.FC = () => {
           }}
         />
       </main>
+
+      {/* Edit Plan Wizard Modal */}
+      <EditPlanWizard
+        isOpen={isEditWizardOpen}
+        onClose={() => setIsEditWizardOpen(false)}
+        onSave={handleSaveEditedPlan}
+      />
     </div>
   );
 };

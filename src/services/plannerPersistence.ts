@@ -156,6 +156,9 @@ async function loadDataViaRestAPI(userId: string, accessToken: string): Promise<
           monthlyAllocations: goal.monthly_allocations || [],
           bufferMonths: goal.buffer_months,
           selectedBank: goal.selected_bank,
+          initialAmount: goal.initial_amount || 0,
+          remainingAmount: goal.remaining_amount || goal.amount,
+          familyRetirementProfile: goal.family_retirement_profile,
           returnPhases // Properly reconstructed return phases!
         };
       });
@@ -188,12 +191,16 @@ async function loadDataViaRestAPI(userId: string, accessToken: string): Promise<
         nationality: profile.nationality || '',
         location: profile.country || '',
         monthlyIncome: profile.monthly_income || 0,
-        currency: profile.currency || 'AED'
+        currency: profile.currency || 'AED',
+        planningType: profile.planning_type || 'individual',
+        familySize: profile.family_size || 1,
+        currentSavings: profile.current_savings || 0
       },
       monthlyExpenses: profile.monthly_expenses || 0,
       goals: goals,
       budget: latestPlan?.total_monthly_allocation || 0,
       fundingStyle: latestPlan?.funding_style || 'hybrid',
+      leftoverSavings: latestPlan?.plan_data?.leftoverSavings || 0,
       
       // From plan_data if available
       ...(latestPlan?.plan_data && {
@@ -244,11 +251,13 @@ async function saveDataViaRestAPI(userId: string, plannerState: PlannerState): P
       id: userId,
       monthly_income: plannerState.userProfile.monthlyIncome || 0,
       monthly_expenses: plannerState.monthlyExpenses || 0,
-      current_savings: 0,
+      current_savings: plannerState.userProfile.currentSavings || 0,
       currency: plannerState.userProfile.currency || 'AED',
       full_name: plannerState.userProfile.name || '',
       country: plannerState.userProfile.location || '',
       nationality: plannerState.userProfile.nationality || '',
+      planning_type: plannerState.userProfile.planningType || 'individual',
+      family_size: plannerState.userProfile.familySize || 1,
       risk_profile: (plannerState.selectedPhase === 0 ? 'Conservative' : 
                    plannerState.selectedPhase === 1 ? 'Balanced' : 'Growth'),
       updated_at: new Date().toISOString()
@@ -297,6 +306,9 @@ async function saveDataViaRestAPI(userId: string, plannerState: PlannerState): P
           monthly_allocations: goal.monthlyAllocations || [],
           buffer_months: goal.bufferMonths,
           selected_bank: goal.selectedBank,
+          initial_amount: goal.initialAmount || 0,
+          remaining_amount: goal.remainingAmount || goal.amount,
+          family_retirement_profile: goal.familyRetirementProfile,
           is_active: true,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
@@ -330,6 +342,7 @@ async function saveDataViaRestAPI(userId: string, plannerState: PlannerState): P
         selectedPhase: plannerState.selectedPhase,
         allocations: plannerState.allocations,
         userProfile: plannerState.userProfile,
+        leftoverSavings: plannerState.leftoverSavings || 0,
         completedAt: new Date().toISOString()
       },
       is_active: true,
@@ -401,75 +414,78 @@ export const plannerPersistence: PlannerPersistenceService = {
 
       // Add timeout protection for saving
       const saveWithTimeout = async () => {
-        // 1. Save/Update User Profile
-        const profileData = {
-          monthly_income: plannerState.userProfile.monthlyIncome || 0,
-          monthly_expenses: plannerState.monthlyExpenses || 0,
-          current_savings: 0, // This could be calculated from emergency fund
-          currency: plannerState.userProfile.currency || 'AED',
-          full_name: plannerState.userProfile.name || '',
-          country: plannerState.userProfile.location || '',
-          nationality: plannerState.userProfile.nationality || '',
-          risk_profile: (plannerState.selectedPhase === 0 ? 'Conservative' : 
-                       plannerState.selectedPhase === 1 ? 'Balanced' : 'Growth') as 'Conservative' | 'Balanced' | 'Growth',
-          updated_at: new Date().toISOString()
-        };
+      // 1. Save/Update User Profile
+      const profileData = {
+        monthly_income: plannerState.userProfile.monthlyIncome || 0,
+        monthly_expenses: plannerState.monthlyExpenses || 0,
+        current_savings: plannerState.userProfile.currentSavings || 0,
+        currency: plannerState.userProfile.currency || 'AED',
+        full_name: plannerState.userProfile.name || '',
+        country: plannerState.userProfile.location || '',
+        nationality: plannerState.userProfile.nationality || '',
+        planning_type: plannerState.userProfile.planningType || 'individual',
+        family_size: plannerState.userProfile.familySize || 1,
+        risk_profile: (plannerState.selectedPhase === 0 ? 'Conservative' : 
+                     plannerState.selectedPhase === 1 ? 'Balanced' : 'Growth') as 'Conservative' | 'Balanced' | 'Growth',
+        updated_at: new Date().toISOString()
+      };
 
-        console.log('💾 Saving profile data:', profileData);
-        const profileSaved = await profileService.updateProfile(userId, profileData);
-        if (!profileSaved) {
-          console.error('❌ Failed to save profile data');
-          return { success: false, error: 'Failed to save profile data' };
-        }
-        console.log('✅ Profile saved successfully');
+      console.log('💾 Saving profile data:', profileData);
+      const profileSaved = await profileService.updateProfile(userId, profileData);
+      if (!profileSaved) {
+        console.error('❌ Failed to save profile data');
+        return { success: false, error: 'Failed to save profile data' };
+      }
+      console.log('✅ Profile saved successfully');
 
-        // 2. Save Goals
-        if (plannerState.goals.length > 0) {
-          console.log(`💾 Saving ${plannerState.goals.length} goals...`);
-          const goalPromises = plannerState.goals.map((goal, index) => {
-            console.log(`📝 Goal ${index + 1}:`, {
-              name: goal.name,
-              amount: goal.amount,
-              category: goal.category
-            });
-            return goalsService.saveGoal(userId, goal);
+      // 2. Save Goals
+      if (plannerState.goals.length > 0) {
+        console.log(`💾 Saving ${plannerState.goals.length} goals...`);
+        const goalPromises = plannerState.goals.map((goal, index) => {
+          console.log(`📝 Goal ${index + 1}:`, {
+            name: goal.name,
+            amount: goal.amount,
+            category: goal.category
           });
-          const goalResults = await Promise.all(goalPromises);
-          
-          if (goalResults.some((result: boolean) => !result)) {
-            console.error('❌ Failed to save some goals');
-            return { success: false, error: 'Failed to save some goals' };
-          }
-          console.log('✅ All goals saved successfully');
-        } else {
-          console.log('ℹ️ No goals to save');
+          return goalsService.saveGoal(userId, goal);
+        });
+        const goalResults = await Promise.all(goalPromises);
+        
+        if (goalResults.some((result: boolean) => !result)) {
+          console.error('❌ Failed to save some goals');
+          return { success: false, error: 'Failed to save some goals' };
         }
+        console.log('✅ All goals saved successfully');
+      } else {
+        console.log('ℹ️ No goals to save');
+      }
 
-        // 3. Save Financial Plan
-        const planData = {
-          plan_name: `Financial Plan - ${new Date().toLocaleDateString()}`,
-          funding_style: plannerState.fundingStyle,
-          total_monthly_allocation: plannerState.budget,
-          plan_data: {
-            currentStep: plannerState.currentStep,
-            emergencyFundCreated: plannerState.emergencyFundCreated,
-            bufferMonths: plannerState.bufferMonths,
-            selectedPhase: plannerState.selectedPhase,
-            allocations: plannerState.allocations,
-            userProfile: plannerState.userProfile,
-            completedAt: new Date().toISOString()
-          }
-        };
-
-        console.log('💾 Saving financial plan:', planData);
-        const planId = await plansService.savePlan(userId, planData);
-        if (!planId) {
-          console.error('❌ Failed to save financial plan');
-          return { success: false, error: 'Failed to save financial plan' };
+      // 3. Save Financial Plan
+      const planData = {
+        plan_name: `Financial Plan - ${new Date().toLocaleDateString()}`,
+        funding_style: plannerState.fundingStyle,
+        total_monthly_allocation: plannerState.budget,
+        plan_data: {
+          currentStep: plannerState.currentStep,
+          emergencyFundCreated: plannerState.emergencyFundCreated,
+          bufferMonths: plannerState.bufferMonths,
+          selectedPhase: plannerState.selectedPhase,
+          allocations: plannerState.allocations,
+          userProfile: plannerState.userProfile,
+          leftoverSavings: plannerState.leftoverSavings || 0,
+          completedAt: new Date().toISOString()
         }
+      };
 
-        console.log('✅ Successfully saved all planning data with plan ID:', planId);
-        return { success: true };
+      console.log('💾 Saving financial plan:', planData);
+      const planId = await plansService.savePlan(userId, planData);
+      if (!planId) {
+        console.error('❌ Failed to save financial plan');
+        return { success: false, error: 'Failed to save financial plan' };
+      }
+
+      console.log('✅ Successfully saved all planning data with plan ID:', planId);
+      return { success: true };
       };
 
       // Add timeout protection

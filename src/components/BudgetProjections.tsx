@@ -295,6 +295,10 @@ const AllocationTable = ({ activeGoal, setActiveGoal }: { activeGoal: string, se
   const { currency } = useCurrency();
   const [showDetails, setShowDetails] = React.useState(false);
   const { allocations } = state;
+  
+  // Get current savings context
+  const currentSavings = state.userProfile.currentSavings || 0;
+  const leftoverSavings = state.leftoverSavings || 0;
 
   const handleScrollToGoal = (goalId: string) => {
     // First scroll to goal tabs section
@@ -331,6 +335,48 @@ const AllocationTable = ({ activeGoal, setActiveGoal }: { activeGoal: string, se
 
   return (
     <Card className="mb-8 shadow-theme-lg border-0 overflow-hidden">
+      {/* Current Savings Impact Section */}
+      {currentSavings > 0 && (
+        <div className="bg-gradient-to-r from-emerald-500/10 to-blue-500/10 border-b border-theme p-6">
+          <div className="text-center space-y-4">
+            <h3 className="heading-h3-sm text-theme-primary flex items-center justify-center space-x-2">
+              <PiggyBank className="w-6 h-6 text-emerald-500" />
+              <span>Current Savings Impact</span>
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-3xl mx-auto">
+              <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-lg p-4">
+                <div className="text-emerald-600 font-semibold text-sm">Total Current Savings</div>
+                <div className="text-2xl font-bold text-emerald-600">
+                  {formatCurrency(currentSavings, currency)}
+                </div>
+                <div className="text-xs text-emerald-600">Available to apply to goals</div>
+              </div>
+              
+              <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4">
+                <div className="text-blue-600 font-semibold text-sm">Applied to Goals</div>
+                <div className="text-2xl font-bold text-blue-600">
+                  {formatCurrency(currentSavings - leftoverSavings, currency)}
+                </div>
+                <div className="text-xs text-blue-600">Reduces monthly requirements</div>
+              </div>
+              
+              {leftoverSavings > 0 && (
+                <div className="bg-purple-500/10 border border-purple-500/30 rounded-lg p-4">
+                  <div className="text-purple-600 font-semibold text-sm">Remaining Available</div>
+                  <div className="text-2xl font-bold text-purple-600">
+                    {formatCurrency(leftoverSavings, currency)}
+                  </div>
+                  <div className="text-xs text-purple-600">For future goals</div>
+                </div>
+              )}
+            </div>
+            <p className="text-theme-secondary text-sm">
+              💡 Your current savings have been automatically applied to your goals, reducing your monthly savings requirements below.
+            </p>
+          </div>
+        </div>
+      )}
+      
       <div className="bg-gradient-to-r from-green-500/10 to-orange-500/10 border-b border-theme p-6 rounded-t-xl">
         <div className="flex items-center justify-between">
           <div>
@@ -360,6 +406,16 @@ const AllocationTable = ({ activeGoal, setActiveGoal }: { activeGoal: string, se
                 <th className="px-6 py-4 text-left heading-table">
                   Goal Amount
                 </th>
+                {currentSavings > 0 && (
+                  <>
+                    <th className="px-6 py-4 text-left heading-table">
+                      Initial Amount
+                    </th>
+                    <th className="px-6 py-4 text-left heading-table">
+                      Remaining Amount
+                    </th>
+                  </>
+                )}
                 <th className="px-6 py-4 text-left heading-table">
                   Amount at Target Date
                 </th>
@@ -422,6 +478,20 @@ const AllocationTable = ({ activeGoal, setActiveGoal }: { activeGoal: string, se
                         {formatCurrency(allocation.goal.amount, currency)}
                       </span>
                     </td>
+                    {currentSavings > 0 && (
+                      <>
+                        <td className="px-6 py-5">
+                          <span className="text-sm font-bold text-emerald-600">
+                            {formatCurrency(allocation.goal.initialAmount || 0, currency)}
+                          </span>
+                        </td>
+                        <td className="px-6 py-5">
+                          <span className="text-sm font-bold text-blue-600">
+                            {formatCurrency(allocation.goal.remainingAmount || allocation.goal.amount, currency)}
+                          </span>
+                        </td>
+                      </>
+                    )}
                     <td className="px-6 py-5">
                       <span className={`text-sm font-bold ${
                         isFeasible ? 'text-theme-success' : 'text-theme-warning'

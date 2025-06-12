@@ -40,7 +40,11 @@ const DebugPanel: React.FC = () => {
       <div className="mt-2 text-xs">
         <div>Profile: {state.userProfile.nationality || 'None'}</div>
         <div>Location: {state.userProfile.location || 'None'}</div>
+        <div>Planning: {state.userProfile.planningType || 'None'}</div>
+        <div>Family Size: {state.userProfile.familySize || 'None'}</div>
+        <div>Current Savings: {state.userProfile.currentSavings || 0}</div>
         <div>Goals: {state.goals.length}</div>
+        <div>Leftover Savings: {state.leftoverSavings || 0}</div>
       </div>
     </div>
   );

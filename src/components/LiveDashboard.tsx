@@ -727,10 +727,10 @@ const LiveDashboard: React.FC<LiveDashboardProps> = ({ onOptimizePlan, onUpdateP
       {/* Action Buttons */}
       <div className="flex justify-between mt-8">
         <div className="flex gap-3">
-          <Button variant="outline" onClick={onOptimizePlan}>
-            <RefreshCw className="w-4 h-4 mr-2" />
-            Optimize Plan
-          </Button>
+        <Button variant="outline" onClick={onOptimizePlan}>
+          <RefreshCw className="w-4 h-4 mr-2" />
+          Optimize Plan
+        </Button>
         </div>
         <Button variant="primary">
           <Download className="w-4 h-4 mr-2" />

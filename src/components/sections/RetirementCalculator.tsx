@@ -27,13 +27,19 @@ import {
   CheckCircle,
   Star,
   Info,
-  Shield
+  Shield,
+  Settings
 } from 'lucide-react';
 import { aiService, RetirementPlanningResponse, RetirementDestinationSuggestion, RetirementButton } from '../../services/aiService';
 
 interface RetirementCalculatorProps {
-  onCalculate: (amount: number, targetDate: Date) => void;
+  onCalculate: (amount: number, targetDate: Date, familyRetirementProfile?: any) => void;
   onCancel: () => void;
+  familyContext?: {
+    strategy: 'joint' | 'staggered';
+    familySize: number;
+    planningType: 'family';
+  };
 }
 
 // Inflation rate configurations
@@ -85,10 +91,10 @@ const getRegionalInflationContext = (location?: string): string => {
   return 'We use the industry standard 3% for long-term retirement planning';
 };
 
-const RetirementCalculator: React.FC<RetirementCalculatorProps> = ({ onCalculate, onCancel }) => {
+const RetirementCalculator: React.FC<RetirementCalculatorProps> = ({ onCalculate, onCancel, familyContext }) => {
   const { currency } = useCurrency();
   const { state } = usePlanner();
-  const [currentStep, setCurrentStep] = useState<'initial' | 'destinations' | 'manual-entry' | 'cost-breakdown' | 'final'>('initial');
+  const [currentStep, setCurrentStep] = useState<'initial' | 'preferences' | 'destinations' | 'manual-entry' | 'cost-breakdown' | 'final'>('initial');
   const [currentAge, setCurrentAge] = useState(30);
   const [retirementAge, setRetirementAge] = useState(65);
   const [destination, setDestination] = useState('');
@@ -98,6 +104,13 @@ const RetirementCalculator: React.FC<RetirementCalculatorProps> = ({ onCalculate
   const [inflationRate, setInflationRate] = useState(() => 
     getDefaultInflationRate(state.userProfile.location)
   );
+  
+  // Retirement preferences questionnaire state
+  const [retirementPreferences, setRetirementPreferences] = useState({
+    budgetPriority: '' as 'low-cost' | 'moderate' | 'comfortable' | '',
+    weatherPreference: '' as 'warm' | 'temperate' | 'cool' | 'no-preference' | '',
+    lifestyleType: '' as 'quiet-peaceful' | 'active-social' | 'cultural-urban' | 'beach-coastal' | ''
+  });
   
   // AI assistance state
   const [isLoadingDestinations, setIsLoadingDestinations] = useState(false);
@@ -110,57 +123,76 @@ const RetirementCalculator: React.FC<RetirementCalculatorProps> = ({ onCalculate
   const [selectedDestinationIndex, setSelectedDestinationIndex] = useState<number | null>(null);
   const [manualDestinationInput, setManualDestinationInput] = useState('');
 
-  // Get AI context from planner state
-  const getAIContext = () => ({
-    name: state.userProfile.name,
-    nationality: state.userProfile.nationality,
-    location: state.userProfile.location,
-    monthlyIncome: state.userProfile.monthlyIncome,
-    monthlyExpenses: state.monthlyExpenses,
-    currency: currency.code,
-    currentStep: 'retirement-plan',
-    goals: state.goals
-  });
+  // Family-specific staggered retirement state
+  const [primaryAge, setPrimaryAge] = useState(35);
+  const [spouseAge, setSpouseAge] = useState(32);
+  const [primaryRetirementAge, setPrimaryRetirementAge] = useState(65);
+  const [spouseRetirementAge, setSpouseRetirementAge] = useState(65);
+
+  // Get enhanced AI context from planner state
+  const getAIContext = () => {
+    // Only include preferences if all values are selected (not empty strings)
+    const validPreferences = retirementPreferences.budgetPriority && 
+                            retirementPreferences.weatherPreference && 
+                            retirementPreferences.lifestyleType
+      ? {
+          budgetPriority: retirementPreferences.budgetPriority as 'low-cost' | 'moderate' | 'comfortable',
+          weatherPreference: retirementPreferences.weatherPreference as 'warm' | 'temperate' | 'cool' | 'no-preference',
+          lifestyleType: retirementPreferences.lifestyleType as 'quiet-peaceful' | 'active-social' | 'cultural-urban' | 'beach-coastal'
+        }
+      : undefined;
+
+    return {
+      name: state.userProfile.name,
+      nationality: state.userProfile.nationality,
+      location: state.userProfile.location,
+      monthlyIncome: state.userProfile.monthlyIncome,
+      monthlyExpenses: state.monthlyExpenses,
+      currency: currency.code,
+      currentStep: 'retirement-plan',
+      goals: state.goals,
+      // Enhanced with family and preferences context
+      planningType: (familyContext?.planningType || 'individual') as 'family' | 'individual',
+      familySize: familyContext?.familySize,
+      retirementPreferences: validPreferences
+    };
+  };
 
   const handleGetDestinationSuggestions = async () => {
     setIsLoadingDestinations(true);
     try {
-      const response = await aiService.getRetirementDestinationSuggestions(getAIContext());
+      const response = await aiService.getComprehensiveRetirementPlan(getAIContext());
       setDestinationSuggestions(response.destinationSuggestions || []);
+      setCostBreakdown(response.selectedDestination);
       setAiResponse(response.message);
       setCurrentStep('destinations');
     } catch (error) {
-      console.error('Error getting destination suggestions:', error);
-      setAiResponse("I'm having trouble getting destination suggestions. You can proceed manually.");
+      console.error('Error getting comprehensive retirement plan:', error);
+      setAiResponse("I'm having trouble getting your retirement plan. You can proceed manually.");
     } finally {
       setIsLoadingDestinations(false);
     }
   };
 
-  const handleDestinationSelect = async (suggestion: RetirementDestinationSuggestion, index: number) => {
-    // Set loading state immediately for the clicked card
-    setSelectedDestinationIndex(index);
-    setIsLoadingCostBreakdown(true);
+  const handlePreferencesNext = () => {
+    const isValid = retirementPreferences.budgetPriority && 
+                   retirementPreferences.weatherPreference && 
+                   retirementPreferences.lifestyleType;
     
+    if (isValid) {
+      handleGetDestinationSuggestions();
+    }
+  };
+
+  const handleDestinationSelect = async (suggestion: RetirementDestinationSuggestion, index: number) => {
     setSelectedDestination(suggestion);
+    setSelectedDestinationIndex(index);
     setDestination(suggestion.destination);
     setMonthlyCosts(suggestion.estimatedMonthlyCost);
     
-    try {
-      const response = await aiService.getRetirementCostBreakdown(suggestion.destination, getAIContext());
-      setCostBreakdown(response.selectedDestination);
-      if (response.selectedDestination?.estimatedMonthlyCost) {
-        setMonthlyCosts(response.selectedDestination.estimatedMonthlyCost);
-      }
-      setAiResponse(response.message);
-      setCurrentStep('cost-breakdown');
-    } catch (error) {
-      console.error('Error getting cost breakdown:', error);
-      setCurrentStep('final');
-    } finally {
-      setIsLoadingCostBreakdown(false);
-      setSelectedDestinationIndex(null);
-    }
+    // Since we already have the detailed breakdown from the comprehensive call,
+    // we can proceed directly to cost-breakdown or final step
+    setCurrentStep('cost-breakdown');
   };
 
   const handleManualEntry = () => {
@@ -171,60 +203,126 @@ const RetirementCalculator: React.FC<RetirementCalculatorProps> = ({ onCalculate
     if (!manualDestinationInput.trim()) return;
     
     setIsLoadingManualAnalysis(true);
-    setDestination(manualDestinationInput.trim());
-    
     try {
-      // Create a mock destination suggestion for the manual entry
-      const manualDestination: RetirementDestinationSuggestion = {
-        destination: manualDestinationInput.trim(),
-        country: manualDestinationInput.trim().split(',')[1]?.trim() || manualDestinationInput.trim(),
-        estimatedMonthlyCost: 1500, // Default estimate
-        costOfLivingRank: "Medium" as const,
-        highlights: ["Your chosen destination", "Requires cost analysis", "Personalized choice"],
-        weather: "Analyzing...",
-        healthcare: "Analyzing...",
-        visaRequirements: "Analyzing..."
-      };
+      // For manual destination, we'll call the comprehensive method
+      // The AI will naturally focus on the user's preferred location based on the context
+      const response = await aiService.getComprehensiveRetirementPlan(getAIContext());
       
-      setSelectedDestination(manualDestination);
-      
-      // Get AI analysis for the manual destination
-      const response = await aiService.getRetirementCostBreakdown(manualDestinationInput.trim(), getAIContext());
       setCostBreakdown(response.selectedDestination);
+      setDestination(manualDestinationInput.trim());
       if (response.selectedDestination?.estimatedMonthlyCost) {
         setMonthlyCosts(response.selectedDestination.estimatedMonthlyCost);
-      } else {
-        setMonthlyCosts(1500); // Default fallback
       }
       setAiResponse(response.message);
       setCurrentStep('cost-breakdown');
     } catch (error) {
-      console.error('Error analyzing manual destination:', error);
-      // Fallback to final step if AI analysis fails
-      setMonthlyCosts(1500);
+      console.error('Error getting manual destination analysis:', error);
+      // Fallback: proceed without AI analysis
+      setDestination(manualDestinationInput.trim());
       setCurrentStep('final');
     } finally {
       setIsLoadingManualAnalysis(false);
     }
   };
 
+  // Calculate effective retirement info based on strategy
+  const getEffectiveRetirementInfo = () => {
+    if (!familyContext) {
+      return {
+        effectiveAge: currentAge,
+        effectiveRetirementAge: retirementAge,
+        yearsToRetirement: retirementAge - currentAge,
+        strategy: 'individual' as const
+      };
+    }
+
+    if (familyContext.strategy === 'joint') {
+      // Joint retirement - plan for when both can retire (later timeline)
+      const youngerAge = Math.min(primaryAge, spouseAge);
+      const jointRetirementAge = Math.max(primaryRetirementAge, spouseRetirementAge);
+      return {
+        effectiveAge: youngerAge,
+        effectiveRetirementAge: jointRetirementAge,
+        yearsToRetirement: jointRetirementAge - youngerAge,
+        strategy: 'joint' as const,
+        primaryAge,
+        spouseAge,
+        primaryRetirementAge,
+        spouseRetirementAge
+      };
+    } else {
+      // Staggered retirement - plan for the longer timeline (need savings for both)
+      const primaryYears = primaryRetirementAge - primaryAge;
+      const spouseYears = spouseRetirementAge - spouseAge;
+      
+      // Plan for the person who retires later (needs more time to save)
+      if (primaryYears >= spouseYears) {
+        return {
+          effectiveAge: primaryAge,
+          effectiveRetirementAge: primaryRetirementAge,
+          yearsToRetirement: primaryYears,
+          strategy: 'staggered' as const,
+          primaryTimeline: { age: primaryAge, retirementAge: primaryRetirementAge, years: primaryYears },
+          spouseTimeline: { age: spouseAge, retirementAge: spouseRetirementAge, years: spouseYears }
+        };
+      } else {
+        return {
+          effectiveAge: spouseAge,
+          effectiveRetirementAge: spouseRetirementAge,
+          yearsToRetirement: spouseYears,
+          strategy: 'staggered' as const,
+          primaryTimeline: { age: primaryAge, retirementAge: primaryRetirementAge, years: primaryYears },
+          spouseTimeline: { age: spouseAge, retirementAge: spouseRetirementAge, years: spouseYears }
+        };
+      }
+    }
+  };
+
   const calculateRetirementNeeds = () => {
-    const yearsUntilRetirement = retirementAge - currentAge;
+    const retirementInfo = getEffectiveRetirementInfo();
     
     // Calculate future monthly costs accounting for inflation
-    const futureMonthlyCosts = monthlyCosts * Math.pow(1 + inflationRate/100, yearsUntilRetirement);
+    const futureMonthlyCosts = monthlyCosts * Math.pow(1 + inflationRate/100, retirementInfo.yearsToRetirement);
     
     // Calculate annual expenses
     const annualExpenses = futureMonthlyCosts * 12;
     
-    // Using the 4% rule: multiply annual expenses by 25
-    const totalNeeded = Math.ceil(annualExpenses * 25);
+    // For staggered retirement, we may need to account for partial income during transition
+    let totalNeeded;
+    if (retirementInfo.strategy === 'staggered' && retirementInfo.primaryTimeline && retirementInfo.spouseTimeline) {
+      // Staggered retirement calculation
+      const earlierRetirement = Math.min(retirementInfo.primaryTimeline.years, retirementInfo.spouseTimeline.years);
+      const laterRetirement = Math.max(retirementInfo.primaryTimeline.years, retirementInfo.spouseTimeline.years);
+      
+      // During transition period (one person retired, one still working), we need less
+      const transitionYears = laterRetirement - earlierRetirement;
+      const transitionExpenseRatio = 0.7; // 70% of full expenses during transition
+      
+      // Full retirement needs (using 4% rule)
+      const fullRetirementNeeds = annualExpenses * 25;
+      
+      // Transition period needs (reduced expenses, but earlier start)
+      const transitionMonthlyCosts = monthlyCosts * Math.pow(1 + inflationRate/100, earlierRetirement);
+      const transitionAnnualExpenses = transitionMonthlyCosts * 12 * transitionExpenseRatio;
+      const transitionNeeds = transitionAnnualExpenses * transitionYears;
+      
+      totalNeeded = Math.ceil(fullRetirementNeeds + transitionNeeds);
+    } else {
+      // Joint retirement or individual - standard 4% rule
+      totalNeeded = Math.ceil(annualExpenses * 25);
+    }
     
-    // Set target date to retirement age
+    // Set target date to effective retirement age
     const targetDate = new Date();
-    targetDate.setFullYear(targetDate.getFullYear() + yearsUntilRetirement);
+    targetDate.setFullYear(targetDate.getFullYear() + retirementInfo.yearsToRetirement);
     
-    onCalculate(totalNeeded, targetDate);
+    onCalculate(totalNeeded, targetDate, familyContext ? {
+      strategy: retirementInfo.strategy,
+      primaryAge: retirementInfo.primaryAge,
+      spouseAge: retirementInfo.spouseAge,
+      primaryRetirementAge: retirementInfo.primaryRetirementAge,
+      spouseRetirementAge: retirementInfo.spouseRetirementAge
+    } : undefined);
   };
 
   // Helper function to get breakdown icon
@@ -242,36 +340,33 @@ const RetirementCalculator: React.FC<RetirementCalculatorProps> = ({ onCalculate
 
   // Step Progress Component
   const StepProgress = () => {
-    const steps = ['Setup', 'Destinations', 'Cost Analysis', 'Summary'];
-    const stepMap = {
-      'initial': 0,
-      'destinations': 1,
-      'manual-entry': 1, // Manual entry is same level as destinations
-      'cost-breakdown': 2,
-      'final': 3
+    const steps = {
+      initial: 1,
+      preferences: 2,
+      destinations: 3,
+      'manual-entry': 3,
+      'cost-breakdown': 4,
+      final: 5
     };
-    const currentStepIndex = stepMap[currentStep];
+    
+    const currentStepNumber = steps[currentStep];
+    const totalSteps = 5;
     
     return (
-      <div className="mb-8">
-        <div className="flex items-center justify-between relative">
-          {steps.map((step, index) => (
+      <div className="flex items-center justify-center mb-8">
+        <div className="flex items-center space-x-4">
+          {[1, 2, 3, 4, 5].map((step) => (
             <div key={step} className="flex items-center">
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold text-sm ${
-                index <= currentStepIndex 
-                  ? 'bg-gradient-to-r from-green-400 to-orange-400 text-white' 
-                  : 'bg-theme-tertiary text-theme-muted'
-              }`}>
-                {index < currentStepIndex ? <CheckCircle className="w-5 h-5" /> : index + 1}
-              </div>
-              <span className={`ml-2 font-medium ${
-                index <= currentStepIndex ? 'text-green-500' : 'text-theme-muted'
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold transition-all duration-300 ${
+                step <= currentStepNumber 
+                  ? 'bg-gradient-to-r from-green-400 to-orange-400 text-white shadow-lg' 
+                  : 'bg-theme-tertiary text-theme-muted border border-theme'
               }`}>
                 {step}
-              </span>
-              {index < steps.length - 1 && (
-                <ChevronRight className={`w-5 h-5 mx-4 ${
-                  index < currentStepIndex ? 'text-green-500' : 'text-theme-muted'
+              </div>
+              {step < totalSteps && (
+                <div className={`w-12 h-0.5 transition-all duration-300 ${
+                  step < currentStepNumber ? 'bg-gradient-to-r from-green-400 to-orange-400' : 'bg-theme'
                 }`} />
               )}
             </div>
@@ -308,39 +403,178 @@ const RetirementCalculator: React.FC<RetirementCalculatorProps> = ({ onCalculate
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="bg-theme-tertiary p-6 rounded-xl shadow-md">
-                  <label className="block text-sm font-semibold text-theme-secondary mb-3">
-                    <div className="flex items-center space-x-2">
-                      <Calendar className="w-5 h-5 text-theme-info" />
-                      <span>Your Current Age</span>
+                {/* Age inputs based on family context */}
+                {familyContext?.strategy === 'staggered' ? (
+                  <>
+                    {/* Primary person inputs */}
+                    <div className="bg-theme-tertiary p-6 rounded-xl shadow-md">
+                      <label className="block text-sm font-semibold text-theme-secondary mb-3">
+                        <div className="flex items-center space-x-2">
+                          <Calendar className="w-5 h-5 text-theme-info" />
+                          <span>Primary Person Current Age</span>
+                        </div>
+                      </label>
+                      <input
+                        type="number"
+                        value={primaryAge}
+                        onChange={(e) => setPrimaryAge(Number(e.target.value))}
+                        className="input-dark block w-full px-4 py-3 rounded-lg text-lg font-semibold focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors"
+                        min="18"
+                        max="100"
+                      />
                     </div>
-                  </label>
-                  <input
-                    type="number"
-                    value={currentAge}
-                    onChange={(e) => setCurrentAge(Number(e.target.value))}
-                    className="input-dark block w-full px-4 py-3 rounded-lg text-lg font-semibold focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors"
-                    min="18"
-                    max="100"
-                  />
-                </div>
-                
-                <div className="bg-theme-tertiary p-6 rounded-xl shadow-md">
-                  <label className="block text-sm font-semibold text-theme-secondary mb-3">
-                    <div className="flex items-center space-x-2">
-                      <Clock className="w-5 h-5 text-theme-success" />
-                      <span>When do you want to retire?</span>
+                    
+                    <div className="bg-theme-tertiary p-6 rounded-xl shadow-md">
+                      <label className="block text-sm font-semibold text-theme-secondary mb-3">
+                        <div className="flex items-center space-x-2">
+                          <Clock className="w-5 h-5 text-theme-warning" />
+                          <span>Primary Retirement Age</span>
+                        </div>
+                      </label>
+                      <input
+                        type="number"
+                        value={primaryRetirementAge}
+                        onChange={(e) => setPrimaryRetirementAge(Number(e.target.value))}
+                        className="input-dark block w-full px-4 py-3 rounded-lg text-lg font-semibold focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-colors"
+                        min={primaryAge + 1}
+                        max="100"
+                      />
                     </div>
-                  </label>
-                  <input
-                    type="number"
-                    value={retirementAge}
-                    onChange={(e) => setRetirementAge(Number(e.target.value))}
-                    className="input-dark block w-full px-4 py-3 rounded-lg text-lg font-semibold focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-colors"
-                    min={currentAge + 1}
-                    max="100"
-                  />
-                </div>
+
+                    {/* Spouse inputs */}
+                    <div className="bg-theme-tertiary p-6 rounded-xl shadow-md">
+                      <label className="block text-sm font-semibold text-theme-secondary mb-3">
+                        <div className="flex items-center space-x-2">
+                          <Calendar className="w-5 h-5 text-theme-info" />
+                          <span>Spouse Current Age</span>
+                        </div>
+                      </label>
+                      <input
+                        type="number"
+                        value={spouseAge}
+                        onChange={(e) => setSpouseAge(Number(e.target.value))}
+                        className="input-dark block w-full px-4 py-3 rounded-lg text-lg font-semibold focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors"
+                        min="18"
+                        max="100"
+                      />
+                    </div>
+                    
+                    <div className="bg-theme-tertiary p-6 rounded-xl shadow-md">
+                      <label className="block text-sm font-semibold text-theme-secondary mb-3">
+                        <div className="flex items-center space-x-2">
+                          <Clock className="w-5 h-5 text-theme-warning" />
+                          <span>Spouse Retirement Age</span>
+                        </div>
+                      </label>
+                      <input
+                        type="number"
+                        value={spouseRetirementAge}
+                        onChange={(e) => setSpouseRetirementAge(Number(e.target.value))}
+                        className="input-dark block w-full px-4 py-3 rounded-lg text-lg font-semibold focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-colors"
+                        min={spouseAge + 1}
+                        max="100"
+                      />
+                    </div>
+                  </>
+                ) : familyContext?.strategy === 'joint' ? (
+                  <>
+                    {/* Joint retirement - use primary/spouse ages but same retirement age */}
+                    <div className="bg-theme-tertiary p-6 rounded-xl shadow-md">
+                      <label className="block text-sm font-semibold text-theme-secondary mb-3">
+                        <div className="flex items-center space-x-2">
+                          <Calendar className="w-5 h-5 text-theme-info" />
+                          <span>Primary Person Age</span>
+                        </div>
+                      </label>
+                      <input
+                        type="number"
+                        value={primaryAge}
+                        onChange={(e) => setPrimaryAge(Number(e.target.value))}
+                        className="input-dark block w-full px-4 py-3 rounded-lg text-lg font-semibold focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors"
+                        min="18"
+                        max="100"
+                      />
+                    </div>
+                    
+                    <div className="bg-theme-tertiary p-6 rounded-xl shadow-md">
+                      <label className="block text-sm font-semibold text-theme-secondary mb-3">
+                        <div className="flex items-center space-x-2">
+                          <Calendar className="w-5 h-5 text-theme-info" />
+                          <span>Spouse Age</span>
+                        </div>
+                      </label>
+                      <input
+                        type="number"
+                        value={spouseAge}
+                        onChange={(e) => setSpouseAge(Number(e.target.value))}
+                        className="input-dark block w-full px-4 py-3 rounded-lg text-lg font-semibold focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors"
+                        min="18"
+                        max="100"
+                      />
+                    </div>
+
+                    {/* Single retirement age for joint strategy */}
+                    <div className="bg-theme-tertiary p-6 rounded-xl shadow-md md:col-span-2">
+                      <label className="block text-sm font-semibold text-theme-secondary mb-3">
+                        <div className="flex items-center space-x-2">
+                          <Clock className="w-5 h-5 text-theme-warning" />
+                          <span>Joint Retirement Age (when both retire)</span>
+                        </div>
+                      </label>
+                      <input
+                        type="number"
+                        value={primaryRetirementAge}
+                        onChange={(e) => {
+                          setPrimaryRetirementAge(Number(e.target.value));
+                          setSpouseRetirementAge(Number(e.target.value));
+                        }}
+                        className="input-dark block w-full px-4 py-3 rounded-lg text-lg font-semibold focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-colors"
+                        min={Math.max(primaryAge + 1, spouseAge + 1)}
+                        max="100"
+                      />
+                      <p className="text-xs text-theme-muted mt-2">
+                        Both will retire together at this age
+                      </p>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    {/* Individual retirement - original inputs */}
+                    <div className="bg-theme-tertiary p-6 rounded-xl shadow-md">
+                      <label className="block text-sm font-semibold text-theme-secondary mb-3">
+                        <div className="flex items-center space-x-2">
+                          <Calendar className="w-5 h-5 text-theme-info" />
+                          <span>Current Age</span>
+                        </div>
+                      </label>
+                      <input
+                        type="number"
+                        value={currentAge}
+                        onChange={(e) => setCurrentAge(Number(e.target.value))}
+                        className="input-dark block w-full px-4 py-3 rounded-lg text-lg font-semibold focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors"
+                        min="18"
+                        max="100"
+                      />
+                    </div>
+                    
+                    <div className="bg-theme-tertiary p-6 rounded-xl shadow-md">
+                      <label className="block text-sm font-semibold text-theme-secondary mb-3">
+                        <div className="flex items-center space-x-2">
+                          <Clock className="w-5 h-5 text-theme-warning" />
+                          <span>When do you want to retire?</span>
+                        </div>
+                      </label>
+                      <input
+                        type="number"
+                        value={retirementAge}
+                        onChange={(e) => setRetirementAge(Number(e.target.value))}
+                        className="input-dark block w-full px-4 py-3 rounded-lg text-lg font-semibold focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-colors"
+                        min={currentAge + 1}
+                        max="100"
+                      />
+                    </div>
+                  </>
+                )}
               </div>
 
               {/* Years until retirement display */}
@@ -366,23 +600,14 @@ const RetirementCalculator: React.FC<RetirementCalculatorProps> = ({ onCalculate
                 
                 <div className="flex flex-col sm:flex-row gap-4">
                   <Button
-                    onClick={handleGetDestinationSuggestions}
-                    disabled={isLoadingDestinations || retirementAge <= currentAge}
+                    onClick={() => setCurrentStep('preferences')}
+                    disabled={retirementAge <= currentAge}
                     className="bg-gradient-to-r from-green-400 to-orange-400 hover:from-green-500 hover:to-orange-500 shadow-lg hover:shadow-xl transition-all duration-300 flex-1 py-3"
                     size="lg"
                   >
                     <div className="flex items-center justify-center space-x-2">
-                    {isLoadingDestinations ? (
-                      <>
-                          <Loader2 className="w-5 h-5 animate-spin" />
-                          <span>Getting tips...</span>
-                      </>
-                    ) : (
-                      <>
-                          <Sparkles className="w-5 h-5" />
-                          <span>Get AI Destination Suggestions</span>
-                      </>
-                    )}
+                      <Sparkles className="w-5 h-5" />
+                      <span>Get AI Destination Suggestions</span>
                     </div>
                   </Button>
                   
@@ -402,6 +627,170 @@ const RetirementCalculator: React.FC<RetirementCalculatorProps> = ({ onCalculate
           <CardFooter>
             <Button variant="outline" onClick={onCancel} fullWidth size="lg">
               Cancel
+            </Button>
+          </CardFooter>
+        </Card>
+      </div>
+    );
+  }
+
+  // NEW: Preferences Step
+  if (currentStep === 'preferences') {
+    const isValid = retirementPreferences.budgetPriority && 
+                   retirementPreferences.weatherPreference && 
+                   retirementPreferences.lifestyleType;
+
+    return (
+      <div className="max-w-4xl mx-auto">
+        <StepProgress />
+        <Card className="border-0 shadow-xl bg-theme-card">
+          <CardHeader className="text-center">
+            <CardTitle className="heading-h1-sm flex items-center justify-center space-x-3">
+              <Settings className="w-8 h-8 text-theme-success" />
+              <span>Your Retirement Preferences</span>
+            </CardTitle>
+            <p className="text-theme-secondary mt-2">
+              Tell me about your ideal retirement so I can suggest the perfect destinations for you
+            </p>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-8">
+              {/* Question 1: Budget Priority */}
+              <div className="space-y-4">
+                <div className="flex items-center space-x-3">
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-r from-green-400 to-orange-400 text-white font-bold flex items-center justify-center">
+                    1
+                  </div>
+                  <h3 className="heading-h3 text-theme-primary">What's your budget priority for retirement?</h3>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 ml-11">
+                  {[
+                    { id: 'low-cost', label: 'Affordable Living', desc: 'Stretch my savings, focus on low costs', icon: '💰' },
+                    { id: 'moderate', label: 'Balanced Budget', desc: 'Comfortable lifestyle without excess', icon: '⚖️' },
+                    { id: 'comfortable', label: 'Premium Comfort', desc: 'High quality living, budget flexible', icon: '✨' }
+                  ].map(option => (
+                    <button
+                      key={option.id}
+                      onClick={() => setRetirementPreferences(prev => ({ ...prev, budgetPriority: option.id as any }))}
+                      className={`p-4 rounded-xl border-2 transition-all duration-200 text-left ${
+                        retirementPreferences.budgetPriority === option.id
+                          ? 'border-green-500 bg-theme-success/10'
+                          : 'border-theme hover:border-green-300 bg-theme-card'
+                      }`}
+                    >
+                      <div className="text-2xl mb-2">{option.icon}</div>
+                      <div className="font-semibold text-theme-primary">{option.label}</div>
+                      <div className="text-sm text-theme-secondary mt-1">{option.desc}</div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Question 2: Weather Preference */}
+              <div className="space-y-4">
+                <div className="flex items-center space-x-3">
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-r from-green-400 to-orange-400 text-white font-bold flex items-center justify-center">
+                    2
+                  </div>
+                  <h3 className="heading-h3 text-theme-primary">What's your ideal climate?</h3>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 ml-11">
+                  {[
+                    { id: 'warm', label: 'Warm & Sunny', desc: 'Tropical, year-round warmth', icon: '☀️' },
+                    { id: 'temperate', label: 'Mild Seasons', desc: 'Mediterranean, four seasons', icon: '🌤️' },
+                    { id: 'cool', label: 'Cool & Fresh', desc: 'Cooler temperatures, crisp air', icon: '🌨️' },
+                    { id: 'no-preference', label: 'Any Climate', desc: 'Weather isn\'t important to me', icon: '🌍' }
+                  ].map(option => (
+                    <button
+                      key={option.id}
+                      onClick={() => setRetirementPreferences(prev => ({ ...prev, weatherPreference: option.id as any }))}
+                      className={`p-4 rounded-xl border-2 transition-all duration-200 text-left ${
+                        retirementPreferences.weatherPreference === option.id
+                          ? 'border-green-500 bg-theme-success/10'
+                          : 'border-theme hover:border-green-300 bg-theme-card'
+                      }`}
+                    >
+                      <div className="text-2xl mb-2">{option.icon}</div>
+                      <div className="font-semibold text-theme-primary">{option.label}</div>
+                      <div className="text-sm text-theme-secondary mt-1">{option.desc}</div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Question 3: Lifestyle Type */}
+              <div className="space-y-4">
+                <div className="flex items-center space-x-3">
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-r from-green-400 to-orange-400 text-white font-bold flex items-center justify-center">
+                    3
+                  </div>
+                  <h3 className="heading-h3 text-theme-primary">What retirement lifestyle appeals to you?</h3>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 ml-11">
+                  {[
+                    { id: 'quiet-peaceful', label: 'Quiet & Peaceful', desc: 'Relaxed pace, nature, tranquility', icon: '🏞️' },
+                    { id: 'active-social', label: 'Active & Social', desc: 'Vibrant expat community, activities', icon: '🎾' },
+                    { id: 'cultural-urban', label: 'Cultural & Urban', desc: 'Museums, arts, city amenities', icon: '🏛️' },
+                    { id: 'beach-coastal', label: 'Beach & Coastal', desc: 'Ocean views, marine activities', icon: '🏖️' }
+                  ].map(option => (
+                    <button
+                      key={option.id}
+                      onClick={() => setRetirementPreferences(prev => ({ ...prev, lifestyleType: option.id as any }))}
+                      className={`p-4 rounded-xl border-2 transition-all duration-200 text-left ${
+                        retirementPreferences.lifestyleType === option.id
+                          ? 'border-green-500 bg-theme-success/10'
+                          : 'border-theme hover:border-green-300 bg-theme-card'
+                      }`}
+                    >
+                      <div className="text-2xl mb-2">{option.icon}</div>
+                      <div className="font-semibold text-theme-primary">{option.label}</div>
+                      <div className="text-sm text-theme-secondary mt-1">{option.desc}</div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Progress Indicator */}
+              {isValid && (
+                <div className="bg-theme-success/10 border border-theme-success/30 rounded-xl p-6 text-center">
+                  <div className="flex items-center justify-center space-x-2 text-theme-success">
+                    <CheckCircle className="w-5 h-5" />
+                    <span className="font-semibold">Perfect! I have everything I need to find your ideal destinations.</span>
+                  </div>
+                </div>
+              )}
+            </div>
+          </CardContent>
+          <CardFooter className="flex space-x-4">
+            <Button 
+              variant="outline" 
+              onClick={() => setCurrentStep('initial')}
+              className="flex items-center justify-center"
+              size="lg"
+            >
+              <ChevronLeft className="w-5 h-5 mr-2" />
+              Back
+            </Button>
+            <Button
+              onClick={handlePreferencesNext}
+              disabled={!isValid || isLoadingDestinations}
+              fullWidth
+              size="lg"
+              className="bg-gradient-to-r from-green-400 to-orange-400 hover:from-green-500 hover:to-orange-500 shadow-lg hover:shadow-xl transition-all duration-300"
+            >
+              <div className="flex items-center justify-center space-x-2">
+                {isLoadingDestinations ? (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    <span>Finding Your Perfect Destinations...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>Get My Personalized Suggestions</span>
+                    <Sparkles className="w-5 h-5" />
+                  </>
+                )}
+              </div>
             </Button>
           </CardFooter>
         </Card>
@@ -431,6 +820,114 @@ const RetirementCalculator: React.FC<RetirementCalculatorProps> = ({ onCalculate
                   </div>
                 </div>
               )}
+
+              {/* AI's Top Recommendation Section */}
+              {costBreakdown && (
+                <div className="bg-gradient-to-br from-emerald-50 to-orange-50 dark:from-emerald-950 dark:to-orange-950 border-2 border-emerald-400/50 rounded-xl p-6 shadow-xl">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-orange-500 text-white font-bold text-lg flex items-center justify-center">
+                        ⭐
+                      </div>
+                      <div>
+                        <h3 className="heading-h3 text-emerald-700 dark:text-emerald-300">AI's Top Recommendation</h3>
+                        <p className="text-sm text-emerald-600 dark:text-emerald-400">Based on your preferences and budget</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="heading-stat text-emerald-700 dark:text-emerald-300">
+                        {formatCurrency(costBreakdown.estimatedMonthlyCost, currency)}
+                      </p>
+                      <p className="text-sm text-emerald-600 dark:text-emerald-400">per month</p>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-white/60 dark:bg-black/20 rounded-lg p-4 mb-4">
+                    <h4 className="font-bold text-emerald-800 dark:text-emerald-200 text-lg mb-2">{costBreakdown.name}</h4>
+                    {costBreakdown.whyRecommended && (
+                      <p className="text-sm text-emerald-700 dark:text-emerald-300 leading-relaxed">{costBreakdown.whyRecommended}</p>
+                    )}
+                  </div>
+
+                  {costBreakdown.comparisonToCurrentExpenses && (
+                    <div className="bg-white/60 dark:bg-black/20 rounded-lg p-4 mb-4">
+                      <h5 className="font-semibold text-emerald-800 dark:text-emerald-200 mb-2 flex items-center">
+                        <TrendingUp className="w-4 h-4 mr-2" />
+                        Cost Comparison to Your Current Expenses
+                      </h5>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                        <div className="text-center">
+                          <p className="text-emerald-600 dark:text-emerald-400 font-medium">Current Expenses</p>
+                          <p className="text-lg font-bold text-emerald-800 dark:text-emerald-200">
+                            {formatCurrency(costBreakdown.comparisonToCurrentExpenses.currentMonthlyExpenses, currency)}
+                          </p>
+                        </div>
+                        <div className="text-center">
+                          <p className="text-emerald-600 dark:text-emerald-400 font-medium">Retirement Costs</p>
+                          <p className="text-lg font-bold text-emerald-800 dark:text-emerald-200">
+                            {formatCurrency(costBreakdown.comparisonToCurrentExpenses.projectedMonthlyExpenses, currency)}
+                          </p>
+                        </div>
+                        <div className="text-center">
+                          <p className="text-emerald-600 dark:text-emerald-400 font-medium">Difference</p>
+                          <p className={`text-lg font-bold ${
+                            costBreakdown.comparisonToCurrentExpenses.difference >= 0 
+                              ? 'text-orange-600 dark:text-orange-400' 
+                              : 'text-emerald-600 dark:text-emerald-400'
+                          }`}>
+                            {costBreakdown.comparisonToCurrentExpenses.difference >= 0 ? '+' : ''}
+                            {formatCurrency(costBreakdown.comparisonToCurrentExpenses.difference, currency)}
+                          </p>
+                          <p className="text-xs text-emerald-600 dark:text-emerald-400">
+                            ({costBreakdown.comparisonToCurrentExpenses.percentageChange >= 0 ? '+' : ''}{costBreakdown.comparisonToCurrentExpenses.percentageChange.toFixed(1)}%)
+                          </p>
+                        </div>
+                      </div>
+                      {costBreakdown.comparisonToCurrentExpenses.explanation && (
+                        <div className="mt-3 pt-3 border-t border-emerald-200/50 dark:border-emerald-700/50">
+                          <p className="text-sm text-emerald-700 dark:text-emerald-300 italic">
+                            {costBreakdown.comparisonToCurrentExpenses.explanation}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  <div className="flex space-x-4">
+                    <Button
+                      onClick={() => {
+                        setDestination(costBreakdown.name);
+                        setMonthlyCosts(costBreakdown.estimatedMonthlyCost);
+                        setCurrentStep('cost-breakdown');
+                      }}
+                      size="lg"
+                      className="flex-1 bg-gradient-to-r from-emerald-500 to-orange-500 hover:from-emerald-600 hover:to-orange-600 shadow-lg hover:shadow-xl transition-all duration-300"
+                    >
+                      <div className="flex items-center justify-center space-x-2">
+                        <span>Choose Top Recommendation</span>
+                        <CheckCircle className="w-5 h-5" />
+                      </div>
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setDestination(costBreakdown.name);
+                        setMonthlyCosts(costBreakdown.estimatedMonthlyCost);
+                        setCurrentStep('cost-breakdown');
+                      }}
+                      size="lg"
+                      className="border-emerald-400 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-950"
+                    >
+                      View Details
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              <div className="text-center">
+                <h4 className="heading-h4 text-theme-primary mb-2">All Destination Options</h4>
+                <p className="text-theme-secondary">Compare all suggested destinations based on your preferences</p>
+              </div>
 
               <div className="grid gap-6">
                 {destinationSuggestions.map((suggestion, index) => (
@@ -752,6 +1249,53 @@ const RetirementCalculator: React.FC<RetirementCalculatorProps> = ({ onCalculate
                     </div>
                   )}
 
+                  {costBreakdown?.comparisonToCurrentExpenses && (
+                    <div className="bg-theme-tertiary rounded-xl p-6 shadow-theme">
+                      <h4 className="heading-h4 text-theme-primary mb-4 flex items-center">
+                        <TrendingUp className="w-5 h-5 mr-2 text-theme-success" />
+                        Cost Comparison to Your Current Expenses
+                      </h4>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                        <div className="text-center p-4 bg-theme-card rounded-lg">
+                          <p className="text-sm text-theme-secondary">Current Monthly Expenses</p>
+                          <p className="heading-stat text-theme-primary">
+                            {formatCurrency(costBreakdown.comparisonToCurrentExpenses.currentMonthlyExpenses, currency)}
+                          </p>
+                          {familyContext && (
+                            <p className="text-xs text-theme-muted mt-1">(Adjusted for 2 adults)</p>
+                          )}
+                        </div>
+                        
+                        <div className="text-center p-4 bg-theme-card rounded-lg">
+                          <p className="text-sm text-theme-secondary">Projected Retirement Costs</p>
+                          <p className="heading-stat text-theme-primary">
+                            {formatCurrency(costBreakdown.comparisonToCurrentExpenses.projectedMonthlyExpenses, currency)}
+                          </p>
+                        </div>
+                        
+                        <div className="text-center p-4 bg-theme-card rounded-lg">
+                          <p className="text-sm text-theme-secondary">Monthly Difference</p>
+                          <p className={`heading-stat ${
+                            costBreakdown.comparisonToCurrentExpenses.difference < 0 
+                              ? 'text-theme-success' 
+                              : 'text-theme-warning'
+                          }`}>
+                            {costBreakdown.comparisonToCurrentExpenses.difference < 0 ? '-' : '+'}
+                            {formatCurrency(Math.abs(costBreakdown.comparisonToCurrentExpenses.difference), currency)}
+                          </p>
+                          <p className={`text-sm font-semibold ${
+                            costBreakdown.comparisonToCurrentExpenses.difference < 0 
+                              ? 'text-theme-success' 
+                              : 'text-theme-warning'
+                          }`}>
+                            ({costBreakdown.comparisonToCurrentExpenses.percentageChange > 0 ? '+' : ''}{costBreakdown.comparisonToCurrentExpenses.percentageChange.toFixed(0)}%)
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                   <div className="bg-theme-tertiary p-6 rounded-xl shadow-md">
                     <label className="block text-sm font-semibold text-theme-secondary mb-3">
                       Adjust Monthly Costs (if needed)
@@ -1006,20 +1550,130 @@ const RetirementCalculator: React.FC<RetirementCalculatorProps> = ({ onCalculate
                     <p className="text-theme-success text-xs">What you can buy today</p>
                   </div>
                   <div className="text-center">
-                    <p className="text-theme-warning font-medium">In {retirementAge - currentAge} Years</p>
+                    <p className="text-theme-warning font-medium">
+                      In {familyContext ? getEffectiveRetirementInfo().yearsToRetirement : retirementAge - currentAge} Years
+                    </p>
                     <p className="heading-stat text-theme-warning">
-                      {formatCurrency(Math.ceil(monthlyCosts * Math.pow(1 + inflationRate/100, retirementAge - currentAge)), currency)}
+                      {formatCurrency(Math.ceil(monthlyCosts * Math.pow(1 + inflationRate/100, familyContext ? getEffectiveRetirementInfo().yearsToRetirement : retirementAge - currentAge)), currency)}
                     </p>
                     <p className="text-theme-warning text-xs">Same purchasing power</p>
                   </div>
                 </div>
                 <div className="mt-3 text-center">
                   <p className="text-xs text-theme-warning">
-                    📈 Your money needs to grow by {((Math.pow(1 + inflationRate/100, retirementAge - currentAge) - 1) * 100).toFixed(0)}% 
+                    📈 Your money needs to grow by {((Math.pow(1 + inflationRate/100, familyContext ? getEffectiveRetirementInfo().yearsToRetirement : retirementAge - currentAge) - 1) * 100).toFixed(0)}% 
                     just to maintain today's lifestyle
                   </p>
                 </div>
               </div>
+
+              {/* Family Retirement Timeline Visualization */}
+              {familyContext && (
+                <div className="bg-purple-500/10 border border-purple-500/30 rounded-lg p-6 mb-6 shadow-theme-sm">
+                  <h5 className="heading-h5-sm text-purple-600 mb-4 flex items-center">
+                    <Shield className="w-5 h-5 mr-2" />
+                    Family Retirement Timeline ({familyContext.strategy === 'joint' ? 'Joint Strategy' : 'Staggered Strategy'})
+                  </h5>
+                  
+                  {familyContext.strategy === 'staggered' ? (
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {/* Primary Timeline */}
+                        <div className="bg-theme-card border border-theme rounded-lg p-4">
+                          <div className="flex items-center space-x-2 mb-2">
+                            <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                            <h6 className="font-semibold text-theme-secondary">Primary Person</h6>
+                          </div>
+                          <div className="space-y-1 text-sm">
+                            <div className="flex justify-between">
+                              <span className="text-theme-muted">Current Age:</span>
+                              <span className="font-medium text-blue-600">{primaryAge} years</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-theme-muted">Retirement Age:</span>
+                              <span className="font-medium text-blue-600">{primaryRetirementAge} years</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-theme-muted">Years to Retirement:</span>
+                              <span className="font-medium text-blue-600">{primaryRetirementAge - primaryAge} years</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Spouse Timeline */}
+                        <div className="bg-theme-card border border-theme rounded-lg p-4">
+                          <div className="flex items-center space-x-2 mb-2">
+                            <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                            <h6 className="font-semibold text-theme-secondary">Spouse</h6>
+                          </div>
+                          <div className="space-y-1 text-sm">
+                            <div className="flex justify-between">
+                              <span className="text-theme-muted">Current Age:</span>
+                              <span className="font-medium text-green-600">{spouseAge} years</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-theme-muted">Retirement Age:</span>
+                              <span className="font-medium text-green-600">{spouseRetirementAge} years</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-theme-muted">Years to Retirement:</span>
+                              <span className="font-medium text-green-600">{spouseRetirementAge - spouseAge} years</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Staggered Strategy Benefits */}
+                      <div className="bg-theme-section border border-emerald-500/30 rounded-lg p-4">
+                        <h6 className="text-sm font-semibold text-emerald-600 mb-2">✨ Staggered Retirement Benefits:</h6>
+                        <ul className="text-xs text-emerald-600 space-y-1">
+                          <li>• Each person retires at their optimal time</li>
+                          <li>• Continued household income during transition period</li>
+                          <li>• Potentially lower total savings needed</li>
+                          <li>• Flexible retirement lifestyle adjustment</li>
+                        </ul>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {/* Joint Retirement Summary */}
+                      <div className="bg-theme-card border border-theme rounded-lg p-4">
+                        <div className="flex items-center space-x-2 mb-3">
+                          <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
+                          <h6 className="font-semibold text-theme-secondary">Joint Retirement Plan</h6>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4 text-sm">
+                          <div>
+                            <p className="text-theme-muted mb-1">Primary Person:</p>
+                            <p className="font-medium text-purple-600">{primaryAge} → {primaryRetirementAge} years</p>
+                          </div>
+                          <div>
+                            <p className="text-theme-muted mb-1">Spouse:</p>
+                            <p className="font-medium text-purple-600">{spouseAge} → {spouseRetirementAge} years</p>
+                          </div>
+                        </div>
+                        <div className="mt-3 pt-3 border-t border-theme">
+                          <div className="flex justify-between text-sm">
+                            <span className="text-theme-muted">Both retire together in:</span>
+                            <span className="font-bold text-purple-600">{Math.max(primaryRetirementAge - primaryAge, spouseRetirementAge - spouseAge)} years</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Joint Strategy Benefits */}
+                      <div className="bg-theme-section border border-emerald-500/30 rounded-lg p-4">
+                        <h6 className="text-sm font-semibold text-emerald-600 mb-2">✨ Joint Retirement Benefits:</h6>
+                        <ul className="text-xs text-emerald-600 space-y-1">
+                          <li>• Start retirement journey together</li>
+                          <li>• Synchronized lifestyle changes</li>
+                          <li>• Shared retirement activities and travel</li>
+                          <li>• Simplified financial planning</li>
+                        </ul>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* Main Calculation Summary */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
@@ -1027,8 +1681,10 @@ const RetirementCalculator: React.FC<RetirementCalculatorProps> = ({ onCalculate
                   <div className="flex items-center space-x-2 mb-2">
                     <Clock className="w-4 h-4 text-theme-info" />
                     <p className="font-semibold text-theme-secondary">Time Horizon</p>
-                </div>
-                  <p className="heading-stat text-theme-info">{retirementAge - currentAge} years</p>
+                  </div>
+                  <p className="heading-stat text-theme-info">
+                    {familyContext ? getEffectiveRetirementInfo().yearsToRetirement : retirementAge - currentAge} years
+                  </p>
                   <p className="text-theme-info text-xs">To build your retirement fund</p>
                 </div>
                 
@@ -1047,7 +1703,7 @@ const RetirementCalculator: React.FC<RetirementCalculatorProps> = ({ onCalculate
                     <p className="font-semibold text-theme-secondary">Future Monthly Need</p>
                   </div>
                   <p className="heading-stat text-theme-warning">
-                    {formatCurrency(Math.ceil(monthlyCosts * Math.pow(1 + inflationRate/100, retirementAge - currentAge)), currency)}
+                    {formatCurrency(Math.ceil(monthlyCosts * Math.pow(1 + inflationRate/100, familyContext ? getEffectiveRetirementInfo().yearsToRetirement : retirementAge - currentAge)), currency)}
                   </p>
                   <p className="text-theme-warning text-xs">Inflation-adjusted amount</p>
                 </div>
@@ -1058,7 +1714,7 @@ const RetirementCalculator: React.FC<RetirementCalculatorProps> = ({ onCalculate
                     <p className="font-semibold text-theme-secondary">Total Retirement Goal</p>
                   </div>
                   <p className="heading-stat text-theme-success">
-                    {formatCurrency(Math.ceil(monthlyCosts * 12 * Math.pow(1 + inflationRate/100, retirementAge - currentAge) * 25), currency)}
+                    {formatCurrency(Math.ceil(monthlyCosts * 12 * Math.pow(1 + inflationRate/100, familyContext ? getEffectiveRetirementInfo().yearsToRetirement : retirementAge - currentAge) * 25), currency)}
                   </p>
                   <p className="text-theme-success text-xs">Using 4% withdrawal rule</p>
                 </div>
@@ -1071,7 +1727,7 @@ const RetirementCalculator: React.FC<RetirementCalculatorProps> = ({ onCalculate
                   Why the 4% Rule Works
                 </h6>
                 <p className="text-xs text-theme-info leading-relaxed">
-                  With your target amount, you can withdraw 4% annually ({formatCurrency(Math.ceil(monthlyCosts * 12 * Math.pow(1 + inflationRate/100, retirementAge - currentAge) * 25 * 0.04), currency)}/year) 
+                  With your target amount, you can withdraw 4% annually ({formatCurrency(Math.ceil(monthlyCosts * 12 * Math.pow(1 + inflationRate/100, familyContext ? getEffectiveRetirementInfo().yearsToRetirement : retirementAge - currentAge) * 25 * 0.04), currency)}/year) 
                   and your savings should last 30+ years while growing with investments.
                 </p>
               </div>

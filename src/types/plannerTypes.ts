@@ -6,9 +6,24 @@ export type PaymentFrequency = 'Once' | 'Monthly' | 'Quarterly' | 'Biannual' | '
 
 export type FundingStyle = 'waterfall' | 'parallel' | 'hybrid';
 
+// New types for family planning and retirement strategies
+export type PlanningType = 'individual' | 'family';
+
+export type RetirementStrategy = 'joint' | 'staggered';
+
 export interface ReturnPhase {
   length: number; // in months
   rate: number; // annual rate (e.g., 0.05 for 5%)
+}
+
+// New interface for family retirement profile
+export interface FamilyRetirementProfile {
+  primaryAge: number;
+  spouseAge: number;
+  primaryRetirementAge: number;
+  spouseRetirementAge: number;
+  strategy: RetirementStrategy;
+  expenseRatio: number;
 }
 
 export interface Goal {
@@ -17,6 +32,8 @@ export interface Goal {
   category: GoalCategory;
   targetDate: Date;
   amount: number;
+  initialAmount?: number; // Amount from current savings
+  remainingAmount?: number; // Still needed to be saved
   horizonMonths: number;
   profile: Profile;
   returnPhases: ReturnPhase[];
@@ -31,6 +48,7 @@ export interface Goal {
   monthlyAllocations?: number[];
   bufferMonths?: number;
   selectedBank?: any; // Bank selection for emergency fund
+  familyRetirementProfile?: FamilyRetirementProfile; // For family retirement goals
 }
 
 export interface Step {

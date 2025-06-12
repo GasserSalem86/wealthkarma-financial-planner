@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useReducer, useEffect, useRef } from 'react';
-import { Goal, GoalResult, Profile, ReturnPhase, FundingStyle } from '../types/plannerTypes';
-import { calculateSequentialAllocations, calculateRequiredPMT } from '../utils/calculations';
+import { Goal, GoalResult, Profile, ReturnPhase, FundingStyle, PlanningType } from '../types/plannerTypes';
+import { calculateSequentialAllocations, calculateRequiredPMT, applySavingsToGoals } from '../utils/calculations';
 import { useAuth } from './AuthContext';
 // Static import to avoid dynamic import failures in production
 import { plannerPersistence } from '../services/plannerPersistence';
@@ -17,12 +17,16 @@ export interface PlannerState {
   selectedPhase: number;
   allocations: GoalResult[];
   fundingStyle: FundingStyle;
+  leftoverSavings: number;
   // User profile for AI context
   userProfile: {
     name?: string;
+    planningType?: PlanningType;
+    familySize?: number;
     nationality?: string;
     location?: string;
     monthlyIncome?: number;
+    currentSavings?: number;
     currency?: string;
   };
   // Add loading state
@@ -41,7 +45,12 @@ const initialState: PlannerState = {
   selectedPhase: 0,
   allocations: [],
   fundingStyle: 'hybrid',
-  userProfile: {},
+  leftoverSavings: 0,
+  userProfile: {
+    planningType: 'individual',
+    familySize: 2,
+    currentSavings: 0
+  },
   isLoading: true,
   isDataLoaded: false
 };
@@ -61,14 +70,32 @@ type PlannerAction =
   | { type: 'UPDATE_GOAL_PROFILE'; payload: { id: string; profile: Profile } }
   | { type: 'UPDATE_GOAL_RATES'; payload: { id: string; rates: { high: number; mid: number; low: number } } }
   | { type: 'SET_FUNDING_STYLE'; payload: FundingStyle }
-  | { type: 'SET_USER_PROFILE'; payload: { name?: string; nationality?: string; location?: string; monthlyIncome?: number; currency?: string } }
+  | { type: 'SET_USER_PROFILE'; payload: { name?: string; planningType?: PlanningType; familySize?: number; nationality?: string; location?: string; monthlyIncome?: number; currentSavings?: number; currency?: string } }
+  | { type: 'SET_PLANNING_TYPE'; payload: PlanningType }
+  | { type: 'SET_FAMILY_SIZE'; payload: number }
+  | { type: 'SET_CURRENT_SAVINGS'; payload: number }
+  | { type: 'SET_LEFTOVER_SAVINGS'; payload: number }
   | { type: 'LOAD_PLANNING_DATA'; payload: Partial<PlannerState> }
   | { type: 'SET_LOADING'; payload: boolean }
   | { type: 'SET_DATA_LOADED'; payload: boolean };
 
 // Helper function to recalculate allocations
 const recalculateAllocations = (state: PlannerState): GoalResult[] => {
-  return calculateSequentialAllocations(state.goals, state.budget, state.fundingStyle);
+  // Apply current savings to goals if we have any
+  let goalsToCalculate = state.goals;
+  
+  if (state.userProfile.currentSavings && state.userProfile.currentSavings > 0) {
+    const { allocatedGoals, leftoverAmount } = applySavingsToGoals(
+      state.goals, 
+      state.userProfile.currentSavings
+    );
+    goalsToCalculate = allocatedGoals;
+    
+    // Update leftover savings in state (though this is a calculation helper)
+    // The actual state update should happen in the reducer action
+  }
+  
+  return calculateSequentialAllocations(goalsToCalculate, state.budget, state.fundingStyle);
 };
 
 // Helper function to build return phases given profile, horizon and optional payment period / custom rates
@@ -169,22 +196,33 @@ const plannerReducer = (state: PlannerState, action: PlannerAction): PlannerStat
       const returnPhases: ReturnPhase[] = [{ length: horizonMonths, rate: 0.01 }];
       const targetDate = new Date(action.payload.targetYear, action.payload.targetMonth);
       
+      // Apply current savings to emergency fund if available
+      const currentSavings = state.userProfile.currentSavings || 0;
+      const amountFromSavings = Math.min(currentSavings, amount);
+      const remainingAmount = amount - amountFromSavings;
+      
       const emergencyFund: Goal = {
         id: 'emergency-fund',
         name: 'Emergency Fund',
         category: 'Home',
         targetDate,
         amount,
+        initialAmount: amountFromSavings,
+        remainingAmount,
         horizonMonths,
         profile: 'Conservative',
         returnPhases,
-        requiredPMT: calculateRequiredPMT(amount, returnPhases, horizonMonths),
+        requiredPMT: calculateRequiredPMT(remainingAmount, returnPhases, horizonMonths),
       };
+      
+      // Calculate leftover savings after emergency fund
+      const leftoverSavings = Math.max(0, currentSavings - amount);
       
       newState = { 
         ...state, 
         goals: [emergencyFund, ...state.goals], 
         emergencyFundCreated: true,
+        leftoverSavings,
         currentStep: 1 
       };
       newState.allocations = recalculateAllocations(newState);
@@ -325,7 +363,7 @@ const plannerReducer = (state: PlannerState, action: PlannerAction): PlannerStat
 
     case 'SET_USER_PROFILE': {
       const newProfile = action.payload;
-      const updatedState = { ...state, userProfile: newProfile };
+      const updatedState = { ...state, userProfile: { ...state.userProfile, ...newProfile } };
       
       // Auto-calculate budget if we have both income and expenses
       if (newProfile.monthlyIncome && state.monthlyExpenses > 0) {
@@ -336,6 +374,27 @@ const plannerReducer = (state: PlannerState, action: PlannerAction): PlannerStat
       
       return updatedState;
     }
+
+    case 'SET_PLANNING_TYPE':
+      return { ...state, userProfile: { ...state.userProfile, planningType: action.payload } };
+
+    case 'SET_FAMILY_SIZE':
+      return { ...state, userProfile: { ...state.userProfile, familySize: action.payload } };
+
+    case 'SET_CURRENT_SAVINGS': {
+      const newSavings = action.payload;
+      const updatedState = { ...state, userProfile: { ...state.userProfile, currentSavings: newSavings } };
+      
+      // Recalculate allocations if we have goals
+      if (state.goals.length > 0) {
+        updatedState.allocations = recalculateAllocations(updatedState);
+      }
+      
+      return updatedState;
+    }
+
+    case 'SET_LEFTOVER_SAVINGS':
+      return { ...state, leftoverSavings: action.payload };
 
     case 'LOAD_PLANNING_DATA': {
       const loadedData = action.payload;
@@ -350,6 +409,7 @@ const plannerReducer = (state: PlannerState, action: PlannerAction): PlannerStat
         selectedPhase: loadedData.selectedPhase ?? state.selectedPhase,
         allocations: loadedData.allocations ?? state.allocations,
         fundingStyle: loadedData.fundingStyle ?? state.fundingStyle,
+        leftoverSavings: loadedData.leftoverSavings ?? state.leftoverSavings,
         userProfile: loadedData.userProfile ?? state.userProfile,
         isLoading: loadedData.isLoading ?? false,
         isDataLoaded: loadedData.isDataLoaded ?? true

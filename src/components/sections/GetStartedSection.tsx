@@ -62,39 +62,39 @@ const GetStartedSection: React.FC<GetStartedSectionProps> = ({ onBack }) => {
       if (!showOTPInput) {
         // Step 1: Send OTP to email
         setDebugStatus('Sending verification code...');
-        
+    
         // Track OTP send attempt
-        if (window.gtag) {
+    if (window.gtag) {
           window.gtag('event', 'otp_send_attempt', {
-            plan_type: 'free',
-            plan_value: totalPlanValue,
-            conversion_point: 'post_plan_generation'
-          });
-        }
+        plan_type: 'free',
+        plan_value: totalPlanValue,
+        conversion_point: 'post_plan_generation'
+      });
+    }
 
-        const userData = {
-          name: userName,
-          plan_type: 'free',
-          plan_value: totalPlanValue,
-          signup_source: 'post_plan_generation'
-        };
+      const userData = {
+        name: userName,
+        plan_type: 'free',
+        plan_value: totalPlanValue,
+        signup_source: 'post_plan_generation'
+      };
 
         console.log('📧 Sending OTP to:', email);
         const result = await sendOTP(email, userData);
-        
-        if (result.error) {
+      
+      if (result.error) {
           console.error('❌ Failed to send OTP:', result.error);
-          
-          // Handle rate limiting specifically
-          if (result.error.message?.includes('request this after')) {
-            setDebugStatus('Rate limit reached - please wait');
-            alert(`Please wait before trying again. ${result.error.message}`);
-          } else {
+        
+        // Handle rate limiting specifically
+        if (result.error.message?.includes('request this after')) {
+          setDebugStatus('Rate limit reached - please wait');
+          alert(`Please wait before trying again. ${result.error.message}`);
+        } else {
             setDebugStatus(`Failed to send code: ${result.error.message}`);
             alert(`Failed to send verification code: ${result.error.message}`);
-          }
-          return;
         }
+          return;
+      }
 
         console.log('✅ OTP sent successfully');
         setDebugStatus('Verification code sent! Check your email.');
@@ -136,15 +136,15 @@ const GetStartedSection: React.FC<GetStartedSectionProps> = ({ onBack }) => {
 
         console.log('✅ OTP verified successfully, user authenticated');
         setDebugStatus('Account created successfully!');
-
-        // Track successful signup
-        if (window.gtag) {
-          window.gtag('event', 'signup_success', {
-            plan_type: 'free',
+      
+      // Track successful signup
+      if (window.gtag) {
+        window.gtag('event', 'signup_success', {
+          plan_type: 'free',
             plan_value: totalPlanValue,
             method: 'otp'
-          });
-        }
+        });
+      }
 
         // OTP verification successful - user is now authenticated
         console.log('✅ User successfully authenticated via OTP');
@@ -199,7 +199,7 @@ const GetStartedSection: React.FC<GetStartedSectionProps> = ({ onBack }) => {
           setDebugStatus('Account created successfully! (Manual save may be needed)');
         }
         
-        setShowSuccess(true);
+      setShowSuccess(true);
         
         // Redirect to dashboard after showing success message
         setTimeout(() => {
@@ -242,12 +242,12 @@ const GetStartedSection: React.FC<GetStartedSectionProps> = ({ onBack }) => {
         console.error('❌ Failed to resend OTP:', result.error);
         setDebugStatus(`Failed to resend: ${result.error.message}`);
         alert(`Failed to resend verification code: ${result.error.message}`);
-      } else {
+        } else {
         console.log('✅ OTP resent successfully');
         setDebugStatus('New verification code sent!');
         setOtpCode(''); // Clear the input
-      }
-    } catch (error) {
+        }
+      } catch (error) {
       console.error('❌ Error resending OTP:', error);
       setDebugStatus('Error resending code');
       alert('Failed to resend code. Please try again.');
@@ -420,49 +420,49 @@ const GetStartedSection: React.FC<GetStartedSectionProps> = ({ onBack }) => {
                 
                 {!showSuccess && (
                   <>
-                    {/* Features List */}
-                    <div className="bg-theme-tertiary rounded-xl p-4 mb-6">
-                      <h3 className="font-semibold text-theme-primary mb-3">What you get for free:</h3>
-                      <div className="grid grid-cols-1 gap-2 text-sm text-theme-secondary">
-                            <div className="flex items-center gap-2">
-                        <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
-                        <span>Live progress tracking</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
-                        <span>AI financial coaching</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
-                        <span>Goal optimization</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
-                        <span>Personalized roadmap</span>
-                      </div>
-                      </div>
+                {/* Features List */}
+                <div className="bg-theme-tertiary rounded-xl p-4 mb-6">
+                  <h3 className="font-semibold text-theme-primary mb-3">What you get for free:</h3>
+                  <div className="grid grid-cols-1 gap-2 text-sm text-theme-secondary">
+                        <div className="flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
+                      <span>Live progress tracking</span>
                     </div>
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
+                      <span>AI financial coaching</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
+                      <span>Goal optimization</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
+                      <span>Personalized roadmap</span>
+                    </div>
+                  </div>
+                </div>
 
-                    {/* Signup Form */}
-                    <div className="space-y-4">
+                {/* Signup Form */}
+                <div className="space-y-4">
                       {/* Email Input - Always visible */}
-                      <div className="relative">
-                        <input
-                          type="email"
-                          placeholder="Email"
-                          value={email}
-                          onChange={(e) => setEmail(e.target.value)}
-                          className="w-full px-4 py-3 rounded-lg border border-theme bg-theme-tertiary focus:outline-none focus:ring-2 focus:ring-green-500"
-                          required
+                  <div className="relative">
+                    <input
+                      type="email"
+                      placeholder="Email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="w-full px-4 py-3 rounded-lg border border-theme bg-theme-tertiary focus:outline-none focus:ring-2 focus:ring-green-500"
+                      required
                           disabled={showOTPInput || isSigningUp}
-                        />
-                        <Mail className="absolute top-3 right-3 w-5 h-5 text-theme-muted" />
-                      </div>
+                    />
+                    <Mail className="absolute top-3 right-3 w-5 h-5 text-theme-muted" />
+                  </div>
                       
                       {/* OTP Input - Only show when OTP step is active */}
                       {showOTPInput && (
-                        <div className="relative">
-                          <input
+                  <div className="relative">
+                    <input 
                             type="text"
                             placeholder="Enter 6-digit verification code"
                             value={otpCode}
@@ -472,14 +472,14 @@ const GetStartedSection: React.FC<GetStartedSectionProps> = ({ onBack }) => {
                             }}
                             className="w-full px-4 py-3 rounded-lg border border-theme bg-theme-tertiary focus:outline-none focus:ring-2 focus:ring-green-500 text-center text-lg tracking-widest"
                             maxLength={6}
-                            required
+                      required
                             autoComplete="one-time-code"
                             inputMode="numeric"
                             pattern="[0-9]*"
-                          />
+                    />
                           <div className="absolute top-3 right-3 w-5 h-5 text-theme-muted flex items-center justify-center">
                             <span className="text-xs font-mono">{otpCode.length}/6</span>
-                          </div>
+                  </div>
                         </div>
                       )}
                       
@@ -516,38 +516,38 @@ const GetStartedSection: React.FC<GetStartedSectionProps> = ({ onBack }) => {
                           </div>
                         </div>
                       )}
-                    </div>
+                </div>
 
-                    {/* Submit Button */}
-                    <Button
-                      type="submit"
-                      className={`w-full ${isSigningUp ? 'opacity-75 cursor-not-allowed' : ''}`}
+                {/* Submit Button */}
+                <Button
+                  type="submit"
+                  className={`w-full ${isSigningUp ? 'opacity-75 cursor-not-allowed' : ''}`}
                       disabled={isSigningUp || !email || (showOTPInput && (!otpCode || otpCode.length !== 6))}
-                    >
-                      {isSigningUp ? (
-                        <div className="flex items-center justify-center gap-2">
-                          <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                >
+                  {isSigningUp ? (
+                    <div className="flex items-center justify-center gap-2">
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
                           {debugStatus || (showOTPInput ? 'Verifying Code...' : 'Sending Code...')}
-                        </div>
-                      ) : (
+                    </div>
+                  ) : (
                         showOTPInput ? 'Verify Code & Create Account' : 'Send Verification Code'
-                      )}
-                    </Button>
+                  )}
+                </Button>
 
-                    {/* Debug Status - Only show during signup */}
-                    {isSigningUp && debugStatus && (
-                      <div className="text-center p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
-                        <p className="text-sm text-blue-600">{debugStatus}</p>
-                        {debugStatus.includes('Rate limit') && (
-                          <p className="text-xs text-blue-500 mt-1">Please wait a moment before trying again</p>
-                        )}
-                      </div>
+                {/* Debug Status - Only show during signup */}
+                {isSigningUp && debugStatus && (
+                  <div className="text-center p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+                    <p className="text-sm text-blue-600">{debugStatus}</p>
+                    {debugStatus.includes('Rate limit') && (
+                      <p className="text-xs text-blue-500 mt-1">Please wait a moment before trying again</p>
                     )}
+                  </div>
+                )}
 
-                    {/* Terms */}
-                    <p className="text-xs text-theme-muted text-center">
-                      By creating an account, you agree to our Terms of Service and Privacy Policy
-                    </p>
+                {/* Terms */}
+                <p className="text-xs text-theme-muted text-center">
+                  By creating an account, you agree to our Terms of Service and Privacy Policy
+                </p>
                   </>
                 )}
               </form>

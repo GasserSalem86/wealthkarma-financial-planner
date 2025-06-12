@@ -9,6 +9,15 @@ export interface UserContext {
   currency?: string;
   currentStep?: string;
   goals?: any[];
+  // Family planning context
+  planningType?: 'individual' | 'family';
+  familySize?: number;
+  // NEW: Retirement preferences
+  retirementPreferences?: {
+    budgetPriority: 'low-cost' | 'moderate' | 'comfortable';
+    weatherPreference: 'warm' | 'temperate' | 'cool' | 'no-preference';
+    lifestyleType: 'quiet-peaceful' | 'active-social' | 'cultural-urban' | 'beach-coastal';
+  };
   emergencyFund?: {
     targetAmount?: number;
     currentAmount?: number;
@@ -107,6 +116,13 @@ export interface RetirementPlanningResponse {
       entertainment: number;
       utilities: number;
       other: number;
+    };
+    comparisonToCurrentExpenses?: {
+      currentMonthlyExpenses: number;
+      projectedMonthlyExpenses: number;
+      difference: number;
+      percentageChange: number;
+      explanation: string;
     };
   };
   interactiveButtons?: RetirementButton[];
@@ -235,6 +251,15 @@ Always provide specific, actionable advice relevant to their expat status.`;
     }
     if (context.currentStep) {
       contextPrompt += `- Current Planning Step: ${context.currentStep}\n`;
+    }
+    
+    // Add family planning context
+    if (context.planningType) {
+      contextPrompt += `- Planning Type: ${context.planningType}\n`;
+      if (context.planningType === 'family' && context.familySize) {
+        contextPrompt += `- Family Size: ${context.familySize} members\n`;
+        contextPrompt += `- Context: Planning financial goals for a family household\n`;
+      }
     }
     
     // Add existing goals information
@@ -459,7 +484,7 @@ ${stepPrompts[step as keyof typeof stepPrompts] || 'Please provide general finan
       const message = completion.choices[0]?.message?.content || "I'm sorry, I couldn't generate guidance at this time.";
 
       return {
-        message,
+        message: this.cleanMarkupFromResponse(message),
       };
       });
 
@@ -552,6 +577,8 @@ USER CONTEXT:
 - Location: ${context.location}
 - Monthly Income: ${context.monthlyIncome} ${context.currency}
 - Currency: ${context.currency}
+${context.planningType === 'family' ? `- Planning Type: Family planning for ${context.familySize} members
+- Family Goal Adjustments: Consider family-appropriate amounts, education for children, larger housing needs, family travel costs` : '- Planning Type: Individual planning'}
 
 BASE CALCULATIONS ON:
 - Their income level and affordability (suggest 10-20% of monthly income for goal savings)
@@ -638,10 +665,15 @@ Please help with their goal planning request. Be specific and practical in your 
           console.warn('Could not parse form fill data from AI response:', parseError);
         }
 
-      return {
-          message: response.replace(/\{[\s\S]*"formFillData"[\s\S]*\}/, '').trim(),
+              // Clean up the response by removing JSON and markup
+        const cleanedMessage = this.cleanMarkupFromResponse(
+          response.replace(/\{[\s\S]*"formFillData"[\s\S]*\}/, '').trim()
+        );
+
+        return {
+          message: cleanedMessage,
           formFillData
-      };
+        };
       }
 
       // Check if question needs web search for goal-specific information
@@ -733,7 +765,7 @@ Please search for current 2025 cost information to help with their goal planning
             const message = completion.choices[0]?.message?.content || "I'm sorry, I couldn't find current information at this time.";
 
       return {
-              message,
+              message: this.cleanMarkupFromResponse(message),
             };
 
           } catch (searchModelError) {
@@ -794,7 +826,7 @@ SPECIALIZED GUIDANCE FOR EDUCATION GOALS:
 - Home purchases (down payments, market research) - ALWAYS apply 2-8% annual property inflation
 - Gift planning (cultural expectations, appropriate amounts) - ALWAYS apply 3-5% annual lifestyle inflation
 
-Be conversational, ask follow-up questions, and provide specific, actionable advice based on their situation as a ${context.nationality} expat living in ${context.location} earning ${context.monthlyIncome} ${context.currency}.
+Be conversational, ask follow-up questions, and provide specific, actionable advice based on their situation as a ${context.nationality} expat living in ${context.location} earning ${context.monthlyIncome} ${context.currency}${context.planningType === 'family' ? ` planning for a family of ${context.familySize} members` : ''}.
 
 Focus on practical goal planning with mandatory inflation considerations, not investment advice or banking recommendations.`;
 
@@ -822,6 +854,7 @@ Current situation:
 - Nationality: ${context.nationality}
 - Location: ${context.location}  
 - Monthly Income: ${context.monthlyIncome} ${context.currency}
+- Planning Type: ${context.planningType || 'individual'}${context.planningType === 'family' ? ` (family of ${context.familySize} members)` : ''}
 - Existing Goals: ${context.goals?.length || 0}
 
 Provide helpful, specific guidance for their goal planning question. Ask follow-up questions to better understand their needs.`
@@ -837,7 +870,7 @@ Provide helpful, specific guidance for their goal planning question. Ask follow-
         const message = completion.choices[0]?.message?.content || "I'm sorry, I couldn't answer your question at this time.";
 
         return {
-          message,
+          message: this.cleanMarkupFromResponse(message),
         };
       }
     } catch (error) {
@@ -1194,6 +1227,39 @@ Provide helpful, specific guidance for their goal planning question. Ask follow-
   }
 
   // Helper function to clean JSON response from markdown formatting
+  private cleanMarkupFromResponse(responseText: string): string {
+    // Remove common markdown and markup patterns
+    let cleanText = responseText
+      // Remove code blocks first (including JSON in code blocks)
+      .replace(/```[\s\S]*?```/g, '')
+      .replace(/^```.*$/gm, '')
+      // Remove JSON objects completely (most important for user experience)
+      .replace(/\{[\s\S]*?\}/g, '')
+      // Remove markdown headers (# ## ###)
+      .replace(/^#{1,6}\s+(.+)$/gm, '$1')
+      // Remove bold/italic markdown (**text** and *text*)
+      .replace(/\*\*([^*]+)\*\*/g, '$1')
+      .replace(/\*([^*]+)\*/g, '$1')
+      // Remove backticks (`code`)
+      .replace(/`([^`]+)`/g, '$1')
+      .replace(/``+/g, '')
+      // Remove HTML tags
+      .replace(/<[^>]*>/g, '')
+      // Remove comment-style markup (// text)
+      .replace(/^\/\/\s*(.+)$/gm, '$1')
+      // Remove any remaining JSON-like patterns and orphaned characters
+      .replace(/^\s*"[^"]*":\s*[^,\n}]+[,}]?\s*$/gm, '')
+      .replace(/^\s*[{}]\s*$/gm, '')
+      .replace(/^\s*[,;]\s*$/gm, '')
+      // Remove excess whitespace and clean up
+      .replace(/\n{3,}/g, '\n\n')
+      .replace(/^\s*\n+/g, '')
+      .replace(/\n\s*\n\s*\n/g, '\n\n')
+      .trim();
+    
+    return cleanText;
+  }
+
   private cleanJsonResponse(responseText: string): string {
     // Remove markdown code blocks if present
     const jsonMatch = responseText.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
@@ -1205,8 +1271,8 @@ Provide helpful, specific guidance for their goal planning question. Ask follow-
     return responseText.trim();
   }
 
-  // Retirement Planning Assistance Methods
-  async getRetirementDestinationSuggestions(context: UserContext): Promise<RetirementPlanningResponse> {
+  // Comprehensive Retirement Planning Method (Single AI Call)
+  async getComprehensiveRetirementPlan(context: UserContext): Promise<RetirementPlanningResponse> {
     if (!this.openai) {
       return {
         message: "I'm sorry, AI features are not available right now. Please try setting your retirement destination manually."
@@ -1214,66 +1280,139 @@ Provide helpful, specific guidance for their goal planning question. Ask follow-
     }
 
     try {
-      const prompt = `As a retirement planning expert for GCC expats, suggest retirement destinations based on this profile. IMPORTANT: Always include the user's home country as one of the options since returning home is often a preferred retirement choice for expats.
+      // Calculate current expenses for retirement planning (2 adults for families)
+      const retirementExpenses = context.monthlyExpenses ? 
+        (context.planningType === 'family' && context.familySize && context.familySize > 2 
+          ? Math.round(context.monthlyExpenses * (2 / context.familySize)) // Scale down to 2 adults
+          : context.monthlyExpenses
+        ) : undefined;
+
+      // Build family context
+      const familyContext = context.planningType === 'family' ? `
+
+FAMILY PLANNING CONTEXT:
+- Planning Type: Family retirement planning
+- Current Family Size: ${context.familySize || 'Not specified'} people
+- Retirement Planning For: 2 adults (adjusted from family expenses)
+- Current Family Monthly Expenses: ${context.monthlyExpenses || 'Not specified'} ${context.currency || ''}
+- Adjusted Retirement Expenses (2 adults): ${retirementExpenses || 'Not specified'} ${context.currency || ''} per month
+
+IMPORTANT: Base all cost estimates on the adjusted retirement expenses for 2 adults, not the full family size.` : '';
+
+      // Build preferences context
+      const preferencesContext = context.retirementPreferences ? `
+
+RETIREMENT PREFERENCES:
+- Budget Priority: ${context.retirementPreferences.budgetPriority} (${
+        context.retirementPreferences.budgetPriority === 'low-cost' ? 'Focus on affordable, low-cost destinations that stretch retirement savings' :
+        context.retirementPreferences.budgetPriority === 'moderate' ? 'Balanced approach - comfortable lifestyle without excessive costs' :
+        'Premium comfort and quality of life, budget is flexible'
+      })
+- Climate Preference: ${context.retirementPreferences.weatherPreference} (${
+        context.retirementPreferences.weatherPreference === 'warm' ? 'Tropical, year-round warm weather preferred' :
+        context.retirementPreferences.weatherPreference === 'temperate' ? 'Mediterranean climate with mild seasons preferred' :
+        context.retirementPreferences.weatherPreference === 'cool' ? 'Cooler temperatures and crisp air preferred' :
+        'Climate is not a deciding factor'
+      })
+- Lifestyle Type: ${context.retirementPreferences.lifestyleType} (${
+        context.retirementPreferences.lifestyleType === 'quiet-peaceful' ? 'Prefer tranquil, relaxed environment close to nature' :
+        context.retirementPreferences.lifestyleType === 'active-social' ? 'Want vibrant expat communities and active social life' :
+        context.retirementPreferences.lifestyleType === 'cultural-urban' ? 'Prefer cities with museums, arts, and urban amenities' :
+        'Beach and coastal living with marine activities preferred'
+      })
+
+IMPORTANT: Use these preferences to heavily influence your destination selection and recommendations.` : '';
+
+      const prompt = `As a comprehensive retirement planning expert for GCC expats, provide both destination suggestions AND detailed cost breakdown for the user's top choice. This will be a complete retirement planning analysis in one response.
 
 User Profile:
 - Name: ${context.name || 'Valued client'}
-- Location: ${context.location || 'GCC'}
+- Current Location: ${context.location || 'GCC'}
 - Nationality: ${context.nationality || 'Unknown'}
 - Monthly Income: ${context.monthlyIncome || 'Not specified'} ${context.currency || ''}
-- Monthly Expenses: ${context.monthlyExpenses || 'Not specified'} ${context.currency || ''}
-- Preferred Currency: ${context.currency || 'USD'}
+- Current Monthly Expenses: ${context.monthlyExpenses || 'Not specified'} ${context.currency || ''}
+- Retirement Planning Expenses: ${retirementExpenses || context.monthlyExpenses || 'Not specified'} ${context.currency || ''} (for 2 adults)
+- Preferred Currency: ${context.currency || 'USD'}${familyContext}${preferencesContext}
+
+COMPREHENSIVE ANALYSIS REQUIREMENTS:
+
+PART 1: DESTINATION SUGGESTIONS
+- Suggest 5 destinations including the user's home country (${context.nationality || 'their home country'}) as the first option
+- For each destination, provide cost estimates based on their current expense baseline (${retirementExpenses || context.monthlyExpenses || 'not provided'} ${context.currency || ''})
+- Adjust costs for cost-of-living differences between their current location and each destination
+- For family planning: calculate all costs for 2 adults only
+- ${context.retirementPreferences ? 'Prioritize destinations that SPECIFICALLY match their stated preferences' : 'Choose diverse, expat-friendly destinations'}
+
+PART 2: DETAILED BREAKDOWN FOR TOP RECOMMENDATION
+- Provide a comprehensive cost breakdown for your #1 recommended destination (considering their preferences and financial situation)
+- Include detailed expense categories with cost-of-living adjustments
+- Compare to their current expenses with percentage changes and explanations
+- Consider retirement lifestyle changes (reduced work/child costs, increased healthcare/leisure)
+
+EXPENSE-BASED COST CALCULATION INSTRUCTIONS:
+- Use the user's current expense level (${retirementExpenses || context.monthlyExpenses || 'not provided'} ${context.currency || ''}) as the baseline
+- Adjust costs based on cost-of-living differences between ${context.location || 'GCC'} and each destination
+- For family planning: costs should reflect 2 adults only, regardless of current family size
+- Provide realistic cost estimates that align with their current spending patterns
 
 IMPORTANT CURRENCY INSTRUCTIONS:
 - All cost estimates must be provided in ${context.currency || 'USD'}
 - Use current exchange rates for accurate conversions
-- Consider the user's income/expense context in ${context.currency || 'USD'} when suggesting appropriate destinations
 - For reference: 1 USD ≈ 3.67 AED, 3.75 SAR, 0.30 KWD, 3.64 QAR, 0.38 BHD, 0.38 OMR
 
-Please suggest 5 destinations total, including:
-1. The user's home country (${context.nationality || 'their home country'}) - this should ALWAYS be included
-2. 4 other ideal international retirement destinations
-
-For each destination, consider:
-- Cost of living (low to medium preferred for international destinations)
-- Healthcare quality
-- Visa requirements for ${context.nationality || 'expats'}
-- Weather and lifestyle
-- Expat-friendly environment
-- For the home country: familiarity, family connections, citizenship benefits
-
-For each destination, provide:
-- Destination name and country
-- Estimated monthly living cost in ${context.currency || 'USD'}
-- Cost ranking (Low/Medium/High)
-- 3 key highlights
-- Weather description
-- Healthcare quality
-- Visa requirements
-
-Address the user by their name (${context.name || 'you'}) in your response to make it personal and engaging.
+Address the user by their name (${context.name || 'you'})${context.retirementPreferences ? ' and reference their specific preferences' : ''} in your response.
 
 CRITICAL: Return ONLY a raw JSON object without any markdown formatting or code blocks. Use this exact structure:
 {
-  "message": "Personalized introduction message mentioning that their home country is included",
+  "message": "Personalized introduction message${context.retirementPreferences ? ' that mentions their specific preferences and' : ''} explaining the comprehensive analysis based on their current expenses${familyContext ? ' (adjusted for 2 adults)' : ''}",
   "destinations": [
     {
       "destination": "City, Country",
-      "country": "Country",
+      "country": "Country", 
       "estimatedMonthlyCost": 1500,
       "costOfLivingRank": "Low",
-      "highlights": ["Highlight 1", "Highlight 2", "Highlight 3"],
-      "weather": "Weather description",
+      "highlights": ["Highlight${context.retirementPreferences ? ' that matches their preferences' : ''}", "Cost comparison to current expenses", "Retirement-specific benefit"],
+      "weather": "Weather description${context.retirementPreferences ? ' that relates to their preference' : ''}",
       "healthcare": "Healthcare description", 
       "visaRequirements": "Visa info"
     }
-  ]
+  ],
+  "recommendedDestination": {
+    "name": "Your top recommended destination name",
+    "estimatedMonthlyCost": 1500,
+    "breakdown": {
+      "housing": 800,
+      "food": 300, 
+      "healthcare": 150,
+      "transportation": 100,
+      "entertainment": 100,
+      "utilities": 50,
+      "other": 100
+    },
+    "comparisonToCurrentExpenses": {
+      "currentMonthlyExpenses": ${retirementExpenses || context.monthlyExpenses || 0},
+      "projectedMonthlyExpenses": 1500,
+      "difference": -200,
+      "percentageChange": -12.5,
+      "explanation": "Your retirement costs would be lower/higher than current expenses because..."
+    },
+    "whyRecommended": "Explanation of why this is your top choice based on their preferences, financial situation, and retirement goals",
+    "tips": ["Tip based on local cost optimization", "Tip based on their expense patterns", "Retirement-specific cost tip"]
+  }
 }`;
 
       const completion = await this.openai.chat.completions.create({
         model: 'gpt-4o-mini',
         messages: [
-          { role: 'system', content: 'You are a retirement planning expert for GCC expats. Always include the user\'s home country as the first destination option. Address the user by their actual name when provided, never use generic terms like "client" or nationality-based titles. CRITICAL: Always provide all cost estimates in the user\'s chosen currency, not USD unless they specifically use USD. Use accurate currency conversions. IMPORTANT: Return ONLY raw JSON without markdown code blocks or formatting.' },
+          { role: 'system', content: `You are a comprehensive retirement planning expert for GCC expats. Always include the user's home country as the first destination option. Address the user by their actual name when provided. CRITICAL: Always provide all cost estimates in the user's chosen currency using accurate conversions. 
+
+EXPENSE CALCULATION PRIORITY: Base all cost estimates on the user's current expense baseline and adjust for cost-of-living differences between locations. For family planning, calculate costs for 2 adults only. Make realistic adjustments for retirement lifestyle changes.
+
+${context.retirementPreferences ? 'When user preferences are provided, prioritize destinations that specifically match their budget, climate, and lifestyle preferences. Your top recommendation should be the best match for their stated preferences. ' : ''}
+
+COMPREHENSIVE APPROACH: Provide both destination options AND detailed breakdown for your top recommendation in one unified response. Ensure cost consistency between the destination suggestions and the detailed breakdown.
+
+IMPORTANT: Return ONLY raw JSON without markdown code blocks or formatting.` },
           { role: 'user', content: prompt }
         ],
         temperature: 0.7
@@ -1299,105 +1438,15 @@ CRITICAL: Return ONLY a raw JSON object without any markdown formatting or code 
       return {
         message: parsedResponse.message,
         destinationSuggestions: parsedResponse.destinations,
+        selectedDestination: parsedResponse.recommendedDestination,
         interactiveButtons
       };
 
     } catch (error) {
-      console.error('Error getting destination suggestions:', error);
+      console.error('Error getting comprehensive retirement plan:', error);
       return {
-        message: "I'm having trouble getting destination suggestions right now. You can manually enter your preferred retirement destination and estimated monthly costs.",
+        message: "I'm having trouble getting your retirement plan right now. You can manually enter your preferred retirement destination and estimated monthly costs.",
         destinationSuggestions: this.getFallbackDestinations(context.nationality, context.currency)
-      };
-    }
-  }
-
-  async getRetirementCostBreakdown(destination: string, context: UserContext): Promise<RetirementPlanningResponse> {
-    if (!this.openai) {
-      return {
-        message: "AI features are not available. Please estimate your monthly costs manually."
-      };
-    }
-
-    try {
-      const prompt = `As a retirement cost expert, provide a detailed monthly cost breakdown for retirement in ${destination}.
-
-User Profile:
-- Name: ${context.name || 'Valued client'}
-- Current Location: ${context.location || 'GCC'}
-- Nationality: ${context.nationality || 'Unknown'}
-- Current Monthly Income: ${context.monthlyIncome || 'Not specified'} ${context.currency || ''}
-- Current Monthly Expenses: ${context.monthlyExpenses || 'Not specified'} ${context.currency || ''}
-- Preferred Currency: ${context.currency || 'USD'}
-
-IMPORTANT CURRENCY INSTRUCTIONS:
-- All cost estimates must be provided in ${context.currency || 'USD'}
-- Use current exchange rates for accurate conversions from local prices
-- Consider realistic cost adjustments based on the user's current expense level in ${context.currency || 'USD'}
-- For reference: 1 USD ≈ 3.67 AED, 3.75 SAR, 0.30 KWD, 3.64 QAR, 0.38 BHD, 0.38 OMR
-
-Please provide:
-1. Total estimated monthly cost in ${context.currency || 'USD'}
-2. Detailed breakdown by category
-3. Lifestyle assumptions (comfortable middle-class retirement)
-4. Tips for reducing costs
-
-Categories to include:
-- Housing (rent/mortgage, utilities)
-- Food and dining
-- Healthcare and insurance
-- Transportation
-- Entertainment and hobbies
-- Other expenses
-
-Address the user by their name (${context.name || 'you'}) in your response to make it personal and engaging.
-
-CRITICAL: Return ONLY a raw JSON object without any markdown formatting or code blocks. Use this exact structure:
-{
-  "message": "Personalized explanation",
-  "totalMonthlyCost": 1500,
-  "breakdown": {
-    "housing": 800,
-    "food": 300,
-    "healthcare": 150,
-    "transportation": 100,
-    "entertainment": 100,
-    "utilities": 50,
-    "other": 100
-  },
-  "tips": ["Tip 1", "Tip 2", "Tip 3"]
-}`;
-
-      const completion = await this.openai.chat.completions.create({
-        model: 'gpt-4o-mini',
-        messages: [
-          { role: 'system', content: 'You are a retirement cost analysis expert. Address the user by their actual name when provided, never use generic terms like "client" or nationality-based titles. CRITICAL: Always provide all cost estimates in the user\'s chosen currency, not USD unless they specifically use USD. Use accurate currency conversions from local prices. IMPORTANT: Return ONLY raw JSON without markdown code blocks or formatting.' },
-          { role: 'user', content: prompt }
-        ],
-        temperature: 0.7
-      });
-
-      const responseText = completion.choices[0]?.message?.content;
-      if (!responseText) {
-        throw new Error('No response received');
-      }
-
-      // Clean the response before parsing
-      const cleanedResponse = this.cleanJsonResponse(responseText);
-      const parsedResponse = JSON.parse(cleanedResponse);
-
-      return {
-        message: parsedResponse.message,
-        selectedDestination: {
-          name: destination,
-          estimatedMonthlyCost: parsedResponse.totalMonthlyCost,
-          breakdown: parsedResponse.breakdown
-        }
-      };
-
-    } catch (error) {
-      console.error('Error getting cost breakdown:', error);
-      return {
-        message: `I'm having trouble getting cost details for ${destination}. Please estimate your monthly expenses manually based on your lifestyle preferences.`
       };
     }
   }

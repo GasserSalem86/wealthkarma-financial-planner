@@ -31,6 +31,8 @@ export type Database = {
           current_savings: number | null
           currency: string | null
           risk_profile: 'Conservative' | 'Balanced' | 'Growth' | null
+          planning_type: 'individual' | 'family' | null
+          family_size: number | null
           created_at: string
           updated_at: string
         }
@@ -45,6 +47,8 @@ export type Database = {
           current_savings?: number | null
           currency?: string | null
           risk_profile?: 'Conservative' | 'Balanced' | 'Growth' | null
+          planning_type?: 'individual' | 'family' | null
+          family_size?: number | null
           created_at?: string
           updated_at?: string
         }
@@ -59,6 +63,8 @@ export type Database = {
           current_savings?: number | null
           currency?: string | null
           risk_profile?: 'Conservative' | 'Balanced' | 'Growth' | null
+          planning_type?: 'individual' | 'family' | null
+          family_size?: number | null
           created_at?: string
           updated_at?: string
         }
@@ -80,6 +86,9 @@ export type Database = {
           monthly_allocations: number[] | null
           buffer_months: number | null
           selected_bank: any | null
+          initial_amount: number | null
+          remaining_amount: number | null
+          family_retirement_profile: any | null
           is_active: boolean | null
           created_at: string
           updated_at: string
@@ -100,6 +109,9 @@ export type Database = {
           monthly_allocations?: number[] | null
           buffer_months?: number | null
           selected_bank?: any | null
+          initial_amount?: number | null
+          remaining_amount?: number | null
+          family_retirement_profile?: any | null
           is_active?: boolean | null
           created_at?: string
           updated_at?: string
@@ -120,6 +132,9 @@ export type Database = {
           monthly_allocations?: number[] | null
           buffer_months?: number | null
           selected_bank?: any | null
+          initial_amount?: number | null
+          remaining_amount?: number | null
+          family_retirement_profile?: any | null
           is_active?: boolean | null
           created_at?: string
           updated_at?: string

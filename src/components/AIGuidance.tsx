@@ -184,15 +184,15 @@ const AIGuidance: React.FC<AIGuidanceProps> = ({ step, context, className = '', 
   useEffect(() => {
     if (componentId && componentId !== step) {
       console.log(`AIGuidance component [${componentId}] rendered/updated with:`, {
-        step,
-        onBankSelected: !!onBankSelected,
-        contextLocation: context?.location,
-        isBankSelectionInProgress,
-        componentId: componentId || 'default'
-      });
+      step,
+      onBankSelected: !!onBankSelected,
+      contextLocation: context?.location,
+      isBankSelectionInProgress,
+      componentId: componentId || 'default'
+    });
     }
   }, [step, componentId, context?.location, isBankSelectionInProgress]);
-
+  
   // Only load step guidance when expanded to reduce API calls
   const loadStepGuidance = useCallback(async () => {
     // Only make AI calls if user is actually on a planner step (not on landing page)
@@ -234,9 +234,9 @@ const AIGuidance: React.FC<AIGuidanceProps> = ({ step, context, className = '', 
         actualCurrentStep = stepToCurrentStepMapping[context.currentStep] ?? -1;
       } else if (typeof context.currentStep === 'number') {
         actualCurrentStep = context.currentStep;
-      } else {
+          } else {
         actualCurrentStep = expectedStep;
-      }
+          }
 
       if (expectedStep !== actualCurrentStep) {
         console.log(`🚫 AIGuidance [${componentId || step}]: Skipping AI call - wrong step. Expected: ${expectedStep}, Current: ${actualCurrentStep}`);
@@ -266,7 +266,7 @@ const AIGuidance: React.FC<AIGuidanceProps> = ({ step, context, className = '', 
         setChatMessages(prev => {
           if (prev.length > 0 && prev[0].type === 'ai') {
             return [aiMessage, ...prev.slice(1)];
-          }
+    }
           return [aiMessage];
         });
       }

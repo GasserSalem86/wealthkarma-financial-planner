@@ -3,10 +3,11 @@ import { usePlanner } from '../../context/PlannerContext';
 import { useCurrency } from '../../context/CurrencyContext';
 import { CURRENCIES } from '../../types/currencyTypes';
 import { formatCurrency } from '../../utils/calculations';
+import { PlanningType } from '../../types/plannerTypes';
 import Button from '../ui/Button';
 import Card, { CardHeader, CardTitle, CardContent, CardFooter } from '../ui/Card';
 import AIGuidance from '../AIGuidance';
-import { Bot, Target, TrendingUp, DollarSign, Shield, Sparkles, Brain, Zap, PiggyBank } from 'lucide-react';
+import { Bot, Target, TrendingUp, DollarSign, Shield, Sparkles, Brain, Zap, PiggyBank, Users, User } from 'lucide-react';
 
 interface WelcomeProfileSectionProps {
   onNext: () => void;
@@ -18,18 +19,31 @@ const WelcomeProfileSection: React.FC<WelcomeProfileSectionProps> = ({ onNext })
 
   // Local state for form
   const [name, setName] = useState(state.userProfile.name || '');
+  const [planningType, setPlanningType] = useState<PlanningType>(state.userProfile.planningType || 'individual');
+  const [familySize, setFamilySize] = useState(state.userProfile.familySize || 2);
   const [nationality, setNationality] = useState(state.userProfile.nationality || '');
   const [location, setLocation] = useState(state.userProfile.location || '');
   const [selectedCurrency, setSelectedCurrency] = useState(state.userProfile.currency || 'USD');
   const [monthlyIncome, setMonthlyIncome] = useState(state.userProfile.monthlyIncome || 0);
   const [monthlyExpenses, setMonthlyExpenses] = useState(state.monthlyExpenses || 0);
+  const [currentSavings, setCurrentSavings] = useState(state.userProfile.currentSavings || 0);
 
   // Calculate monthly savings
   const monthlySavings = Math.max(0, (monthlyIncome || 0) - (monthlyExpenses || 0));
   const hasBothIncomeAndExpenses = monthlyIncome > 0 && monthlyExpenses > 0;
 
-  // Validation
-  const isFormValid = name && nationality && location && selectedCurrency && monthlyIncome > 0 && monthlyExpenses > 0;
+  // Dynamic labels based on planning type
+  const incomeLabel = planningType === 'family' ? 'Total Household Income (Monthly)' : 'Monthly Income';
+  const expenseLabel = planningType === 'family' ? 'Total Household Expenses (Monthly)' : 'Monthly Expenses';
+  
+  // Enhanced validation logic for planning type and family size
+  const isFormValid = name && 
+    nationality && 
+    location && 
+    selectedCurrency && 
+    monthlyIncome > 0 && 
+    monthlyExpenses > 0 &&
+    (planningType === 'individual' || (planningType === 'family' && familySize >= 2));
 
   // Options
   const nationalityOptions = [
@@ -74,9 +88,12 @@ const WelcomeProfileSection: React.FC<WelcomeProfileSectionProps> = ({ onNext })
       type: 'SET_USER_PROFILE', 
       payload: { 
         name,
+        planningType,
+        familySize: planningType === 'family' ? familySize : undefined,
         nationality: nationality || undefined, 
         location: location || undefined,
         monthlyIncome: monthlyIncome || undefined,
+        currentSavings: currentSavings || undefined,
         currency: selectedCurrency || undefined
       } 
     });
@@ -84,13 +101,22 @@ const WelcomeProfileSection: React.FC<WelcomeProfileSectionProps> = ({ onNext })
     if (monthlyExpenses > 0) {
       dispatch({ type: 'SET_MONTHLY_EXPENSES', payload: monthlyExpenses });
     }
-  }, [name, nationality, location, selectedCurrency, monthlyIncome, monthlyExpenses, dispatch]);
+  }, [name, planningType, familySize, nationality, location, selectedCurrency, monthlyIncome, monthlyExpenses, currentSavings, dispatch]);
 
   const handleContinue = () => {
     // Ensure all data is saved before proceeding
     dispatch({ 
       type: 'SET_USER_PROFILE', 
-      payload: { name, nationality, location, monthlyIncome, currency: selectedCurrency } 
+      payload: { 
+        name, 
+        planningType,
+        familySize: planningType === 'family' ? familySize : undefined,
+        nationality, 
+        location, 
+        monthlyIncome, 
+        currentSavings,
+        currency: selectedCurrency 
+      } 
     });
     dispatch({ type: 'SET_MONTHLY_EXPENSES', payload: monthlyExpenses });
     onNext();
@@ -188,6 +214,70 @@ const WelcomeProfileSection: React.FC<WelcomeProfileSectionProps> = ({ onNext })
               />
             </div>
 
+            {/* Planning Type */}
+            <div>
+              <label className="block text-sm font-medium text-theme-secondary mb-1 lg:mb-2">
+                Planning Type
+              </label>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 mb-3">
+                <button
+                  type="button"
+                  onClick={() => setPlanningType('individual')}
+                  className={`p-4 rounded-lg border-2 transition-all text-left ${
+                    planningType === 'individual'
+                      ? 'border-green-500 bg-green-500/10'
+                      : 'border-theme-border bg-theme-card hover:border-green-500/50'
+                  }`}
+                >
+                  <div className="flex items-center gap-3 mb-2">
+                    <User className={`w-5 h-5 ${planningType === 'individual' ? 'text-green-400' : 'text-theme-secondary'}`} />
+                    <span className={`font-semibold ${planningType === 'individual' ? 'text-green-300' : 'text-theme-light'}`}>
+                      Individual Planning
+                    </span>
+                  </div>
+                  <p className="text-sm text-theme-secondary">
+                    Planning for yourself only. Enter your personal income and expenses.
+                  </p>
+                </button>
+                
+                <button
+                  type="button"
+                  onClick={() => setPlanningType('family')}
+                  className={`p-4 rounded-lg border-2 transition-all text-left ${
+                    planningType === 'family'
+                      ? 'border-green-500 bg-green-500/10'
+                      : 'border-theme-border bg-theme-card hover:border-green-500/50'
+                  }`}
+                >
+                  <div className="flex items-center gap-3 mb-2">
+                    <Users className={`w-5 h-5 ${planningType === 'family' ? 'text-green-400' : 'text-theme-secondary'}`} />
+                    <span className={`font-semibold ${planningType === 'family' ? 'text-green-300' : 'text-theme-light'}`}>
+                      Family Planning
+                    </span>
+                  </div>
+                  <p className="text-sm text-theme-secondary">
+                    Planning for your household. Enter combined family income and expenses.
+                  </p>
+                </button>
+              </div>
+            </div>
+
+            {/* Family Size */}
+            {planningType === 'family' && (
+              <div>
+                <label className="block text-sm font-medium text-theme-secondary mb-1 lg:mb-2">
+                  Family Size
+                </label>
+                <input
+                  type="number"
+                  value={familySize}
+                  onChange={(e) => setFamilySize(Number(e.target.value))}
+                  placeholder="e.g., 4"
+                  className="input-dark w-full px-3 lg:px-4 py-3 lg:py-2 rounded-lg text-base lg:text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors"
+                />
+              </div>
+            )}
+
             {/* Nationality and Location */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               <div>
@@ -245,7 +335,7 @@ const WelcomeProfileSection: React.FC<WelcomeProfileSectionProps> = ({ onNext })
 
               <div>
                 <label className="block text-sm font-medium text-theme-secondary mb-1 lg:mb-2">
-                  Monthly Income ({selectedCurrency || 'USD'})
+                  {incomeLabel} ({selectedCurrency || 'USD'})
                 </label>
                   <input
                     type="number"
@@ -260,7 +350,7 @@ const WelcomeProfileSection: React.FC<WelcomeProfileSectionProps> = ({ onNext })
             {/* Monthly Expenses */}
               <div>
               <label className="block text-sm font-medium text-theme-secondary mb-1 lg:mb-2">
-                Monthly Expenses ({selectedCurrency || 'USD'})
+                {expenseLabel} ({selectedCurrency || 'USD'})
                 </label>
                   <input
                     type="number"
@@ -273,6 +363,36 @@ const WelcomeProfileSection: React.FC<WelcomeProfileSectionProps> = ({ onNext })
                 Include rent, food, transportation, utilities, and other regular expenses
                 </p>
               </div>
+
+            {/* Current Savings */}
+            <div>
+              <label className="block text-sm font-medium text-theme-secondary mb-1 lg:mb-2">
+                Current Savings ({selectedCurrency || 'USD'})
+              </label>
+              <input
+                type="number"
+                value={currentSavings || ''}
+                onChange={(e) => setCurrentSavings(Number(e.target.value))}
+                placeholder="e.g., 5000"
+                className="input-dark w-full px-3 lg:px-4 py-3 lg:py-2 rounded-lg text-base lg:text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors"
+              />
+              <p className="text-sm text-theme-muted mt-1">
+                Total amount you currently have saved (bank accounts, cash, etc). This will be applied to your goals starting with emergency fund.
+              </p>
+              
+              {/* Current Savings Impact Preview */}
+              {currentSavings > 0 && hasBothIncomeAndExpenses && (
+                <div className="mt-3 p-3 bg-theme-card border border-green-500/30 rounded-lg">
+                  <div className="flex items-center gap-2 mb-2">
+                    <PiggyBank className="w-4 h-4 text-green-400" />
+                    <span className="text-sm font-medium text-green-300">Current Savings Impact</span>
+                  </div>
+                  <p className="text-xs text-theme-secondary">
+                    Your {formatCurrency(currentSavings, { code: selectedCurrency || 'USD' } as any)} in savings will be automatically applied to your emergency fund first, then to other goals, reducing your monthly savings requirements.
+                  </p>
+                </div>
+              )}
+            </div>
 
             {/* Monthly Savings Display */}
             {hasBothIncomeAndExpenses && (
@@ -296,13 +416,17 @@ const WelcomeProfileSection: React.FC<WelcomeProfileSectionProps> = ({ onNext })
                       <label className={`block text-sm font-medium ${
                         monthlySavings > 0 ? 'text-green-300' : 'text-red-300'
                       }`}>
-                        Monthly Savings Available
+                        {planningType === 'family' ? 'Monthly Family Savings Available' : 'Monthly Savings Available'}
                       </label>
                       <p className={`text-xs ${
                         monthlySavings > 0 ? 'text-theme-secondary' : 'text-red-200'
                       }`}>
                         {monthlySavings > 0 
-                          ? 'This amount will be used for your emergency fund and financial goals'
+                          ? planningType === 'family' 
+                            ? `Combined household savings for your family's emergency fund and financial goals`
+                            : 'This amount will be used for your emergency fund and financial goals'
+                          : planningType === 'family'
+                          ? 'Your household expenses exceed income - consider adjusting your family budget'
                           : 'Your expenses exceed your income - consider adjusting your budget'
                         }
                       </p>
@@ -333,9 +457,15 @@ const WelcomeProfileSection: React.FC<WelcomeProfileSectionProps> = ({ onNext })
                     </div>
                     <p className="text-theme-secondary text-xs lg:text-sm mt-1 leading-relaxed">
                       {monthlySavings >= monthlyIncome * 0.2 
-                        ? "Excellent! You're saving 20%+ of your income. This gives you great flexibility for multiple financial goals."
+                        ? planningType === 'family'
+                          ? "Excellent! Your family is saving 20%+ of household income. This gives you great flexibility for multiple family financial goals."
+                          : "Excellent! You're saving 20%+ of your income. This gives you great flexibility for multiple financial goals."
                         : monthlySavings >= monthlyIncome * 0.1
-                        ? "Good savings rate! You can comfortably build an emergency fund and work towards other goals."
+                        ? planningType === 'family'
+                          ? "Good family savings rate! You can comfortably build an emergency fund and work towards other family goals."
+                          : "Good savings rate! You can comfortably build an emergency fund and work towards other goals."
+                        : planningType === 'family'
+                        ? "Consider reviewing your family expenses to increase your household savings rate for faster goal achievement."
                         : "Consider reviewing your expenses to increase your savings rate for faster goal achievement."
                       }
                     </p>

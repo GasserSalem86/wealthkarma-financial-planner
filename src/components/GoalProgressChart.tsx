@@ -154,80 +154,80 @@ const GoalProgressChart: React.FC<GoalProgressChartProps> = ({ goal, monthlyAllo
       <div className="w-full bg-theme-card rounded-xl shadow-theme border border-theme p-4">
         <div style={{ width: '100%', height: '400px', minHeight: '400px', position: 'relative' }}>
           <ResponsiveContainer width="100%" height="100%" minWidth={300} minHeight={300}>
-            <ComposedChart 
-              data={dataPoints} 
-              margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
-            >
-              <CartesianGrid 
-                strokeDasharray="3 3" 
-                stroke="var(--wk-border)" 
-                opacity={0.6} 
-              />
-              <XAxis
-                dataKey="monthLabel"
-                tick={{ fill: 'var(--wk-text-muted)', fontSize: 12 }}
-                stroke="var(--wk-border)"
-                interval="preserveStartEnd"
-              />
-              <YAxis
-                tickFormatter={formatYAxis}
-                tick={{ fill: 'var(--wk-text-muted)', fontSize: 12 }}
-                domain={yAxisDomain}
-                stroke="var(--wk-border)"
-              />
-              
-              {/* Goal line */}
-              <ReferenceLine
-                y={goal.amount}
-                stroke="var(--wk-text-muted)"
-                strokeDasharray="5 5"
-                label={{
-                  value: 'Target Goal',
-                  position: 'top',
-                  fill: 'var(--wk-text-muted)',
-                  fontSize: 12
-                }}
-              />
-              
-              {/* Monthly contributions as bars */}
-              <Bar 
-                dataKey="contribution" 
-                fill="#10B981" 
-                name="Monthly Contributions" 
-                barSize={6} 
-                radius={[2,2,0,0]} 
-              />
-              
-              {/* Area under the curve for total savings */}
-              <Area
-                type="monotone"
-                dataKey="balance"
-                stroke="#059669"
-                strokeWidth={3}
-                fill="url(#colorBalance)"
-                name="Total Saved"
-              />
-              
-              <Tooltip
-                content={<CustomTooltip />}
-                cursor={{ fill: 'rgba(16, 185, 129, 0.1)' }}
-              />
-              
-              <Legend
-                content={<CustomLegend />}
-                verticalAlign="top"
-                height={50}
-              />
-              
-              {/* Gradient definition */}
-              <defs>
-                <linearGradient id="colorBalance" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#10B981" stopOpacity={0.3}/>
-                  <stop offset="95%" stopColor="#10B981" stopOpacity={0.1}/>
-                </linearGradient>
-              </defs>
-            </ComposedChart>
-          </ResponsiveContainer>
+          <ComposedChart 
+            data={dataPoints} 
+            margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
+          >
+            <CartesianGrid 
+              strokeDasharray="3 3" 
+              stroke="var(--wk-border)" 
+              opacity={0.6} 
+            />
+            <XAxis
+              dataKey="monthLabel"
+              tick={{ fill: 'var(--wk-text-muted)', fontSize: 12 }}
+              stroke="var(--wk-border)"
+              interval="preserveStartEnd"
+            />
+            <YAxis
+              tickFormatter={formatYAxis}
+              tick={{ fill: 'var(--wk-text-muted)', fontSize: 12 }}
+              domain={yAxisDomain}
+              stroke="var(--wk-border)"
+            />
+            
+            {/* Goal line */}
+            <ReferenceLine
+              y={goal.amount}
+              stroke="var(--wk-text-muted)"
+              strokeDasharray="5 5"
+              label={{
+                value: 'Target Goal',
+                position: 'top',
+                fill: 'var(--wk-text-muted)',
+                fontSize: 12
+              }}
+            />
+            
+            {/* Monthly contributions as bars */}
+            <Bar 
+              dataKey="contribution" 
+              fill="#10B981" 
+              name="Monthly Contributions" 
+              barSize={6} 
+              radius={[2,2,0,0]} 
+            />
+            
+            {/* Area under the curve for total savings */}
+            <Area
+              type="monotone"
+              dataKey="balance"
+              stroke="#059669"
+              strokeWidth={3}
+              fill="url(#colorBalance)"
+              name="Total Saved"
+            />
+            
+            <Tooltip
+              content={<CustomTooltip />}
+              cursor={{ fill: 'rgba(16, 185, 129, 0.1)' }}
+            />
+            
+            <Legend
+              content={<CustomLegend />}
+              verticalAlign="top"
+              height={50}
+            />
+            
+            {/* Gradient definition */}
+            <defs>
+              <linearGradient id="colorBalance" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="#10B981" stopOpacity={0.3}/>
+                <stop offset="95%" stopColor="#10B981" stopOpacity={0.1}/>
+              </linearGradient>
+            </defs>
+          </ComposedChart>
+        </ResponsiveContainer>
         </div>
       </div>
     </div>

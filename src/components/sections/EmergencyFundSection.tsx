@@ -33,6 +33,7 @@ const EmergencyFundSection: React.FC<EmergencyFundSectionProps> = ({ onNext }) =
   const [targetYear, setTargetYear] = useState<number>(defaultDate.getFullYear());
   const [isEditing, setIsEditing] = useState<boolean>(!existing);
   const [selectedBank, setSelectedBank] = useState<any>(null);
+  const [selectedPercentage, setSelectedPercentage] = useState<number | null>(null);
   const [bankDataLoading, setBankDataLoading] = useState<boolean>(false);
   const [bankDataError, setBankDataError] = useState<string | null>(null);
   const [realTimeBankData, setRealTimeBankData] = useState<BankOption[]>([]);
@@ -753,25 +754,25 @@ Include ALL banks mentioned with ANY rate information. Return only the JSON arra
       
       try {
         console.log(`🏦 Fetching bank data for emergency fund step in ${userCountry}`);
-        const realTimeData = await fetchRealTimeBankData(userCountry);
-        setRealTimeBankData(realTimeData);
-        
-        // Validate and clear selected bank if it doesn't exist in new bank list
-        if (selectedBank && realTimeData.length > 0) {
-          const bankExists = realTimeData.some(bank => bank.id === selectedBank.id);
-          if (!bankExists) {
-            console.log(`🧹 Clearing invalid selected bank: "${selectedBank.id}" not found in ${userCountry} banks`);
-            setSelectedBank(null);
-            
-            // Also update the goal to remove the invalid bank selection
-            if (existing && existing.selectedBank) {
-              const updatedGoal = { ...existing, selectedBank: null };
-              dispatchRef.current({ type: 'UPDATE_GOAL', payload: updatedGoal });
+          const realTimeData = await fetchRealTimeBankData(userCountry);
+          setRealTimeBankData(realTimeData);
+          
+          // Validate and clear selected bank if it doesn't exist in new bank list
+          if (selectedBank && realTimeData.length > 0) {
+            const bankExists = realTimeData.some(bank => bank.id === selectedBank.id);
+            if (!bankExists) {
+              console.log(`🧹 Clearing invalid selected bank: "${selectedBank.id}" not found in ${userCountry} banks`);
+              setSelectedBank(null);
+              
+              // Also update the goal to remove the invalid bank selection
+              if (existing && existing.selectedBank) {
+                const updatedGoal = { ...existing, selectedBank: null };
+                dispatchRef.current({ type: 'UPDATE_GOAL', payload: updatedGoal });
+              }
             }
           }
-        }
-      } catch (error) {
-        console.error('Failed to fetch bank data:', error);
+        } catch (error) {
+          console.error('Failed to fetch bank data:', error);
         // Create manual fallback as last resort - but only if on emergency fund step
         if (isEmergencyFundStep) {
           const staticBanks = getBanksByCountry(userCountry);
@@ -841,18 +842,25 @@ Include ALL banks mentioned with ANY rate information. Return only the JSON arra
   const targetDate = new Date(targetYear, targetMonth - 1, 1);
   const horizonMonths = Math.max(1, monthDiff(today, targetDate)); // Ensure at least 1 month
   const amount = Math.max(0, expenses * bufferMonths); // Ensure non-negative amount
+  
+  // Apply current savings to emergency fund
+  const currentSavings = state.userProfile.currentSavings || 0;
+  const amountFromSavings = Math.min(currentSavings, amount);
+  const remainingAmount = Math.max(0, amount - amountFromSavings);
+  const leftoverSavings = Math.max(0, currentSavings - amount);
+  
   // Use selected bank's return rate if available, otherwise default to 1%
   const bankReturnRate = Math.max(0.001, selectedBank?.returnRate || 0.01); // Minimum 0.1% rate
   
   let returnPhases, requiredPMT;
   try {
     returnPhases = [{ length: horizonMonths, rate: bankReturnRate }];
-    requiredPMT = calculateRequiredPMT(amount, returnPhases, horizonMonths);
-    console.log('Calculations successful:', { returnPhases, requiredPMT, horizonMonths, amount });
+    requiredPMT = calculateRequiredPMT(remainingAmount, returnPhases, horizonMonths);
+    console.log('Calculations successful:', { returnPhases, requiredPMT, horizonMonths, amount, remainingAmount, amountFromSavings });
   } catch (error) {
     console.error('Calculation error:', error);
     returnPhases = [{ length: 1, rate: 0.01 }];
-    requiredPMT = amount; // fallback
+    requiredPMT = remainingAmount; // fallback
   }
 
   // Options
@@ -875,6 +883,8 @@ Include ALL banks mentioned with ANY rate information. Return only the JSON arra
         name: 'Safety Net',
         category: 'Home' as const,
         amount: Number(amount) || 0,
+        initialAmount: Number(amountFromSavings) || 0,
+        remainingAmount: Number(remainingAmount) || 0,
         bufferMonths: Number(bufferMonths) || 3,
         targetDate: new Date(targetDate),
         horizonMonths: Number(horizonMonths) || 1,
@@ -1215,10 +1225,34 @@ Include ALL banks mentioned with ANY rate information. Return only the JSON arra
                     {/* Buffer months selection */}
                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
                       {[
-                        { months: 3, label: '3 Months', desc: 'Minimum', recommended: false, risk: 'Higher Risk' },
-                        { months: 4, label: '4 Months', desc: 'Basic', recommended: false, risk: 'Moderate Risk' },
-                        { months: 5, label: '5 Months', desc: 'Better', recommended: false, risk: 'Lower Risk' },
-                        { months: 6, label: '6 Months', desc: 'Recommended', recommended: true, risk: 'Safest for Expats' }
+                        { 
+                          months: 3, 
+                          label: '3 Months', 
+                          desc: state.userProfile.planningType === 'family' ? 'Too Low for Family' : 'Minimum', 
+                          recommended: false, 
+                          risk: state.userProfile.planningType === 'family' ? 'High Risk for Family' : 'Higher Risk' 
+                        },
+                        { 
+                          months: 4, 
+                          label: '4 Months', 
+                          desc: state.userProfile.planningType === 'family' ? 'Basic (Family)' : 'Basic', 
+                          recommended: false, 
+                          risk: state.userProfile.planningType === 'family' ? 'Moderate Risk for Family' : 'Moderate Risk' 
+                        },
+                        { 
+                          months: 5, 
+                          label: '5 Months', 
+                          desc: state.userProfile.planningType === 'family' ? 'Better (Family)' : 'Better', 
+                          recommended: false, 
+                          risk: state.userProfile.planningType === 'family' ? 'Lower Risk for Family' : 'Lower Risk' 
+                        },
+                        { 
+                          months: 6, 
+                          label: '6 Months', 
+                          desc: state.userProfile.planningType === 'family' ? 'Family Recommended' : 'Recommended', 
+                          recommended: true, 
+                          risk: state.userProfile.planningType === 'family' ? 'Safest for Expat Family' : 'Safest for Expats' 
+                        }
                       ].map(option => (
                         <button
                           key={option.months}
@@ -1252,21 +1286,33 @@ Include ALL banks mentioned with ANY rate information. Return only the JSON arra
                     {bufferMonths === 3 && (
                       <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-3">
                         <p className="text-amber-600 text-sm">
-                          <strong>⚠️ Consider More:</strong> 3 months might be tight for expats. If you lose your job, you have only 30 days to find new employment or leave the country.
+                          <strong>⚠️ Consider More:</strong> 3 months might be tight for{' '}
+                          {state.userProfile.planningType === 'family' 
+                            ? 'families. With family responsibilities and higher expenses, you need more cushion if you lose your job.'
+                            : 'expats. If you lose your job, you have only 30 days to find new employment or leave the country.'
+                          }
                         </p>
                       </div>
                     )}
                     {bufferMonths === 6 && (
                       <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-3">
                         <p className="text-green-600 text-sm">
-                          <strong>✅ Excellent Choice!</strong> 6 months gives you solid protection against expat-specific risks and time to find quality employment.
+                          <strong>✅ Excellent Choice!</strong> 6 months gives you solid protection against{' '}
+                          {state.userProfile.planningType === 'family' 
+                            ? 'family-specific risks and time to find quality employment while supporting your family.'
+                            : 'expat-specific risks and time to find quality employment.'
+                          }
                         </p>
                       </div>
                     )}
                     {bufferMonths > 6 && (
                       <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-3">
                         <p className="text-blue-600 text-sm">
-                          <strong>💪 Conservative Approach:</strong> You're building a very strong safety net. Consider if this much emergency savings might delay other financial goals.
+                          <strong>💪 Conservative Approach:</strong> You're building a very strong safety net.{' '}
+                          {state.userProfile.planningType === 'family' 
+                            ? 'For families, this extra security can be valuable, but consider if this might delay important family goals like education or home purchase.'
+                            : 'Consider if this much emergency savings might delay other financial goals.'
+                          }
                         </p>
                       </div>
                     )}
@@ -1277,163 +1323,250 @@ Include ALL banks mentioned with ANY rate information. Return only the JSON arra
           </CardContent>
         </Card>
 
-        {/* STEP 3: BY WHEN - Set realistic target date */}
+        {/* STEP 3: CURRENT SAVINGS + BY WHEN - Apply current savings and set timeline */}
         {hasValidExpenses && (
           <Card className="border-purple-500/30">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-purple-600 text-lg lg:text-xl">
                 <span className="flex items-center justify-center w-8 h-8 bg-purple-600 text-white rounded-full text-sm font-bold">3</span>
-                By When Should You Complete It?
+                Apply Current Savings & Set Timeline
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                <p className="text-sm text-theme-secondary">
-                  Your emergency fund should be prioritized and built as quickly as possible. Based on your income capacity, here's a realistic timeline:
-                </p>
-                
-                {/* Smart timeline calculation */}
-                {state.userProfile.monthlyIncome && (
-                  <div className="bg-theme-section border border-blue-500/30 rounded-lg p-4">
-                    <div className="space-y-3">
-                      <div className="flex justify-between text-sm">
-                        <span className="text-theme-secondary">Monthly Income:</span>
-                        <span className="font-medium text-theme-primary">{formatCurrency(state.userProfile.monthlyIncome, currency)}</span>
+                {/* Current Savings Impact */}
+                {currentSavings > 0 ? (
+                  <div className="bg-theme-card border border-green-500/30 rounded-lg p-4">
+                    <div className="flex items-center gap-2 mb-3">
+                      <span className="text-lg">💰</span>
+                      <span className="font-semibold text-green-600">Great! Your Current Savings Will Help</span>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm mb-3">
+                      <div className="space-y-2">
+                        <div className="flex justify-between">
+                          <span className="text-theme-secondary">Emergency Fund Needed:</span>
+                          <span className="font-medium text-theme-primary">{formatCurrency(amount, currency)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-theme-secondary">From Current Savings:</span>
+                          <span className="font-bold text-green-600">{formatCurrency(amountFromSavings, currency)}</span>
+                        </div>
+                        <div className="flex justify-between border-t border-green-500/30 pt-2">
+                          <span className="text-theme-secondary">Still Need to Save:</span>
+                          <span className="font-bold text-blue-600">{formatCurrency(remainingAmount, currency)}</span>
+                        </div>
                       </div>
-                      <div className="flex justify-between text-sm">
-                        <span className="text-theme-secondary">Monthly Expenses:</span>
-                        <span className="font-medium text-theme-primary">{formatCurrency(expenses, currency)}</span>
-                      </div>
-                      <div className="flex justify-between text-sm border-t border-theme pt-2">
-                        <span className="text-theme-secondary">Available for Savings:</span>
-                        <span className="font-bold text-green-600">{formatCurrency(state.userProfile.monthlyIncome - expenses, currency)}</span>
-                      </div>
-                      
-                      {/* Timeline suggestions */}
-                      <div className="mt-4">
-                        <p className="text-xs text-theme-muted mb-2">Suggested timelines (allocating different % of available savings to emergency fund) - Click to select:</p>
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                          {[50, 70, 90].map(percentage => {
-                            const monthlySavings = (state.userProfile.monthlyIncome! - expenses) * (percentage / 100);
-                            const months = Math.ceil(amount / monthlySavings);
-                            const isRealistic = months <= 12 && monthlySavings > 0;
-                            const suggestedDate = new Date(today.getFullYear(), today.getMonth() + months, 1);
-                            const isCurrentlySelected = Math.abs(horizonMonths - months) <= 1; // Allow 1 month tolerance
-                            
-                            const handleTimelineSelect = () => {
-                              if (isRealistic && monthlySavings > 0) {
-                                setTargetMonth(suggestedDate.getMonth() + 1);
-                                setTargetYear(suggestedDate.getFullYear());
-                              }
-                            };
-                            
-                            return (
-                              <button
-                                key={percentage}
-                                onClick={handleTimelineSelect}
-                                disabled={!isRealistic || monthlySavings <= 0}
-                                className={`text-center p-2 rounded border text-xs transition-all duration-200 ${
-                                  isCurrentlySelected
-                                    ? 'border-green-500 bg-green-500/20 shadow-md transform scale-105'
-                                    : percentage === 70 
-                                      ? 'border-green-500 bg-green-500/10 hover:bg-green-500/15 hover:scale-102' 
-                                      : 'border-theme bg-theme-section hover:bg-theme-tertiary hover:scale-102'
-                                } ${
-                                  !isRealistic || monthlySavings <= 0 
-                                    ? 'opacity-50 cursor-not-allowed' 
-                                    : 'cursor-pointer'
-                                }`}
-                              >
-                                <div className="font-bold">{percentage}% allocation</div>
-                                <div className={`${
-                                  isCurrentlySelected 
-                                    ? 'text-green-700 font-medium' 
-                                    : percentage === 70 
-                                      ? 'text-green-600' 
-                                      : 'text-theme-secondary'
-                                }`}>
-                                  {formatCurrency(monthlySavings, currency)}/month
-                                </div>
-                                <div className={`font-medium ${
-                                  isCurrentlySelected 
-                                    ? 'text-green-700' 
-                                    : percentage === 70 
-                                      ? 'text-green-600' 
-                                      : 'text-theme-secondary'
-                                }`}>
-                                  {isRealistic ? `${months} months` : '12+ months'}
-                                </div>
-                                <div className="text-xs mt-1">
-                                  {isCurrentlySelected && '✓ Selected'}
-                                  {!isCurrentlySelected && percentage === 70 && '⭐ Recommended'}
-                                  {!isCurrentlySelected && percentage !== 70 && isRealistic && 'Click to select'}
-                                </div>
-                                {isRealistic && (
-                                  <div className="text-xs text-theme-muted mt-1">
-                                    Target: {suggestedDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
-                                  </div>
-                                )}
-                              </button>
-                            );
-                          })}
+                      <div className="space-y-2">
+                        {leftoverSavings > 0 && (
+                          <div className="flex justify-between">
+                            <span className="text-theme-secondary">Leftover for Goals:</span>
+                            <span className="font-bold text-purple-600">{formatCurrency(leftoverSavings, currency)}</span>
+                          </div>
+                        )}
+                        <div className="flex justify-between">
+                          <span className="text-theme-secondary">Progress Complete:</span>
+                          <span className="font-bold text-green-600">{Math.round((amountFromSavings / amount) * 100)}%</span>
                         </div>
                       </div>
                     </div>
+                    
+                    {/* Progress Bar */}
+                    <div className="mb-3">
+                      <div className="flex justify-between text-xs text-theme-secondary mb-1">
+                        <span>Emergency Fund Progress</span>
+                        <span>{Math.round((amountFromSavings / amount) * 100)}% Complete</span>
+                      </div>
+                      <div className="h-3 bg-theme-tertiary rounded-full overflow-hidden">
+                        <div 
+                          className="h-full bg-gradient-to-r from-green-500 to-green-600 rounded-full transition-all duration-500"
+                          style={{ width: `${Math.min(100, (amountFromSavings / amount) * 100)}%` }}
+                        />
+                      </div>
+                    </div>
+                    
+                    {leftoverSavings > 0 && (
+                      <div className="p-2 bg-blue-500/10 border border-blue-500/30 rounded">
+                        <div className="text-xs text-blue-600">
+                          💡 Excellent! You have {formatCurrency(leftoverSavings, currency)} left over for your other financial goals after completing your emergency fund.
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="bg-theme-card border border-blue-500/30 rounded-lg p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="text-lg">🎯</span>
+                      <span className="font-semibold text-blue-600">Building From Scratch</span>
+                    </div>
+                    <p className="text-sm text-theme-secondary">
+                      You'll need to save {formatCurrency(amount, currency)} from monthly contributions. Don't worry - every journey starts with a single step!
+                    </p>
                   </div>
                 )}
 
-                {/* Target date selection */}
-                <div>
-                  <label className="block text-sm font-medium text-theme-secondary mb-3">
-                    Set Your Target Completion Date
-                  </label>
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 lg:gap-4">
-                    <div>
-                      <label className="block text-xs font-medium mb-1 text-theme-muted">Target Month</label>
-                      <select
-                        value={targetMonth}
-                        onChange={e => setTargetMonth(Number(e.target.value))}
-                        className="w-full px-3 py-2 lg:py-3 text-sm lg:text-base border border-theme bg-theme-card text-theme-primary rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      >
-                        {monthOptions.map((month, index) => (
-                          <option key={month} value={index + 1}>{month}</option>
-                        ))}
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-xs font-medium mb-1 text-theme-muted">Target Year</label>
-                      <select
-                        value={targetYear}
-                        onChange={e => setTargetYear(Number(e.target.value))}
-                        className="w-full px-3 py-2 lg:py-3 text-sm lg:text-base border border-theme bg-theme-card text-theme-primary rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      >
-                        {yearOptions.map(year => (
-                          <option key={year} value={year}>{year}</option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
+                <div className="border-t border-purple-500/30 pt-4">
+                  <p className="text-sm text-theme-secondary mb-3">
+                    {remainingAmount > 0 
+                      ? `Now, choose when you want to complete saving the remaining ${formatCurrency(remainingAmount, currency)}:`
+                      : "Your emergency fund is already fully covered by your current savings! Just set a target to formalize the plan:"
+                    }
+                  </p>
                   
-                  {/* Timeline feedback */}
-                  <div className="mt-3 p-3 bg-theme-section border border-blue-500/30 rounded-lg">
-                    <div className="flex justify-between items-center text-sm">
-                      <span className="text-theme-secondary">Time to complete:</span>
-                      <span className="font-bold text-blue-600">{horizonMonths} months</span>
-                    </div>
-                    <div className="flex justify-between items-center text-sm mt-1">
-                      <span className="text-theme-secondary">Required monthly savings:</span>
-                      <span className="font-bold text-lg text-theme-primary">{formatCurrency(requiredPMT, currency)}</span>
-                    </div>
-                    {horizonMonths <= 6 && (
-                      <div className="mt-2 text-xs text-green-600">
-                        ✅ Excellent timeline! Building your safety net quickly is wise.
+                  {/* Smart timeline calculation */}
+                  {state.userProfile.monthlyIncome && remainingAmount > 0 && (
+                    <div className="bg-theme-section border border-blue-500/30 rounded-lg p-4 mb-4">
+                      <div className="space-y-3">
+                        <div className="flex justify-between text-sm">
+                          <span className="text-theme-secondary">Monthly Income:</span>
+                          <span className="font-medium text-theme-primary">{formatCurrency(state.userProfile.monthlyIncome, currency)}</span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-theme-secondary">Monthly Expenses:</span>
+                          <span className="font-medium text-theme-primary">{formatCurrency(expenses, currency)}</span>
+                        </div>
+                        <div className="flex justify-between text-sm border-t border-theme pt-2">
+                          <span className="text-theme-secondary">Available for Savings:</span>
+                          <span className="font-bold text-green-600">{formatCurrency(state.userProfile.monthlyIncome - expenses, currency)}</span>
+                        </div>
+                        
+                        {/* Timeline suggestions */}
+                        <div className="mt-4">
+                          <p className="text-xs text-theme-muted mb-2">Suggested timelines (allocating different % of available income to emergency fund) - Click to select:</p>
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                            {[50, 70, 90].map(percentage => {
+                              const monthlySavings = (state.userProfile.monthlyIncome! - expenses) * (percentage / 100);
+                              const months = Math.ceil(remainingAmount / monthlySavings);
+                              // More lenient criteria - allow up to 24 months and ensure positive savings
+                              const isSelectable = monthlySavings > 0 && months > 0 && months <= 24;
+                              const suggestedDate = new Date(today.getFullYear(), today.getMonth() + months, 1);
+                              // Use exact percentage match for selection, not horizon months comparison
+                              const isCurrentlySelected = selectedPercentage === percentage;
+                              
+                              const handleTimelineSelect = () => {
+                                if (isSelectable) {
+                                  setSelectedPercentage(percentage);
+                                  setTargetMonth(suggestedDate.getMonth() + 1);
+                                  setTargetYear(suggestedDate.getFullYear());
+                                }
+                              };
+                              
+                              return (
+                                <button
+                                  key={percentage}
+                                  onClick={handleTimelineSelect}
+                                  disabled={!isSelectable}
+                                  className={`text-center p-2 rounded border text-xs transition-all duration-200 ${
+                                    isCurrentlySelected
+                                      ? 'border-green-500 bg-green-500/20 shadow-md transform scale-105'
+                                      : 'border-theme bg-theme-section hover:bg-theme-tertiary hover:scale-102'
+                                  } ${
+                                    !isSelectable 
+                                      ? 'opacity-50 cursor-not-allowed' 
+                                      : 'cursor-pointer'
+                                  }`}
+                                >
+                                  <div className="font-bold">{percentage}% allocation</div>
+                                  <div className={`${
+                                    isCurrentlySelected 
+                                      ? 'text-green-700 font-medium' 
+                                      : 'text-theme-secondary'
+                                  }`}>
+                                    {formatCurrency(monthlySavings, currency)}/month
+                                  </div>
+                                  <div className={`font-medium ${
+                                    isCurrentlySelected 
+                                      ? 'text-green-700' 
+                                      : 'text-theme-secondary'
+                                  }`}>
+                                    {isSelectable ? `${months} months` : '24+ months'}
+                                  </div>
+                                  <div className="text-xs mt-1">
+                                    {isCurrentlySelected && '✓ Selected'}
+                                    {!isCurrentlySelected && percentage === 70 && isSelectable && '⭐ Recommended'}
+                                    {!isCurrentlySelected && percentage !== 70 && isSelectable && 'Click to select'}
+                                    {!isSelectable && 'Not feasible'}
+                                  </div>
+                                  {isSelectable && (
+                                    <div className="text-xs text-theme-muted mt-1">
+                                      Target: {suggestedDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
+                                    </div>
+                                  )}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
                       </div>
-                    )}
-                    {horizonMonths > 12 && (
-                      <div className="mt-2 text-xs text-amber-600">
-                        ⚠️ Consider a shorter timeline - emergency funds should be prioritized.
+                    </div>
+                  )}
+
+                  {/* Target date selection */}
+                  <div>
+                    <label className="block text-sm font-medium text-theme-secondary mb-3">
+                      Set Your Target Completion Date
+                    </label>
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 lg:gap-4">
+                      <div>
+                        <label className="block text-xs font-medium mb-1 text-theme-muted">Target Month</label>
+                        <select
+                          value={targetMonth}
+                          onChange={e => {
+                            setTargetMonth(Number(e.target.value));
+                            setSelectedPercentage(null); // Clear percentage selection when manually changing date
+                          }}
+                          className="w-full px-3 py-2 lg:py-3 text-sm lg:text-base border border-theme bg-theme-card text-theme-primary rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        >
+                          {monthOptions.map((month, index) => (
+                            <option key={month} value={index + 1}>{month}</option>
+                          ))}
+                        </select>
                       </div>
-                    )}
+                      <div>
+                        <label className="block text-xs font-medium mb-1 text-theme-muted">Target Year</label>
+                        <select
+                          value={targetYear}
+                          onChange={e => {
+                            setTargetYear(Number(e.target.value));
+                            setSelectedPercentage(null); // Clear percentage selection when manually changing date
+                          }}
+                          className="w-full px-3 py-2 lg:py-3 text-sm lg:text-base border border-theme bg-theme-card text-theme-primary rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        >
+                          {yearOptions.map(year => (
+                            <option key={year} value={year}>{year}</option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                    
+                    {/* Timeline feedback */}
+                    <div className="mt-3 p-3 bg-theme-section border border-blue-500/30 rounded-lg">
+                      <div className="flex justify-between items-center text-sm">
+                        <span className="text-theme-secondary">Time to complete:</span>
+                        <span className="font-bold text-blue-600">{horizonMonths} months</span>
+                      </div>
+                      <div className="flex justify-between items-center text-sm mt-1">
+                        <span className="text-theme-secondary">Required monthly savings:</span>
+                        <span className="font-bold text-lg text-theme-primary">
+                          {remainingAmount > 0 ? formatCurrency(requiredPMT, currency) : formatCurrency(0, currency)}
+                        </span>
+                      </div>
+                      {remainingAmount === 0 && (
+                        <div className="mt-2 text-xs text-green-600">
+                          🎉 Your emergency fund is already complete with current savings!
+                        </div>
+                      )}
+                      {remainingAmount > 0 && horizonMonths <= 6 && (
+                        <div className="mt-2 text-xs text-green-600">
+                          ✅ Excellent timeline! Building your safety net quickly is wise.
+                        </div>
+                      )}
+                      {remainingAmount > 0 && horizonMonths > 12 && (
+                        <div className="mt-2 text-xs text-amber-600">
+                          ⚠️ Consider a shorter timeline - emergency funds should be prioritized.
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
