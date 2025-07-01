@@ -37,9 +37,9 @@ const FinancialGoalsPlanner: React.FC = () => {
   useEffect(() => {
     // Scroll to top of the new section when step changes
     const scrollToSectionTop = () => {
-      if (sectionsRef.current) {
-        const sections = sectionsRef.current.children;
-        if (sections[state.currentStep]) {
+    if (sectionsRef.current) {
+      const sections = sectionsRef.current.children;
+      if (sections[state.currentStep]) {
           // First, scroll the main window to the very top
           window.scrollTo({
             top: 0,
@@ -48,13 +48,13 @@ const FinancialGoalsPlanner: React.FC = () => {
           });
           
           // Also scroll the section container to ensure proper positioning
-          sections[state.currentStep].scrollIntoView({
-            behavior: 'smooth',
-            block: 'start',
+        sections[state.currentStep].scrollIntoView({
+          behavior: 'smooth',
+          block: 'start',
             inline: 'nearest'
-          });
-        }
+        });
       }
+    }
     };
 
     // Add a small delay to ensure DOM is ready

@@ -386,3 +386,325 @@ export const exportService = {
     return data;
   }
 }; 
+
+// Connected Accounts operations
+export const connectedAccountsService = {
+  async getConnectedAccounts(userId: string, accessToken: string): Promise<any[]> {
+    try {
+      console.log('🔍 REST API: Getting connected accounts for user:', userId);
+      console.log('🎟️ REST API: Using provided access token');
+      
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+      
+      const url = `${supabaseUrl}/rest/v1/connected_accounts?user_id=eq.${userId}&order=created_at.desc&select=*`;
+      console.log('📡 REST API: Making request to:', url);
+      
+      const headers = {
+        'Authorization': `Bearer ${accessToken}`,
+        'apikey': supabaseAnonKey,
+        'Content-Type': 'application/json'
+      };
+
+      console.log('⏳ REST API: Starting fetch request...');
+      const response = await fetch(url, { headers });
+      console.log('✅ REST API: Response received, status:', response.status);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('❌ REST API: Error response:', response.status, response.statusText);
+        console.error('❌ REST API: Error body:', errorText);
+        return [];
+      }
+
+      console.log('📖 REST API: Parsing JSON response...');
+      const data = await response.json();
+      console.log('✅ REST API: Data received:', data);
+      console.log('📊 REST API: Number of accounts found:', Array.isArray(data) ? data.length : 'Not an array');
+      
+      return data || [];
+    } catch (error) {
+      console.error('❌ REST API: Exception in getConnectedAccounts:', error);
+      return [];
+    }
+  },
+
+  async getActiveConnectedAccounts(userId: string, accessToken: string): Promise<any[]> {
+    try {
+      console.log('🔍 REST API: Getting ACTIVE connected accounts for user:', userId);
+      
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+      
+      const url = `${supabaseUrl}/rest/v1/connected_accounts?user_id=eq.${userId}&connection_status=eq.active&order=created_at.desc&select=*`;
+      
+      const headers = {
+        'Authorization': `Bearer ${accessToken}`,
+        'apikey': supabaseAnonKey,
+        'Content-Type': 'application/json'
+      };
+
+      const response = await fetch(url, { headers });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('❌ REST API: Error response:', response.status, response.statusText);
+        console.error('❌ REST API: Error body:', errorText);
+        return [];
+      }
+
+      const data = await response.json();
+      console.log('✅ REST API: Active accounts found:', Array.isArray(data) ? data.length : 'Not an array');
+      
+      return data || [];
+    } catch (error) {
+      console.error('❌ REST API: Exception in getActiveConnectedAccounts:', error);
+      return [];
+    }
+  },
+
+  async saveConnectedAccount(accountData: {
+    user_id: string;
+    institution_id?: string;
+    lean_connection_id?: string;
+    lean_entity_id?: string;
+    lean_account_id?: string;
+    institution_name: string;
+    account_type: string;
+    account_number?: string;
+    balance: number;
+    currency: string;
+    is_emergency_fund?: boolean;
+    account_metadata?: any;
+  }, accessToken: string): Promise<boolean> {
+    try {
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+      const insertData = {
+        ...accountData,
+        connection_method: 'lean',
+        connection_status: 'active',
+        last_balance_update: new Date().toISOString(),
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
+
+      const response = await fetch(`${supabaseUrl}/rest/v1/connected_accounts`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'apikey': supabaseAnonKey,
+          'Content-Type': 'application/json',
+          'Prefer': 'return=minimal'
+        },
+        body: JSON.stringify(insertData)
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('❌ Error saving connected account:');
+        console.error('📋 Status:', response.status, response.statusText);
+        console.error('📄 Error details:', errorText);
+        console.error('📊 Data sent:', JSON.stringify(insertData, null, 2));
+        return false;
+      }
+      
+      console.log('✅ Connected account saved to database');
+      return true;
+    } catch (error) {
+      console.error('Error in saveConnectedAccount:', error);
+      return false;
+    }
+  },
+
+  async updateAccountBalance(lean_account_id: string, balance: number, currency: string): Promise<boolean> {
+    try {
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+      
+      const { data: { session } } = await supabase.auth.getSession();
+      const accessToken = session?.access_token;
+
+      if (!accessToken) {
+        console.error('No access token available');
+        return false;
+      }
+
+      const updateData = {
+        balance,
+        currency,
+        last_balance_update: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
+
+      const response = await fetch(`${supabaseUrl}/rest/v1/connected_accounts?lean_account_id=eq.${lean_account_id}`, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'apikey': supabaseAnonKey,
+          'Content-Type': 'application/json',
+          'Prefer': 'return=minimal'
+        },
+        body: JSON.stringify(updateData)
+      });
+
+      if (!response.ok) {
+        console.error('Error updating account balance:', response.statusText);
+        return false;
+      }
+      
+      return true;
+    } catch (error) {
+      console.error('Error in updateAccountBalance:', error);
+      return false;
+    }
+  },
+
+  async setEmergencyFundAccount(userId: string, accountId: string, accessToken: string, isEmergencyFund: boolean = true): Promise<boolean> {
+    try {
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+      console.log('🔄 Starting emergency fund switch process...');
+      console.log('👤 User ID:', userId);
+      console.log('🎯 Target account ID:', accountId);
+      console.log('✅ Setting emergency fund:', isEmergencyFund);
+
+      // First, remove emergency fund designation from all other accounts
+      console.log('1️⃣ Removing emergency fund designation from ALL accounts...');
+      const clearResponse = await fetch(`${supabaseUrl}/rest/v1/connected_accounts?user_id=eq.${userId}`, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'apikey': supabaseAnonKey,
+          'Content-Type': 'application/json',
+          'Prefer': 'return=minimal'
+        },
+        body: JSON.stringify({ is_emergency_fund: false })
+      });
+
+      if (!clearResponse.ok) {
+        const clearErrorText = await clearResponse.text();
+        console.error('❌ Error clearing emergency fund designations:', clearResponse.status, clearResponse.statusText);
+        console.error('❌ Clear error details:', clearErrorText);
+        return false;
+      }
+      console.log('✅ Successfully cleared emergency fund designations from all accounts');
+
+      // Then set the selected account as emergency fund
+      console.log('2️⃣ Setting selected account as emergency fund...');
+      const response = await fetch(`${supabaseUrl}/rest/v1/connected_accounts?id=eq.${accountId}&user_id=eq.${userId}`, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'apikey': supabaseAnonKey,
+          'Content-Type': 'application/json',
+          'Prefer': 'return=minimal'
+        },
+        body: JSON.stringify({
+          is_emergency_fund: isEmergencyFund,
+          updated_at: new Date().toISOString()
+        })
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('❌ Error setting emergency fund account:', response.status, response.statusText);
+        console.error('❌ Set error details:', errorText);
+        return false;
+      }
+      
+      console.log('✅ Emergency fund account designation updated successfully');
+      console.log('🎯 Account', accountId, 'is now the emergency fund');
+      
+      // Verification: Check the final state of all accounts
+      console.log('3️⃣ Verifying final state of all accounts...');
+      const verifyResponse = await fetch(`${supabaseUrl}/rest/v1/connected_accounts?user_id=eq.${userId}&select=id,institution_name,account_type,is_emergency_fund`, {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'apikey': supabaseAnonKey,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (verifyResponse.ok) {
+        const allAccounts = await verifyResponse.json();
+        console.log('🔍 Final account states:');
+        allAccounts.forEach((acc: any) => {
+          console.log(`  📋 ${acc.institution_name} (${acc.id}): emergency_fund = ${acc.is_emergency_fund}`);
+        });
+        const emergencyFundCount = allAccounts.filter((acc: any) => acc.is_emergency_fund).length;
+        console.log(`🎯 Total emergency fund accounts: ${emergencyFundCount}`);
+      } else {
+        console.warn('⚠️ Could not verify final account states');
+      }
+      
+      return true;
+    } catch (error) {
+      console.error('❌ Error in setEmergencyFundAccount:', error);
+      return false;
+    }
+  },
+
+  async getEmergencyFundAccount(userId: string, accessToken: string): Promise<any | null> {
+    try {
+      console.log('🎯 REST API: Getting emergency fund account for user:', userId);
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+      const response = await fetch(`${supabaseUrl}/rest/v1/connected_accounts?user_id=eq.${userId}&is_emergency_fund=eq.true&connection_status=eq.active&select=*`, {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'apikey': supabaseAnonKey,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        console.error('❌ Error fetching emergency fund account:', response.status, response.statusText);
+        return null;
+      }
+
+      const data = await response.json();
+      console.log('📊 REST API: Emergency fund accounts found:', data.length);
+      
+      // Return first emergency fund account or null if none found
+      return data.length > 0 ? data[0] : null;
+    } catch (error) {
+      console.error('❌ Error in getEmergencyFundAccount:', error);
+      return null;
+    }
+  },
+
+  async deleteConnectedAccount(accountId: string, userId: string, accessToken: string): Promise<boolean> {
+    try {
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+      console.log('🗑️ Deleting connected account:', accountId);
+
+      const response = await fetch(`${supabaseUrl}/rest/v1/connected_accounts?id=eq.${accountId}&user_id=eq.${userId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'apikey': supabaseAnonKey,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('❌ Error deleting connected account:', response.status, response.statusText);
+        console.error('❌ Error details:', errorText);
+        return false;
+      }
+      
+      console.log('✅ Connected account deleted successfully');
+      return true;
+    } catch (error) {
+      console.error('❌ Error in deleteConnectedAccount:', error);
+      return false;
+    }
+  }
+}; 

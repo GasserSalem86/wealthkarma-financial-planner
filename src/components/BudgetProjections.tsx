@@ -295,7 +295,7 @@ const AllocationTable = ({ activeGoal, setActiveGoal }: { activeGoal: string, se
   const { currency } = useCurrency();
   const [showDetails, setShowDetails] = React.useState(false);
   const { allocations } = state;
-  
+
   // Get current savings context
   const currentSavings = state.userProfile.currentSavings || 0;
   const leftoverSavings = state.leftoverSavings || 0;

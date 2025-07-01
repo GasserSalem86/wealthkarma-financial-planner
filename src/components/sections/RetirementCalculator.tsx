@@ -143,13 +143,13 @@ const RetirementCalculator: React.FC<RetirementCalculatorProps> = ({ onCalculate
       : undefined;
 
     return {
-      name: state.userProfile.name,
-      nationality: state.userProfile.nationality,
-      location: state.userProfile.location,
-      monthlyIncome: state.userProfile.monthlyIncome,
-      monthlyExpenses: state.monthlyExpenses,
-      currency: currency.code,
-      currentStep: 'retirement-plan',
+    name: state.userProfile.name,
+    nationality: state.userProfile.nationality,
+    location: state.userProfile.location,
+    monthlyIncome: state.userProfile.monthlyIncome,
+    monthlyExpenses: state.monthlyExpenses,
+    currency: currency.code,
+    currentStep: 'retirement-plan',
       goals: state.goals,
       // Enhanced with family and preferences context
       planningType: (familyContext?.planningType || 'individual') as 'family' | 'individual',
@@ -192,7 +192,7 @@ const RetirementCalculator: React.FC<RetirementCalculatorProps> = ({ onCalculate
     
     // Since we already have the detailed breakdown from the comprehensive call,
     // we can proceed directly to cost-breakdown or final step
-    setCurrentStep('cost-breakdown');
+      setCurrentStep('cost-breakdown');
   };
 
   const handleManualEntry = () => {
@@ -407,10 +407,10 @@ const RetirementCalculator: React.FC<RetirementCalculatorProps> = ({ onCalculate
                 {familyContext?.strategy === 'staggered' ? (
                   <>
                     {/* Primary person inputs */}
-                    <div className="bg-theme-tertiary p-6 rounded-xl shadow-md">
-                      <label className="block text-sm font-semibold text-theme-secondary mb-3">
-                        <div className="flex items-center space-x-2">
-                          <Calendar className="w-5 h-5 text-theme-info" />
+                <div className="bg-theme-tertiary p-6 rounded-xl shadow-md">
+                  <label className="block text-sm font-semibold text-theme-secondary mb-3">
+                    <div className="flex items-center space-x-2">
+                      <Calendar className="w-5 h-5 text-theme-info" />
                           <span>Primary Person Current Age</span>
                         </div>
                       </label>
@@ -545,34 +545,34 @@ const RetirementCalculator: React.FC<RetirementCalculatorProps> = ({ onCalculate
                         <div className="flex items-center space-x-2">
                           <Calendar className="w-5 h-5 text-theme-info" />
                           <span>Current Age</span>
-                        </div>
-                      </label>
-                      <input
-                        type="number"
-                        value={currentAge}
-                        onChange={(e) => setCurrentAge(Number(e.target.value))}
-                        className="input-dark block w-full px-4 py-3 rounded-lg text-lg font-semibold focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors"
-                        min="18"
-                        max="100"
-                      />
                     </div>
-                    
-                    <div className="bg-theme-tertiary p-6 rounded-xl shadow-md">
-                      <label className="block text-sm font-semibold text-theme-secondary mb-3">
-                        <div className="flex items-center space-x-2">
+                  </label>
+                  <input
+                    type="number"
+                    value={currentAge}
+                    onChange={(e) => setCurrentAge(Number(e.target.value))}
+                    className="input-dark block w-full px-4 py-3 rounded-lg text-lg font-semibold focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors"
+                    min="18"
+                    max="100"
+                  />
+                </div>
+                
+                <div className="bg-theme-tertiary p-6 rounded-xl shadow-md">
+                  <label className="block text-sm font-semibold text-theme-secondary mb-3">
+                    <div className="flex items-center space-x-2">
                           <Clock className="w-5 h-5 text-theme-warning" />
-                          <span>When do you want to retire?</span>
-                        </div>
-                      </label>
-                      <input
-                        type="number"
-                        value={retirementAge}
-                        onChange={(e) => setRetirementAge(Number(e.target.value))}
-                        className="input-dark block w-full px-4 py-3 rounded-lg text-lg font-semibold focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-colors"
-                        min={currentAge + 1}
-                        max="100"
-                      />
+                      <span>When do you want to retire?</span>
                     </div>
+                  </label>
+                  <input
+                    type="number"
+                    value={retirementAge}
+                    onChange={(e) => setRetirementAge(Number(e.target.value))}
+                    className="input-dark block w-full px-4 py-3 rounded-lg text-lg font-semibold focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-colors"
+                    min={currentAge + 1}
+                    max="100"
+                  />
+                </div>
                   </>
                 )}
               </div>
@@ -606,8 +606,8 @@ const RetirementCalculator: React.FC<RetirementCalculatorProps> = ({ onCalculate
                     size="lg"
                   >
                     <div className="flex items-center justify-center space-x-2">
-                      <Sparkles className="w-5 h-5" />
-                      <span>Get AI Destination Suggestions</span>
+                          <Sparkles className="w-5 h-5" />
+                          <span>Get AI Destination Suggestions</span>
                     </div>
                   </Button>
                   
@@ -1681,7 +1681,7 @@ const RetirementCalculator: React.FC<RetirementCalculatorProps> = ({ onCalculate
                   <div className="flex items-center space-x-2 mb-2">
                     <Clock className="w-4 h-4 text-theme-info" />
                     <p className="font-semibold text-theme-secondary">Time Horizon</p>
-                  </div>
+                </div>
                   <p className="heading-stat text-theme-info">
                     {familyContext ? getEffectiveRetirementInfo().yearsToRetirement : retirementAge - currentAge} years
                   </p>

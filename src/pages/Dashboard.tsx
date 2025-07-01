@@ -5,17 +5,27 @@ import { ThemeProvider } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
 import { plannerPersistence } from '../services/plannerPersistence';
+import { connectedAccountsService } from '../services/database';
+// Removed balanceTracker import - using simplified approach
 import LiveDashboard from '../components/LiveDashboard';
 import EditPlanWizard from '../components/EditPlanWizard';
+import BankConnectionWizard from '../components/BankConnectionWizard';
+import BankManagementModal from '../components/BankManagementModal';
 import ThemeToggle from '../components/ui/ThemeToggle';
 import CurrencySelector from '../components/CurrencySelector';
-import { Home, ArrowLeft, LogOut, Loader2, Edit3 } from 'lucide-react';
+import { Home, LogOut, Loader2, Edit3, Building2, CheckCircle, AlertCircle, Plus, Target } from 'lucide-react';
 import Button from '../components/ui/Button';
 
 const DashboardContent: React.FC = () => {
   const { user, signOut } = useAuth();
-  const { state } = usePlanner();
+  const { state, accessToken } = usePlanner(); // Get accessToken from PlannerContext
   const [isEditWizardOpen, setIsEditWizardOpen] = useState(false);
+  const [isBankWizardOpen, setIsBankWizardOpen] = useState(false);
+  const [isBankManagementOpen, setIsBankManagementOpen] = useState(false);
+  const [forceNewConnection, setForceNewConnection] = useState(false);
+  const [connectedAccounts, setConnectedAccounts] = useState<any[]>([]);
+
+  const [bankConnectionStatus, setBankConnectionStatus] = useState<'none' | 'partial' | 'complete'>('none');
 
   // Handle URL hash tokens for email confirmation
   useEffect(() => {
@@ -91,6 +101,54 @@ const DashboardContent: React.FC = () => {
     handleUrlTokens();
   }, [user]);
 
+  // Load bank connection data
+  useEffect(() => {
+    const loadBankData = async () => {
+      if (!user || !accessToken) {
+        console.log('📊 Waiting for user and access token...');
+        return;
+      }
+
+      try {
+        console.log('📊 Loading connected accounts from database...');
+        console.log('✅ Using access token from PlannerContext for bank data loading');
+        
+        // Load connected accounts from database using PlannerContext accessToken
+        const accounts = await connectedAccountsService.getActiveConnectedAccounts(user.id, accessToken);
+        setConnectedAccounts(accounts);
+        
+        // Get emergency fund account
+        const emergencyFundAccount = await connectedAccountsService.getEmergencyFundAccount(user.id, accessToken);
+        
+        if (accounts.length > 0) {
+          setBankConnectionStatus('complete');
+          sessionStorage.setItem('bank_connected', 'true');
+          
+          console.log('✅ Emergency fund account loaded:', {
+            accountName: emergencyFundAccount.institution_name,
+            balance: `${emergencyFundAccount.balance.toLocaleString()} AED`,
+            isEmergencyFund: emergencyFundAccount.is_emergency_fund
+          });
+        } else {
+          setBankConnectionStatus('none');
+          
+          // Auto-prompt bank connection if user has emergency fund goal but no connected accounts
+          const emergencyFundGoal = state.goals.find(goal => goal.id === 'emergency-fund');
+          if (emergencyFundGoal && !sessionStorage.getItem('bank_wizard_dismissed')) {
+            setIsBankWizardOpen(true);
+          }
+        }
+        
+        console.log('✅ Bank data loaded from database:', accounts.length, 'accounts');
+      } catch (error) {
+        console.error('Error loading bank data:', error);
+        setBankConnectionStatus('none');
+      }
+    };
+
+    loadBankData();
+  }, [user, accessToken, state.goals.length]); // Re-run when goals are loaded
+
   // Show loading while data is being loaded
   if (state.isLoading) {
     return (
@@ -131,10 +189,7 @@ const DashboardContent: React.FC = () => {
     );
   }
 
-  const handleBackToPlanning = () => {
-    // Navigate back to the planning tool
-    window.location.href = '/plan';
-  };
+
 
   const handleBackToHome = () => {
     window.location.href = '/';
@@ -188,6 +243,81 @@ const DashboardContent: React.FC = () => {
     }
   };
 
+  const handleConnectBank = () => {
+    // Check if we have access token from PlannerContext
+    if (!accessToken) {
+      console.error('❌ No access token available from PlannerContext');
+      alert('Authentication required. Please refresh the page and try again.');
+      return;
+    }
+    
+    console.log('✅ Using access token from PlannerContext for bank connection');
+    setForceNewConnection(false); // Reset to normal behavior (check existing connections)
+    setIsBankWizardOpen(true);
+  };
+
+  const handleManageBanks = () => {
+    // Check if we have access token from PlannerContext
+    if (!accessToken) {
+      console.error('❌ No access token available from PlannerContext');
+      alert('Authentication required. Please refresh the page and try again.');
+      return;
+    }
+    
+    console.log('🏦 Opening bank management interface');
+    setIsBankManagementOpen(true);
+  };
+
+  const handleBankAccountsUpdated = async () => {
+    // Refresh bank data after changes
+    if (!user || !accessToken) return;
+    
+    try {
+      console.log('🔄 Refreshing bank accounts after update...');
+      const accounts = await connectedAccountsService.getActiveConnectedAccounts(user.id, accessToken);
+      setConnectedAccounts(accounts);
+      
+      // Get emergency fund account
+      const emergencyFundAccount = await connectedAccountsService.getEmergencyFundAccount(user.id, accessToken);
+      
+      if (accounts.length > 0) {
+        setBankConnectionStatus('complete');
+        
+                console.log('🔄 Emergency fund account refreshed:', {
+          accountName: emergencyFundAccount?.institution_name || 'None',
+          balance: emergencyFundAccount ? `${emergencyFundAccount.balance.toLocaleString()} AED` : 'N/A',
+          isEmergencyFund: emergencyFundAccount?.is_emergency_fund || false
+        });
+      } else {
+        setBankConnectionStatus('none');
+      }
+      
+      console.log('✅ Bank accounts refreshed successfully');
+    } catch (error) {
+      console.error('❌ Error refreshing bank accounts:', error);
+    }
+  };
+
+  const handleBankConnectionComplete = async (connectedAccount?: any) => {
+    setIsBankWizardOpen(false);
+    setForceNewConnection(false); // Reset the flag
+    
+    if (connectedAccount) {
+      console.log('✅ Bank connection completed successfully');
+      
+      // Refresh bank accounts from database to get the latest data
+      await handleBankAccountsUpdated();
+    }
+  };
+
+  const handleSkipBankConnection = () => {
+    setIsBankWizardOpen(false);
+    setForceNewConnection(false); // Reset the flag
+    sessionStorage.setItem('bank_wizard_dismissed', 'true');
+  };
+
+
+
   return (
     <div className="min-h-screen app-background">
       {/* Header */}
@@ -215,6 +345,21 @@ const DashboardContent: React.FC = () => {
               <div className="hidden sm:block">
               <CurrencySelector />
               </div>
+
+              {/* Implementation Progress Indicator */}
+              <div className="hidden lg:flex items-center gap-2 px-3 py-2 rounded-lg border border-emerald-500/20 bg-emerald-500/10">
+                <Target className="w-4 h-4 text-emerald-600" />
+                <span className="text-sm text-emerald-600 font-medium">
+                  Implementation Journey
+                </span>
+                <span className="text-xs bg-emerald-600 text-white px-2 py-0.5 rounded-full">
+                  {(() => {
+                    const completed = bankConnectionStatus === 'complete' ? 1 : 0;
+                    return `${completed}/4`;
+                  })()}
+                </span>
+              </div>
+
               <ThemeToggle showLabel={false} />
               
               <div className="flex items-center gap-1 lg:gap-2">
@@ -239,15 +384,7 @@ const DashboardContent: React.FC = () => {
                   <span className="sm:hidden">Edit</span>
                 </Button>
                 
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={handleBackToPlanning}
-                  className="hidden lg:flex items-center gap-1 lg:gap-2 text-xs lg:text-sm px-2 lg:px-3 py-1 lg:py-2"
-                >
-                  <ArrowLeft className="w-3 h-3 lg:w-4 lg:h-4" />
-                  <span>Back to Planning</span>
-                </Button>
+
 
                 <Button
                   variant="outline"
@@ -287,6 +424,10 @@ const DashboardContent: React.FC = () => {
             // Handle progress updates
             console.log('Updating progress...');
           }}
+          onConnectBank={handleConnectBank}
+          onManageBanks={handleManageBanks}
+          connectedAccounts={connectedAccounts}
+          bankConnectionStatus={bankConnectionStatus}
         />
       </main>
 
@@ -295,6 +436,41 @@ const DashboardContent: React.FC = () => {
         isOpen={isEditWizardOpen}
         onClose={() => setIsEditWizardOpen(false)}
         onSave={handleSaveEditedPlan}
+      />
+
+      {/* Bank Connection Wizard Modal */}
+      {isBankWizardOpen && (
+        <div 
+          className="fixed inset-0 bg-black/60 flex items-center justify-center z-[60] p-4"
+          onClick={(e) => {
+            // Allow closing by clicking backdrop
+            if (e.target === e.currentTarget) {
+              handleSkipBankConnection();
+            }
+          }}
+        >
+          <BankConnectionWizard
+            onComplete={handleBankConnectionComplete}
+            onSkip={handleSkipBankConnection}
+            accessToken={accessToken || undefined}
+            forceNewConnection={forceNewConnection}
+          />
+        </div>
+      )}
+
+      {/* Bank Management Modal */}
+      <BankManagementModal
+        isOpen={isBankManagementOpen}
+        onClose={() => setIsBankManagementOpen(false)}
+        userId={user?.id || ''}
+        accessToken={accessToken || ''}
+        connectedAccounts={connectedAccounts}
+        onAccountsUpdated={handleBankAccountsUpdated}
+        onConnectNewBank={() => {
+          setIsBankManagementOpen(false);
+          setForceNewConnection(true); // Force new connection popup
+          setIsBankWizardOpen(true);
+        }}
       />
     </div>
   );

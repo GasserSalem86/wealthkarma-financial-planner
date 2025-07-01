@@ -434,6 +434,7 @@ interface PlannerContextType {
   state: PlannerState;
   dispatch: React.Dispatch<PlannerAction>;
   saveToSupabase: () => Promise<{ success: boolean; error?: string }>;
+  accessToken: string | null;
 }
 
 const PlannerContext = createContext<PlannerContextType | undefined>(undefined);
@@ -776,7 +777,12 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
   };
 
   return (
-    <PlannerContext.Provider value={{ state, dispatch, saveToSupabase }}>
+    <PlannerContext.Provider value={{ 
+      state, 
+      dispatch, 
+      saveToSupabase, 
+      accessToken: session?.access_token || null 
+    }}>
       {children}
     </PlannerContext.Provider>
   );

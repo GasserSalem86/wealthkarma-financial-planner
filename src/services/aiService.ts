@@ -670,10 +670,10 @@ Please help with their goal planning request. Be specific and practical in your 
           response.replace(/\{[\s\S]*"formFillData"[\s\S]*\}/, '').trim()
         );
 
-        return {
+      return {
           message: cleanedMessage,
           formFillData
-        };
+      };
       }
 
       // Check if question needs web search for goal-specific information
@@ -1368,7 +1368,7 @@ CRITICAL: Return ONLY a raw JSON object without any markdown formatting or code 
   "destinations": [
     {
       "destination": "City, Country",
-      "country": "Country", 
+      "country": "Country",
       "estimatedMonthlyCost": 1500,
       "costOfLivingRank": "Low",
       "highlights": ["Highlight${context.retirementPreferences ? ' that matches their preferences' : ''}", "Cost comparison to current expenses", "Retirement-specific benefit"],

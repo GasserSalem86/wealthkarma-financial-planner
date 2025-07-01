@@ -392,7 +392,7 @@ const WelcomeProfileSection: React.FC<WelcomeProfileSectionProps> = ({ onNext })
                   </p>
                 </div>
               )}
-            </div>
+              </div>
 
             {/* Monthly Savings Display */}
             {hasBothIncomeAndExpenses && (

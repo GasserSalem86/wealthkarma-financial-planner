@@ -45,9 +45,9 @@ const EditPlanWizard: React.FC<EditPlanWizardProps> = ({ isOpen, onClose, onSave
   useEffect(() => {
     // Scroll to top of the new section when step changes in edit mode
     const scrollToSectionTop = () => {
-      if (sectionsRef.current && editCurrentStep < EDIT_STEPS.length) {
-        const sections = sectionsRef.current.children;
-        if (sections[editCurrentStep]) {
+    if (sectionsRef.current && editCurrentStep < EDIT_STEPS.length) {
+      const sections = sectionsRef.current.children;
+      if (sections[editCurrentStep]) {
           // For edit wizard, scroll within the modal container
           const modalContainer = sectionsRef.current;
           if (modalContainer) {
@@ -55,13 +55,13 @@ const EditPlanWizard: React.FC<EditPlanWizardProps> = ({ isOpen, onClose, onSave
           }
           
           // Also ensure the section is positioned correctly
-          sections[editCurrentStep].scrollIntoView({
-            behavior: 'smooth',
-            block: 'start',
+        sections[editCurrentStep].scrollIntoView({
+          behavior: 'smooth',
+          block: 'start',
             inline: 'nearest'
-          });
-        }
+        });
       }
+    }
     };
 
     // Add a small delay to ensure DOM is ready

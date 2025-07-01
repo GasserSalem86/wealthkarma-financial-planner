@@ -16,7 +16,10 @@ import {
   Download,
   RefreshCw,
   PlusCircle,
-  TrendingDown
+  TrendingDown,
+  Building2,
+  AlertCircle,
+  Clock
 } from 'lucide-react';
 import Card, { CardHeader, CardTitle, CardContent } from './ui/Card';
 import Button from './ui/Button';
@@ -26,6 +29,10 @@ import { format, addMonths, differenceInMonths } from 'date-fns';
 interface LiveDashboardProps {
   onOptimizePlan?: () => void;
   onUpdateProgress?: () => void;
+  onConnectBank?: () => void;
+  onManageBanks?: () => void;
+  connectedAccounts?: any[];
+  bankConnectionStatus?: 'none' | 'partial' | 'complete';
 }
 
 interface ActualProgress {
@@ -43,10 +50,49 @@ interface AIRecommendation {
   actionRequired: boolean;
 }
 
-const LiveDashboard: React.FC<LiveDashboardProps> = ({ onOptimizePlan, onUpdateProgress }) => {
+interface ImplementationStep {
+  id: string;
+  phase: number;
+  title: string;
+  description: string;
+  status: 'pending' | 'in-progress' | 'completed';
+  ctaText: string;
+  ctaAction: () => void;
+  isAvailable: boolean;
+  completedDate?: Date;
+  icon: any;
+}
+
+const LiveDashboard: React.FC<LiveDashboardProps> = ({ 
+  onOptimizePlan, 
+  onUpdateProgress, 
+  onConnectBank,
+  onManageBanks,
+  connectedAccounts = [],
+  bankConnectionStatus = 'none'
+}) => {
   const { state, dispatch } = usePlanner();
   const { currency } = useCurrency();
   const [activeTab, setActiveTab] = useState<'overview' | 'goals' | 'insights' | 'settings'>('overview');
+  const [trackingMode, setTrackingMode] = useState<'automatic' | 'manual' | null>(null);
+
+  // Load tracking mode preference on mount
+  useEffect(() => {
+    const savedMode = localStorage.getItem('emergencyFundTrackingMode') as 'automatic' | 'manual' | null;
+    setTrackingMode(savedMode);
+  }, []); // Only run on mount
+
+  // Auto-fix: If user has a connected emergency fund account but no tracking mode set
+  useEffect(() => {
+    const savedMode = localStorage.getItem('emergencyFundTrackingMode');
+    const hasEmergencyAccount = connectedAccounts.some(acc => acc.is_emergency_fund);
+    
+    // Only auto-set to automatic if user explicitly chose bank connection and has no saved preference
+    if (!savedMode && hasEmergencyAccount && trackingMode === null) {
+      console.log('🔧 Auto-detected connected bank, but not auto-setting mode. User should choose.');
+      // Don't auto-set anymore - let user choose explicitly
+    }
+  }, [connectedAccounts.length, connectedAccounts.some(acc => acc.is_emergency_fund), trackingMode]); // Stable dependencies
   const [editingGoal, setEditingGoal] = useState<string | null>(null);
   const [actualProgress, setActualProgress] = useState<ActualProgress[]>(
     state.goals.map(goal => ({
@@ -65,12 +111,50 @@ const LiveDashboard: React.FC<LiveDashboardProps> = ({ onOptimizePlan, onUpdateP
   }, [state.allocations]);
   
   const currentPlan = useMemo(() => {
+    // Reduced logging - only essential information
+    console.log('🔄 Plan calculation:', {
+      goals: state.allocations.length,
+      accounts: connectedAccounts.length,
+      emergency: connectedAccounts.some(acc => acc.is_emergency_fund)
+    });
+    
     return state.allocations.map(allocation => {
       const plannedAmount = allocation.runningBalances[Math.min(currentMonth - 1, allocation.runningBalances.length - 1)] || 0;
-      const progressData = actualProgress.find(p => p.goalId === allocation.goal.id);
-      const actualAmount = progressData?.actualAmount || 0;
+      
+      // For emergency fund, calculate progress directly using bank account data
+      let actualAmount = 0;
+      let progressPercentage = 0;
+      let isOnTrack = false;
+      
+      if (allocation.goal.id === 'emergency-fund' || allocation.goal.name === 'Safety Net') {
+        // Find emergency fund account from connected accounts
+        const emergencyAccount = connectedAccounts.find(acc => acc.is_emergency_fund);
+        
+        // Use bank data only if tracking mode is automatic AND bank account is connected
+        if (trackingMode === 'automatic' && emergencyAccount && emergencyAccount.balance !== undefined && allocation.goal.amount > 0) {
+          actualAmount = emergencyAccount.balance;
+          progressPercentage = (actualAmount / allocation.goal.amount) * 100;
+          isOnTrack = progressPercentage >= 80; // 80%+ = on track
+          
+          console.log(`🏦 Emergency fund (automatic): ${actualAmount.toLocaleString()}/${allocation.goal.amount.toLocaleString()} AED (${progressPercentage.toFixed(1)}%)`);
+        } else {
+          // Use manual progress tracking for emergency fund when in manual mode
+          const progressData = actualProgress.find(p => p.goalId === allocation.goal.id);
+          actualAmount = progressData?.actualAmount || 0;
+          progressPercentage = allocation.goal.amount > 0 ? (actualAmount / allocation.goal.amount) * 100 : 0;
+          isOnTrack = actualAmount >= plannedAmount * 0.9; // Within 10% tolerance
+          
+          console.log(`📝 Emergency fund (manual): ${actualAmount.toLocaleString()}/${allocation.goal.amount.toLocaleString()} AED (${progressPercentage.toFixed(1)}%)`);
+        }
+      } else {
+        // Use manual progress tracking for other goals
+        const progressData = actualProgress.find(p => p.goalId === allocation.goal.id);
+        actualAmount = progressData?.actualAmount || 0;
+        progressPercentage = allocation.goal.amount > 0 ? (actualAmount / allocation.goal.amount) * 100 : 0;
+        isOnTrack = actualAmount >= plannedAmount * 0.9; // Within 10% tolerance
+      }
+      
       const variance = actualAmount - plannedAmount;
-      const progressPercentage = (actualAmount / allocation.goal.amount) * 100;
       
       return {
         ...allocation,
@@ -78,15 +162,26 @@ const LiveDashboard: React.FC<LiveDashboardProps> = ({ onOptimizePlan, onUpdateP
         actualAmount,
         variance,
         progressPercentage,
-        isOnTrack: variance >= -plannedAmount * 0.1, // Within 10% tolerance
+        isOnTrack,
         monthlyTarget: allocation.monthlyAllocations[Math.min(currentMonth - 1, allocation.monthlyAllocations.length - 1)] || 0
       };
     });
-  }, [state.allocations, actualProgress, currentMonth]);
+  }, [state.allocations, actualProgress, currentMonth, connectedAccounts, trackingMode]);
 
   // Generate AI recommendations
   const aiRecommendations = useMemo((): AIRecommendation[] => {
     const recommendations: AIRecommendation[] = [];
+    
+    // Bank connection recommendation if not connected
+    if (bankConnectionStatus === 'none' && state.goals.some(goal => goal.id === 'emergency-fund' || goal.name === 'Safety Net')) {
+      recommendations.push({
+        type: 'warning',
+        title: 'Connect your bank account',
+        description: 'Link your emergency fund account for automatic progress tracking.',
+        impact: 'Enable real-time balance updates and milestone notifications',
+        actionRequired: true
+      });
+    }
     
     currentPlan.forEach(goal => {
       if (goal.variance < -goal.plannedAmount * 0.2) {
@@ -117,18 +212,30 @@ const LiveDashboard: React.FC<LiveDashboardProps> = ({ onOptimizePlan, onUpdateP
       actionRequired: true
     });
 
-    recommendations.push({
-      type: 'rebalance',
-      title: 'Portfolio rebalancing suggested',
-      description: 'Your emergency fund is complete. Consider shifting excess to higher-yield investments.',
-      impact: 'Potential 2-3% higher returns on excess funds',
-      actionRequired: false
-    });
+    if (bankConnectionStatus === 'complete') {
+      recommendations.push({
+        type: 'rebalance',
+        title: 'Portfolio rebalancing suggested',
+        description: 'Your emergency fund is complete. Consider shifting excess to higher-yield investments.',
+        impact: 'Potential 2-3% higher returns on excess funds',
+        actionRequired: false
+      });
+    }
 
     return recommendations;
-  }, [currentPlan, currency]);
+  }, [currentPlan, currency, bankConnectionStatus, state.goals]);
 
   const updateActualAmount = (goalId: string, amount: number) => {
+    // Only prevent manual updates for emergency fund if user chose automatic tracking AND has connected account
+    const emergencyAccount = connectedAccounts.find(acc => acc.is_emergency_fund);
+    const goal = state.goals.find(g => g.id === goalId);
+    const isEmergencyFund = goal && (goal.id === 'emergency-fund' || goal.name === 'Safety Net');
+    
+    if (isEmergencyFund && trackingMode === 'automatic' && emergencyAccount) {
+      console.log('⚠️ Emergency fund is automatically tracked from bank account');
+      return;
+    }
+    
     setActualProgress(prev => 
       prev.map(p => 
         p.goalId === goalId 
@@ -167,7 +274,7 @@ const LiveDashboard: React.FC<LiveDashboardProps> = ({ onOptimizePlan, onUpdateP
   };
 
   const updateEmergencyFund = async (newExpenses: number, newBufferMonths: number) => {
-    const currentEmergencyFund = state.goals.find(goal => goal.id === 'emergency-fund');
+    const currentEmergencyFund = state.goals.find(goal => goal.id === 'emergency-fund' || goal.name === 'Safety Net');
     if (currentEmergencyFund) {
       dispatch({
         type: 'UPDATE_EMERGENCY_FUND',
@@ -205,17 +312,258 @@ const LiveDashboard: React.FC<LiveDashboardProps> = ({ onOptimizePlan, onUpdateP
   const totalPlanned = currentPlan.reduce((sum, goal) => sum + goal.plannedAmount, 0);
   const totalVariance = totalActual - totalPlanned;
 
+  // Bank connection summary
+  const bankConnectionSummary = useMemo(() => {
+    if (bankConnectionStatus === 'complete' && connectedAccounts.length > 0) {
+      const totalBalance = connectedAccounts.reduce((sum, acc) => sum + (acc.balance || 0), 0);
+      const emergencyFundAccount = connectedAccounts.find(acc => acc.is_emergency_fund);
+      
+      return {
+        hasConnection: true,
+        totalBalance,
+        emergencyFundAccount,
+        accountCount: connectedAccounts.length,
+        status: 'connected'
+      };
+    }
+    return {
+      hasConnection: false,
+      totalBalance: 0,
+      emergencyFundAccount: null,
+      accountCount: 0,
+      status: bankConnectionStatus || 'none'
+    };
+  }, [bankConnectionStatus, connectedAccounts]);
+
+  // Implementation Journey Steps
+  const implementationSteps: ImplementationStep[] = [
+    {
+      id: 'bank-connection',
+      phase: 1,
+      title: 'Connect Your Bank Account',
+      description: 'Enable real-time tracking of your emergency fund and automate progress monitoring',
+      status: bankConnectionStatus === 'complete' ? 'completed' : 
+             bankConnectionStatus === 'partial' ? 'in-progress' : 'pending',
+      ctaText: bankConnectionStatus === 'complete' ? 'Manage Banks' : 
+               bankConnectionStatus === 'partial' ? 'Complete Setup' : 'Connect Bank',
+      ctaAction: () => {
+        if (bankConnectionStatus === 'complete' && onManageBanks) {
+          onManageBanks();
+        } else if (onConnectBank) {
+          onConnectBank();
+        }
+      },
+      isAvailable: true,
+      completedDate: bankConnectionStatus === 'complete' ? new Date() : undefined,
+      icon: Building2
+    },
+    {
+      id: 'ai-recommendations',
+      phase: 2,
+      title: 'Get AI Investment Recommendations',
+      description: 'Receive personalized analysis of financial products and investment strategies',
+      status: 'pending',
+      ctaText: 'Get Recommendations',
+      ctaAction: () => console.log('AI recommendations coming soon'),
+      isAvailable: bankConnectionStatus === 'complete',
+      icon: Zap
+    },
+    {
+      id: 'paper-trading',
+      phase: 3,
+      title: 'Start Paper Trading',
+      description: 'Practice with virtual trading using Alpaca Markets before investing real money',
+      status: 'pending',
+      ctaText: 'Start Trading',
+      ctaAction: () => console.log('Paper trading coming soon'),
+      isAvailable: false,
+      icon: TrendingUp
+    },
+    {
+      id: 'monthly-reviews',
+      phase: 4,
+      title: 'Monthly AI Reviews',
+      description: 'Receive automated portfolio analysis and optimization recommendations',
+      status: 'pending',
+      ctaText: 'Enable Reviews',
+      ctaAction: () => console.log('Monthly reviews coming soon'),
+      isAvailable: false,
+      icon: Calendar
+    }
+  ];
+
+  // Calculate completion stats
+  const completedSteps = implementationSteps.filter(step => step.status === 'completed').length;
+  const totalSteps = implementationSteps.length;
+
   return (
     <div className="max-w-7xl mx-auto p-6">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="heading-h1-sm text-theme-primary mb-4">
-          Live Progress Dashboard
+        <h1 className="heading-h1-sm text-theme-primary mb-2">
+          Welcome to Your Wealth Management Platform
         </h1>
         <p className="text-lg text-theme-secondary">
-          Track your real progress and get AI-powered optimization recommendations
+          Complete your implementation journey to unlock the full power of AI-driven wealth management
         </p>
       </div>
+
+      {/* Implementation Journey Section */}
+      <Card className="mb-8 border-2 border-emerald-500/20 bg-gradient-to-r from-emerald-50/50 to-green-50/50 dark:from-emerald-950/30 dark:to-green-950/30">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="text-xl text-theme-primary flex items-center gap-3">
+                <div className="p-2 bg-emerald-500/10 rounded-lg">
+                  <Target className="w-6 h-6 text-emerald-600" />
+                </div>
+                Implementation Journey
+              </CardTitle>
+              <p className="text-theme-secondary mt-1">
+                Transform your financial plan into an active wealth management system
+              </p>
+            </div>
+            <div className="text-right">
+              <div className="text-2xl font-bold text-emerald-600">
+                {completedSteps}/{totalSteps}
+              </div>
+              <div className="text-xs text-theme-muted">Steps Completed</div>
+            </div>
+          </div>
+          
+          {/* Progress Bar */}
+          <div className="mt-4">
+            <div className="flex justify-between text-xs text-theme-muted mb-2">
+              <span>Progress</span>
+              <span>{Math.round((completedSteps / totalSteps) * 100)}% Complete</span>
+            </div>
+            <div className="w-full bg-theme-section rounded-full h-3">
+              <div 
+                className="bg-gradient-to-r from-emerald-500 to-green-500 h-3 rounded-full transition-all duration-500" 
+                style={{ width: `${(completedSteps / totalSteps) * 100}%` }}
+              />
+            </div>
+          </div>
+        </CardHeader>
+        
+        <CardContent>
+          <div className="grid gap-4">
+            {implementationSteps.map((step, index) => (
+              <div key={step.id} className={`relative p-4 rounded-lg border transition-all ${
+                step.status === 'completed' ? 'border-emerald-500/30 bg-emerald-500/5' :
+                step.status === 'in-progress' ? 'border-yellow-500/30 bg-yellow-500/5' :
+                step.isAvailable ? 'border-theme bg-theme-card hover:border-emerald-500/30 hover:bg-emerald-500/5' :
+                'border-theme bg-theme-section opacity-60'
+              }`}>
+                
+                {/* Connection line to next step */}
+                {index < implementationSteps.length - 1 && (
+                  <div className="absolute left-8 top-16 w-0.5 h-8 bg-theme-border"></div>
+                )}
+                
+                <div className="flex items-start gap-4">
+                  {/* Step Icon & Status */}
+                  <div className="flex flex-col items-center">
+                    <div className={`p-3 rounded-full border-2 ${
+                      step.status === 'completed' ? 'border-emerald-500 bg-emerald-500 text-white' :
+                      step.status === 'in-progress' ? 'border-yellow-500 bg-yellow-500 text-white' :
+                      step.isAvailable ? 'border-theme-primary bg-theme-card text-theme-primary' :
+                      'border-theme bg-theme-section text-theme-muted'
+                    }`}>
+                      {step.status === 'completed' ? (
+                        <CheckCircle className="w-5 h-5" />
+                      ) : (
+                        <step.icon className="w-5 h-5" />
+                      )}
+                    </div>
+                    <div className="text-xs text-theme-muted mt-1 font-medium">
+                      Phase {step.phase}
+                    </div>
+                  </div>
+
+                  {/* Step Content */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1">
+                        <h3 className={`font-semibold text-lg mb-1 ${
+                          step.isAvailable ? 'text-theme-primary' : 'text-theme-muted'
+                        }`}>
+                          {step.title}
+                        </h3>
+                        <p className={`text-sm mb-3 ${
+                          step.isAvailable ? 'text-theme-secondary' : 'text-theme-muted'
+                        }`}>
+                          {step.description}
+                        </p>
+                        
+                        {/* Additional status info */}
+                        {step.status === 'completed' && step.completedDate && (
+                          <div className="flex items-center gap-1 text-xs text-emerald-600">
+                            <CheckCircle className="w-3 h-3" />
+                            Completed {step.completedDate.toLocaleDateString()}
+                          </div>
+                        )}
+                        
+                        {step.status === 'in-progress' && step.id === 'bank-connection' && (
+                          <div className="flex items-center gap-2 text-xs text-yellow-600">
+                            <AlertCircle className="w-3 h-3" />
+                            {connectedAccounts.length} account(s) connected
+                          </div>
+                        )}
+                        
+                        {!step.isAvailable && (
+                          <div className="flex items-center gap-1 text-xs text-theme-muted">
+                            <Clock className="w-3 h-3" />
+                            Complete previous steps to unlock
+                          </div>
+                        )}
+                      </div>
+
+                      {/* CTA Button */}
+                      <div className="flex-shrink-0">
+                        <Button
+                          onClick={step.ctaAction}
+                          variant={step.status === 'completed' ? 'outline' : 
+                                  step.isAvailable ? 'primary' : 'secondary'}
+                          size="sm"
+                          disabled={!step.isAvailable}
+                          className={step.status === 'pending' && step.isAvailable ? 
+                            'bg-emerald-600 hover:bg-emerald-700 text-white' : ''}
+                        >
+                          {step.ctaText}
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Journey Benefits */}
+          <div className="mt-6 p-4 bg-theme-section rounded-lg">
+            <h4 className="font-semibold text-theme-primary mb-2">What You'll Achieve:</h4>
+            <div className="grid sm:grid-cols-2 gap-2 text-sm text-theme-secondary">
+              <div className="flex items-center gap-2">
+                <CheckCircle className="w-4 h-4 text-emerald-500" />
+                Real-time financial tracking
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckCircle className="w-4 h-4 text-emerald-500" />
+                AI-powered investment guidance
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckCircle className="w-4 h-4 text-emerald-500" />
+                Risk-free practice trading
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckCircle className="w-4 h-4 text-emerald-500" />
+                Automated portfolio optimization
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Quick Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
@@ -245,12 +593,12 @@ const LiveDashboard: React.FC<LiveDashboardProps> = ({ onOptimizePlan, onUpdateP
           <CardContent className="pt-6">
             <div className="flex items-center">
               <div className="flex-1">
-                <p className="text-sm font-medium text-theme-secondary">This Month</p>
-                <p className="heading-stat text-theme-primary">Month {currentMonth}</p>
-                <p className="text-xs text-theme-muted">of {maxTimelineMonths}</p>
+                <p className="text-sm font-medium text-theme-secondary">Implementation</p>
+                <p className="heading-stat text-theme-primary">{completedSteps}/{totalSteps}</p>
+                <p className="text-xs text-theme-muted">Steps completed</p>
               </div>
-              <div className="p-2 bg-blue-500/10 rounded-full">
-                <Calendar className="w-6 h-6 text-theme-info" />
+              <div className="p-2 bg-emerald-500/10 rounded-full">
+                <Target className="w-6 h-6 text-emerald-600" />
               </div>
             </div>
           </CardContent>
@@ -269,7 +617,7 @@ const LiveDashboard: React.FC<LiveDashboardProps> = ({ onOptimizePlan, onUpdateP
                 </p>
               </div>
               <div className="p-2 bg-emerald-500/10 rounded-full">
-                <Target className="w-6 h-6 text-theme-success" />
+                <CheckCircle className="w-6 h-6 text-theme-success" />
               </div>
             </div>
           </CardContent>
@@ -279,14 +627,14 @@ const LiveDashboard: React.FC<LiveDashboardProps> = ({ onOptimizePlan, onUpdateP
           <CardContent className="pt-6">
             <div className="flex items-center">
               <div className="flex-1">
-                <p className="text-sm font-medium text-theme-secondary">AI Recommendations</p>
+                <p className="text-sm font-medium text-theme-secondary">Connected Accounts</p>
                 <p className="heading-stat text-theme-primary">
-                  {aiRecommendations.filter(r => r.actionRequired).length}
+                  {connectedAccounts.length}
                 </p>
-                <p className="text-xs text-theme-muted">Action required</p>
+                <p className="text-xs text-theme-muted">Bank accounts linked</p>
               </div>
-              <div className="p-2 bg-purple-500/10 rounded-full">
-                <Zap className="w-6 h-6 text-theme-brand-secondary" />
+              <div className="p-2 bg-blue-500/10 rounded-full">
+                <Building2 className="w-6 h-6 text-theme-info" />
               </div>
             </div>
           </CardContent>
@@ -297,8 +645,8 @@ const LiveDashboard: React.FC<LiveDashboardProps> = ({ onOptimizePlan, onUpdateP
       <div className="border-b border-theme mb-6">
         <nav className="-mb-px flex space-x-8">
           {[
-            { id: 'overview', label: 'Overview', icon: BarChart3 },
-            { id: 'goals', label: 'Goals Progress', icon: Target },
+            { id: 'overview', label: 'Goals Overview', icon: BarChart3 },
+            { id: 'goals', label: 'Detailed Progress', icon: Target },
             { id: 'insights', label: 'AI Insights', icon: Zap },
             { id: 'settings', label: 'Settings', icon: Settings }
           ].map(tab => (
@@ -404,17 +752,94 @@ const LiveDashboard: React.FC<LiveDashboardProps> = ({ onOptimizePlan, onUpdateP
                       <div>
                         <label className="block text-sm font-medium text-theme-secondary mb-2">
                           Current Amount Saved
+                          {(goal.goal.id === 'emergency-fund' || goal.goal.name === 'Safety Net') && trackingMode === 'automatic' && connectedAccounts.find(acc => acc.is_emergency_fund) && (
+                            <span className="ml-2 px-2 py-0.5 bg-green-500/10 text-green-600 text-xs rounded-full">
+                              🏦 Live Bank Tracking
+                            </span>
+                          )}
                         </label>
                         <div className="relative">
-                          <DollarSign className="w-5 h-5 text-theme-muted absolute left-3 top-3" />
+                                                      {(goal.goal.id === 'emergency-fund' || goal.goal.name === 'Safety Net') && trackingMode === 'automatic' && connectedAccounts.find(acc => acc.is_emergency_fund) ? (
+                            <Building2 className="w-5 h-5 text-green-600 absolute left-3 top-3" />
+                          ) : (
+                            <DollarSign className="w-5 h-5 text-theme-muted absolute left-3 top-3" />
+                          )}
                           <input
                             type="number"
                             value={goal.actualAmount}
                             onChange={(e) => updateActualAmount(goal.goal.id, parseFloat(e.target.value) || 0)}
-                            className="input-dark w-full pl-10 pr-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                            disabled={(goal.goal.id === 'emergency-fund' || goal.goal.name === 'Safety Net') && trackingMode === 'automatic' && connectedAccounts.find(acc => acc.is_emergency_fund)}
+                            className={`input-dark w-full pl-10 pr-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 ${
+                              (goal.goal.id === 'emergency-fund' || goal.goal.name === 'Safety Net') && trackingMode === 'automatic' && connectedAccounts.find(acc => acc.is_emergency_fund) 
+                                ? 'bg-green-500/5 border-green-500/30 cursor-not-allowed' 
+                                : ''
+                            }`}
                             placeholder="0.00"
                           />
                         </div>
+                                                  {(goal.goal.id === 'emergency-fund' || goal.goal.name === 'Safety Net') && trackingMode === 'automatic' && connectedAccounts.find(acc => acc.is_emergency_fund) && (
+                          <div className="mt-1">
+                            <p className="text-xs text-green-600">
+                              ✅ Automatically updated from {connectedAccounts.find(acc => acc.is_emergency_fund)?.institution_name || 'bank account'}
+                            </p>
+                            <button
+                              onClick={() => {
+                                console.log('🔄 Switching to manual tracking');
+                                setTrackingMode('manual');
+                                localStorage.setItem('emergencyFundTrackingMode', 'manual');
+                              }}
+                              className="text-xs text-blue-600 hover:text-blue-800 underline mt-1"
+                            >
+                              Switch to manual tracking →
+                            </button>
+                          </div>
+                        )}
+                        {(goal.goal.id === 'emergency-fund' || goal.goal.name === 'Safety Net') && trackingMode === 'manual' && (
+                          <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                            <p className="text-xs text-blue-700 mb-2">
+                              💡 <strong>Manual Tracking:</strong> Update your emergency fund balance manually whenever it changes.
+                            </p>
+                            <button
+                              onClick={() => {
+                                setTrackingMode('automatic');
+                                localStorage.setItem('emergencyFundTrackingMode', 'automatic');
+                                onConnectBank?.();
+                              }}
+                              className="text-xs text-blue-600 hover:text-blue-800 underline"
+                            >
+                              Want automatic updates? Connect your bank →
+                            </button>
+
+                          </div>
+                        )}
+                        {(goal.goal.id === 'emergency-fund' || goal.goal.name === 'Safety Net') && !trackingMode && (
+                          <div className="mt-2 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                            <p className="text-xs text-yellow-700 mb-2">
+                              ⚡ <strong>Choose Your Tracking Method:</strong> Would you like automatic or manual tracking?
+                            </p>
+                            <div className="flex gap-2 mt-2">
+                              <button
+                                onClick={() => {
+                                  setTrackingMode('automatic');
+                                  localStorage.setItem('emergencyFundTrackingMode', 'automatic');
+                                  onConnectBank?.();
+                                }}
+                                className="text-xs bg-blue-600 text-white px-2 py-1 rounded hover:bg-blue-700"
+                              >
+                                Connect Bank
+                              </button>
+                              <button
+                                onClick={() => {
+                                  setTrackingMode('manual');
+                                  localStorage.setItem('emergencyFundTrackingMode', 'manual');
+                                }}
+                                className="text-xs bg-gray-600 text-white px-2 py-1 rounded hover:bg-gray-700"
+                              >
+                                Manual Updates
+                              </button>
+                            </div>
+                          </div>
+                        )}
                       </div>
 
                       <div>
@@ -569,6 +994,62 @@ const LiveDashboard: React.FC<LiveDashboardProps> = ({ onOptimizePlan, onUpdateP
               <CardTitle>Emergency Fund Settings</CardTitle>
             </CardHeader>
             <CardContent>
+              <div className="mb-6 p-4 bg-theme-section rounded-lg">
+                <h4 className="font-medium text-theme-primary mb-3">Tracking Mode</h4>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-theme-secondary">
+                      Current mode: <span className="font-medium">
+                        {trackingMode === 'automatic' ? '🏦 Automatic Bank Tracking' : 
+                         trackingMode === 'manual' ? '✋ Manual Updates' : 
+                         '❓ Not Set'}
+                      </span>
+                    </p>
+                    {trackingMode === 'automatic' && connectedAccounts.find(acc => acc.is_emergency_fund) && (
+                      <p className="text-xs text-green-600 mt-1">
+                        Connected to: {connectedAccounts.find(acc => acc.is_emergency_fund)?.institution_name}
+                      </p>
+                    )}
+                  </div>
+                  <div className="flex gap-2">
+                    {trackingMode === 'manual' && (
+                      <Button
+                        onClick={() => {
+                          setTrackingMode('automatic');
+                          localStorage.setItem('emergencyFundTrackingMode', 'automatic');
+                          onConnectBank?.();
+                        }}
+                        size="sm"
+                        variant="primary"
+                      >
+                        Connect Bank
+                      </Button>
+                    )}
+                    {trackingMode === 'automatic' && (
+                      <Button
+                        onClick={() => {
+                          setTrackingMode('manual');
+                          localStorage.setItem('emergencyFundTrackingMode', 'manual');
+                        }}
+                        size="sm"
+                        variant="outline"
+                      >
+                        Switch to Manual
+                      </Button>
+                    )}
+                    {connectedAccounts.find(acc => acc.is_emergency_fund) && (
+                      <Button
+                        onClick={onManageBanks}
+                        size="sm"
+                        variant="outline"
+                      >
+                        Manage Banks
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              </div>
+
               <div className="grid md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-theme-secondary mb-2">
@@ -628,7 +1109,7 @@ const LiveDashboard: React.FC<LiveDashboardProps> = ({ onOptimizePlan, onUpdateP
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {state.goals.filter(g => g.id !== 'emergency-fund').map((goal) => (
+                                      {state.goals.filter(g => g.id !== 'emergency-fund' && g.name !== 'Safety Net').map((goal) => (
                   <div key={goal.id} className="border border-theme rounded-lg p-4 bg-theme-card shadow-theme">
                     <div className="flex justify-between items-center mb-3">
                       <h4 className="font-semibold text-theme-primary">{goal.name}</h4>

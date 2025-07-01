@@ -1399,7 +1399,7 @@ Include ALL banks mentioned with ANY rate information. Return only the JSON arra
                       <span className="text-lg">🎯</span>
                       <span className="font-semibold text-blue-600">Building From Scratch</span>
                     </div>
-                    <p className="text-sm text-theme-secondary">
+                <p className="text-sm text-theme-secondary">
                       You'll need to save {formatCurrency(amount, currency)} from monthly contributions. Don't worry - every journey starts with a single step!
                     </p>
                   </div>
@@ -1411,161 +1411,161 @@ Include ALL banks mentioned with ANY rate information. Return only the JSON arra
                       ? `Now, choose when you want to complete saving the remaining ${formatCurrency(remainingAmount, currency)}:`
                       : "Your emergency fund is already fully covered by your current savings! Just set a target to formalize the plan:"
                     }
-                  </p>
-                  
-                  {/* Smart timeline calculation */}
+                </p>
+                
+                {/* Smart timeline calculation */}
                   {state.userProfile.monthlyIncome && remainingAmount > 0 && (
                     <div className="bg-theme-section border border-blue-500/30 rounded-lg p-4 mb-4">
-                      <div className="space-y-3">
-                        <div className="flex justify-between text-sm">
-                          <span className="text-theme-secondary">Monthly Income:</span>
-                          <span className="font-medium text-theme-primary">{formatCurrency(state.userProfile.monthlyIncome, currency)}</span>
-                        </div>
-                        <div className="flex justify-between text-sm">
-                          <span className="text-theme-secondary">Monthly Expenses:</span>
-                          <span className="font-medium text-theme-primary">{formatCurrency(expenses, currency)}</span>
-                        </div>
-                        <div className="flex justify-between text-sm border-t border-theme pt-2">
-                          <span className="text-theme-secondary">Available for Savings:</span>
-                          <span className="font-bold text-green-600">{formatCurrency(state.userProfile.monthlyIncome - expenses, currency)}</span>
-                        </div>
-                        
-                        {/* Timeline suggestions */}
-                        <div className="mt-4">
+                    <div className="space-y-3">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-theme-secondary">Monthly Income:</span>
+                        <span className="font-medium text-theme-primary">{formatCurrency(state.userProfile.monthlyIncome, currency)}</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-theme-secondary">Monthly Expenses:</span>
+                        <span className="font-medium text-theme-primary">{formatCurrency(expenses, currency)}</span>
+                      </div>
+                      <div className="flex justify-between text-sm border-t border-theme pt-2">
+                        <span className="text-theme-secondary">Available for Savings:</span>
+                        <span className="font-bold text-green-600">{formatCurrency(state.userProfile.monthlyIncome - expenses, currency)}</span>
+                      </div>
+                      
+                      {/* Timeline suggestions */}
+                      <div className="mt-4">
                           <p className="text-xs text-theme-muted mb-2">Suggested timelines (allocating different % of available income to emergency fund) - Click to select:</p>
-                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                            {[50, 70, 90].map(percentage => {
-                              const monthlySavings = (state.userProfile.monthlyIncome! - expenses) * (percentage / 100);
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                          {[50, 70, 90].map(percentage => {
+                            const monthlySavings = (state.userProfile.monthlyIncome! - expenses) * (percentage / 100);
                               const months = Math.ceil(remainingAmount / monthlySavings);
                               // More lenient criteria - allow up to 24 months and ensure positive savings
                               const isSelectable = monthlySavings > 0 && months > 0 && months <= 24;
-                              const suggestedDate = new Date(today.getFullYear(), today.getMonth() + months, 1);
+                            const suggestedDate = new Date(today.getFullYear(), today.getMonth() + months, 1);
                               // Use exact percentage match for selection, not horizon months comparison
                               const isCurrentlySelected = selectedPercentage === percentage;
-                              
-                              const handleTimelineSelect = () => {
+                            
+                            const handleTimelineSelect = () => {
                                 if (isSelectable) {
                                   setSelectedPercentage(percentage);
-                                  setTargetMonth(suggestedDate.getMonth() + 1);
-                                  setTargetYear(suggestedDate.getFullYear());
-                                }
-                              };
-                              
-                              return (
-                                <button
-                                  key={percentage}
-                                  onClick={handleTimelineSelect}
+                                setTargetMonth(suggestedDate.getMonth() + 1);
+                                setTargetYear(suggestedDate.getFullYear());
+                              }
+                            };
+                            
+                            return (
+                              <button
+                                key={percentage}
+                                onClick={handleTimelineSelect}
                                   disabled={!isSelectable}
-                                  className={`text-center p-2 rounded border text-xs transition-all duration-200 ${
-                                    isCurrentlySelected
-                                      ? 'border-green-500 bg-green-500/20 shadow-md transform scale-105'
+                                className={`text-center p-2 rounded border text-xs transition-all duration-200 ${
+                                  isCurrentlySelected
+                                    ? 'border-green-500 bg-green-500/20 shadow-md transform scale-105'
                                       : 'border-theme bg-theme-section hover:bg-theme-tertiary hover:scale-102'
-                                  } ${
+                                } ${
                                     !isSelectable 
-                                      ? 'opacity-50 cursor-not-allowed' 
-                                      : 'cursor-pointer'
-                                  }`}
-                                >
-                                  <div className="font-bold">{percentage}% allocation</div>
-                                  <div className={`${
-                                    isCurrentlySelected 
-                                      ? 'text-green-700 font-medium' 
+                                    ? 'opacity-50 cursor-not-allowed' 
+                                    : 'cursor-pointer'
+                                }`}
+                              >
+                                <div className="font-bold">{percentage}% allocation</div>
+                                <div className={`${
+                                  isCurrentlySelected 
+                                    ? 'text-green-700 font-medium' 
                                       : 'text-theme-secondary'
-                                  }`}>
-                                    {formatCurrency(monthlySavings, currency)}/month
-                                  </div>
-                                  <div className={`font-medium ${
-                                    isCurrentlySelected 
-                                      ? 'text-green-700' 
+                                }`}>
+                                  {formatCurrency(monthlySavings, currency)}/month
+                                </div>
+                                <div className={`font-medium ${
+                                  isCurrentlySelected 
+                                    ? 'text-green-700' 
                                       : 'text-theme-secondary'
-                                  }`}>
+                                }`}>
                                     {isSelectable ? `${months} months` : '24+ months'}
-                                  </div>
-                                  <div className="text-xs mt-1">
-                                    {isCurrentlySelected && '✓ Selected'}
+                                </div>
+                                <div className="text-xs mt-1">
+                                  {isCurrentlySelected && '✓ Selected'}
                                     {!isCurrentlySelected && percentage === 70 && isSelectable && '⭐ Recommended'}
                                     {!isCurrentlySelected && percentage !== 70 && isSelectable && 'Click to select'}
                                     {!isSelectable && 'Not feasible'}
-                                  </div>
+                                </div>
                                   {isSelectable && (
-                                    <div className="text-xs text-theme-muted mt-1">
-                                      Target: {suggestedDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
-                                    </div>
-                                  )}
-                                </button>
-                              );
-                            })}
-                          </div>
+                                  <div className="text-xs text-theme-muted mt-1">
+                                    Target: {suggestedDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
+                                  </div>
+                                )}
+                              </button>
+                            );
+                          })}
                         </div>
                       </div>
                     </div>
-                  )}
+                  </div>
+                )}
 
-                  {/* Target date selection */}
-                  <div>
-                    <label className="block text-sm font-medium text-theme-secondary mb-3">
-                      Set Your Target Completion Date
-                    </label>
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 lg:gap-4">
-                      <div>
-                        <label className="block text-xs font-medium mb-1 text-theme-muted">Target Month</label>
-                        <select
-                          value={targetMonth}
+                {/* Target date selection */}
+                <div>
+                  <label className="block text-sm font-medium text-theme-secondary mb-3">
+                    Set Your Target Completion Date
+                  </label>
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 lg:gap-4">
+                    <div>
+                      <label className="block text-xs font-medium mb-1 text-theme-muted">Target Month</label>
+                      <select
+                        value={targetMonth}
                           onChange={e => {
                             setTargetMonth(Number(e.target.value));
                             setSelectedPercentage(null); // Clear percentage selection when manually changing date
                           }}
-                          className="w-full px-3 py-2 lg:py-3 text-sm lg:text-base border border-theme bg-theme-card text-theme-primary rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        >
-                          {monthOptions.map((month, index) => (
-                            <option key={month} value={index + 1}>{month}</option>
-                          ))}
-                        </select>
-                      </div>
-                      <div>
-                        <label className="block text-xs font-medium mb-1 text-theme-muted">Target Year</label>
-                        <select
-                          value={targetYear}
+                        className="w-full px-3 py-2 lg:py-3 text-sm lg:text-base border border-theme bg-theme-card text-theme-primary rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      >
+                        {monthOptions.map((month, index) => (
+                          <option key={month} value={index + 1}>{month}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium mb-1 text-theme-muted">Target Year</label>
+                      <select
+                        value={targetYear}
                           onChange={e => {
                             setTargetYear(Number(e.target.value));
                             setSelectedPercentage(null); // Clear percentage selection when manually changing date
                           }}
-                          className="w-full px-3 py-2 lg:py-3 text-sm lg:text-base border border-theme bg-theme-card text-theme-primary rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        >
-                          {yearOptions.map(year => (
-                            <option key={year} value={year}>{year}</option>
-                          ))}
-                        </select>
-                      </div>
+                        className="w-full px-3 py-2 lg:py-3 text-sm lg:text-base border border-theme bg-theme-card text-theme-primary rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      >
+                        {yearOptions.map(year => (
+                          <option key={year} value={year}>{year}</option>
+                        ))}
+                      </select>
                     </div>
-                    
-                    {/* Timeline feedback */}
-                    <div className="mt-3 p-3 bg-theme-section border border-blue-500/30 rounded-lg">
-                      <div className="flex justify-between items-center text-sm">
-                        <span className="text-theme-secondary">Time to complete:</span>
-                        <span className="font-bold text-blue-600">{horizonMonths} months</span>
-                      </div>
-                      <div className="flex justify-between items-center text-sm mt-1">
-                        <span className="text-theme-secondary">Required monthly savings:</span>
+                  </div>
+                  
+                  {/* Timeline feedback */}
+                  <div className="mt-3 p-3 bg-theme-section border border-blue-500/30 rounded-lg">
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="text-theme-secondary">Time to complete:</span>
+                      <span className="font-bold text-blue-600">{horizonMonths} months</span>
+                    </div>
+                    <div className="flex justify-between items-center text-sm mt-1">
+                      <span className="text-theme-secondary">Required monthly savings:</span>
                         <span className="font-bold text-lg text-theme-primary">
                           {remainingAmount > 0 ? formatCurrency(requiredPMT, currency) : formatCurrency(0, currency)}
                         </span>
-                      </div>
+                    </div>
                       {remainingAmount === 0 && (
                         <div className="mt-2 text-xs text-green-600">
                           🎉 Your emergency fund is already complete with current savings!
                         </div>
                       )}
                       {remainingAmount > 0 && horizonMonths <= 6 && (
-                        <div className="mt-2 text-xs text-green-600">
-                          ✅ Excellent timeline! Building your safety net quickly is wise.
-                        </div>
-                      )}
+                      <div className="mt-2 text-xs text-green-600">
+                        ✅ Excellent timeline! Building your safety net quickly is wise.
+                      </div>
+                    )}
                       {remainingAmount > 0 && horizonMonths > 12 && (
-                        <div className="mt-2 text-xs text-amber-600">
-                          ⚠️ Consider a shorter timeline - emergency funds should be prioritized.
-                        </div>
-                      )}
+                      <div className="mt-2 text-xs text-amber-600">
+                        ⚠️ Consider a shorter timeline - emergency funds should be prioritized.
+                      </div>
+                    )}
                     </div>
                   </div>
                 </div>
