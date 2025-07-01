@@ -1,6 +1,15 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { usePlanner } from '../context/PlannerContext';
 import { useCurrency } from '../context/CurrencyContext';
+import { useAuth } from '../context/AuthContext';
+import { 
+  getUserGoalProgress, 
+  saveGoalProgress, 
+  calculateCurrentProgress,
+  migrateActualProgressData,
+  getCurrentMonth,
+  type GoalProgressEntry 
+} from '../services/goalProgressService';
 import { 
   TrendingUp,
   Target,
@@ -71,10 +80,25 @@ const LiveDashboard: React.FC<LiveDashboardProps> = ({
   connectedAccounts = [],
   bankConnectionStatus = 'none'
 }) => {
-  const { state, dispatch } = usePlanner();
+  const { state, dispatch, saveToSupabase, accessToken } = usePlanner();
+  
+  // Get user and session for REST API
+  const { user } = useAuth();
+  const session = { access_token: accessToken };
   const { currency } = useCurrency();
+  
+  // Simple formatting function
+  const formatAmount = (amount: number) => {
+    return `${currency.symbol} ${amount.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
+  };
   const [activeTab, setActiveTab] = useState<'overview' | 'goals' | 'insights' | 'settings'>('overview');
-  const [trackingMode, setTrackingMode] = useState<'automatic' | 'manual' | null>(null);
+  const [trackingMode, setTrackingMode] = useState<'automatic' | 'manual' | null>(() => {
+    return (localStorage.getItem('emergencyFundTrackingMode') as 'automatic' | 'manual') || null;
+  });
+
+  // Add state for progress updates and user feedback
+  const [isUpdatingProgress, setIsUpdatingProgress] = useState(false);
+  const [updateMessage, setUpdateMessage] = useState<{ type: 'success' | 'error' | 'info'; text: string } | null>(null);
 
   // Load tracking mode preference on mount
   useEffect(() => {
@@ -94,14 +118,100 @@ const LiveDashboard: React.FC<LiveDashboardProps> = ({
     }
   }, [connectedAccounts.length, connectedAccounts.some(acc => acc.is_emergency_fund), trackingMode]); // Stable dependencies
   const [editingGoal, setEditingGoal] = useState<string | null>(null);
-  const [actualProgress, setActualProgress] = useState<ActualProgress[]>(
-    state.goals.map(goal => ({
-      goalId: goal.id,
-      actualAmount: 0,
-      lastUpdated: new Date(),
-      monthlyActual: 0
-    }))
-  );
+  
+  // New goal progress system
+  const [goalProgressEntries, setGoalProgressEntries] = useState<GoalProgressEntry[]>([]);
+  const [isLoadingProgress, setIsLoadingProgress] = useState(true);
+  const [progressError, setProgressError] = useState<string | null>(null);
+  
+  // Local state for input fields (immediate UI updates)
+  const [localProgress, setLocalProgress] = useState<{[goalId: string]: {actualAmount: number; monthlyActual: number}}>({});
+
+  // Load goal progress data on component mount and when user/access token changes
+  useEffect(() => {
+    const loadGoalProgress = async () => {
+      if (!user?.id || !accessToken) {
+        console.log('⏳ Waiting for user and access token to load goal progress...');
+        return;
+      }
+
+      setIsLoadingProgress(true);
+      setProgressError(null);
+
+      try {
+        console.log('📊 Loading goal progress from database...');
+        const result = await getUserGoalProgress(user.id, accessToken);
+        
+        if (result.success && result.data) {
+          setGoalProgressEntries(result.data);
+          console.log('✅ Goal progress loaded:', result.data.length, 'entries');
+          
+          // If no progress data exists but we have savedActualProgress, migrate it
+          if (result.data.length === 0 && state.savedActualProgress && state.savedActualProgress.length > 0) {
+            console.log('🔄 Migrating existing progress data...');
+            const migrationResult = await migrateActualProgressData(
+              user.id,
+              state.savedActualProgress,
+                             state.goals.map(g => ({ id: g.id, requiredPmt: g.requiredPMT || 0 })),
+              accessToken
+            );
+            
+            if (migrationResult.success) {
+              // Reload progress after migration
+              const reloadResult = await getUserGoalProgress(user.id, accessToken);
+              if (reloadResult.success && reloadResult.data) {
+                setGoalProgressEntries(reloadResult.data);
+                console.log('✅ Progress migrated and reloaded');
+              }
+            }
+          }
+        } else {
+          setProgressError(result.error || 'Failed to load progress');
+        }
+      } catch (error) {
+        console.error('❌ Error loading goal progress:', error);
+        setProgressError(error instanceof Error ? error.message : 'Unknown error');
+      } finally {
+        setIsLoadingProgress(false);
+      }
+    };
+
+    loadGoalProgress();
+  }, [user?.id, accessToken, state.goals.length]); // Reload when goals change
+
+  // Calculate current progress for each goal
+  const actualProgress = useMemo(() => {
+    let progressData;
+    
+    if (isLoadingProgress || goalProgressEntries.length === 0) {
+      // Return default progress while loading or if no data
+      progressData = state.goals.map(goal => ({
+        goalId: goal.id,
+        actualAmount: 0,
+        lastUpdated: new Date(),
+        monthlyActual: 0
+      }));
+    } else {
+      progressData = calculateCurrentProgress(goalProgressEntries, state.goals.map(g => g.id));
+    }
+
+    // Initialize local progress state from actual progress
+    const newLocalProgress: {[goalId: string]: {actualAmount: number; monthlyActual: number}} = {};
+    progressData.forEach(progress => {
+      newLocalProgress[progress.goalId] = {
+        actualAmount: progress.actualAmount,
+        monthlyActual: progress.monthlyActual
+      };
+    });
+    
+    // Only update if significantly different to avoid infinite loops
+    if (Object.keys(localProgress).length === 0 || 
+        JSON.stringify(newLocalProgress) !== JSON.stringify(localProgress)) {
+      setLocalProgress(newLocalProgress);
+    }
+
+    return progressData;
+  }, [goalProgressEntries, state.goals, isLoadingProgress]);
 
   // Calculate current month progress
   const currentMonth = differenceInMonths(new Date(), new Date()) + 1;
@@ -225,7 +335,31 @@ const LiveDashboard: React.FC<LiveDashboardProps> = ({
     return recommendations;
   }, [currentPlan, currency, bankConnectionStatus, state.goals]);
 
-  const updateActualAmount = (goalId: string, amount: number) => {
+  // Debounced save function to avoid saving on every keystroke
+  const [saveTimeouts, setSaveTimeouts] = useState<{[goalId: string]: NodeJS.Timeout}>({});
+
+  const debouncedSaveProgress = (goalId: string, amount: number, delay: number = 1000) => {
+    // Clear existing timeout for this goal
+    if (saveTimeouts[goalId]) {
+      clearTimeout(saveTimeouts[goalId]);
+    }
+
+    // Set new timeout
+    const timeoutId = setTimeout(async () => {
+      await saveActualAmountToDatabase(goalId, amount);
+      // Remove timeout from state
+      setSaveTimeouts(prev => {
+        const newTimeouts = { ...prev };
+        delete newTimeouts[goalId];
+        return newTimeouts;
+      });
+    }, delay);
+
+    // Store timeout ID
+    setSaveTimeouts(prev => ({ ...prev, [goalId]: timeoutId }));
+  };
+
+  const saveActualAmountToDatabase = async (goalId: string, amount: number) => {
     // Only prevent manual updates for emergency fund if user chose automatic tracking AND has connected account
     const emergencyAccount = connectedAccounts.find(acc => acc.is_emergency_fund);
     const goal = state.goals.find(g => g.id === goalId);
@@ -235,14 +369,66 @@ const LiveDashboard: React.FC<LiveDashboardProps> = ({
       console.log('⚠️ Emergency fund is automatically tracked from bank account');
       return;
     }
-    
-    setActualProgress(prev => 
-      prev.map(p => 
-        p.goalId === goalId 
-          ? { ...p, actualAmount: amount, lastUpdated: new Date() }
-          : p
-      )
-    );
+
+    if (!user?.id || !accessToken) {
+      console.error('❌ User authentication required to update progress');
+      return;
+    }
+
+    try {
+      const currentMonth = getCurrentMonth();
+      const plannedAmount = goal?.requiredPMT || 0;
+      
+      // Save progress to goal_progress table
+      const result = await saveGoalProgress(
+        user.id,
+        goalId,
+        currentMonth,
+        amount, // This is the cumulative amount
+        plannedAmount,
+        accessToken,
+        'Manual progress update'
+      );
+
+      if (result.success) {
+        // Reload progress data to refresh the UI
+        const progressResult = await getUserGoalProgress(user.id, accessToken);
+        if (progressResult.success && progressResult.data) {
+          setGoalProgressEntries(progressResult.data);
+          console.log('✅ Progress updated and reloaded');
+        }
+      } else {
+        console.error('❌ Failed to update progress:', result.error);
+      }
+    } catch (error) {
+      console.error('❌ Error updating actual amount:', error);
+    }
+  };
+
+  // Immediate local update for responsive UI
+  const updateActualAmount = (goalId: string, amount: number) => {
+    // Update local state immediately for responsive UI
+    setLocalProgress(prev => ({
+      ...prev,
+      [goalId]: {
+        ...prev[goalId],
+        actualAmount: amount
+      }
+    }));
+
+    // Save to database with debounce
+    debouncedSaveProgress(goalId, amount);
+  };
+
+  // Update monthly contribution (local state only, saves via Update Progress button)
+  const updateMonthlyContribution = (goalId: string, amount: number) => {
+    setLocalProgress(prev => ({
+      ...prev,
+      [goalId]: {
+        ...prev[goalId],
+        monthlyActual: amount
+      }
+    }));
   };
 
   // Goal editing functions
@@ -285,6 +471,176 @@ const LiveDashboard: React.FC<LiveDashboardProps> = ({
           targetYear: currentEmergencyFund.targetDate.getFullYear()
         }
       });
+    }
+  };
+
+  // Comprehensive Update Progress function
+  const handleUpdateProgress = async () => {
+    if (isUpdatingProgress) return; // Prevent double-clicks
+    
+    setIsUpdatingProgress(true);
+    setUpdateMessage({ type: 'info', text: 'Saving your progress...' });
+    
+    try {
+      // 1. Save Progress to Database via REST API
+      setUpdateMessage({ type: 'info', text: 'Testing connection...' });
+      
+      // Import REST API service
+      const { saveProgressQuick, testConnection } = await import('../services/restApiService');
+      
+      // Check connection first
+      if (!accessToken || !user) {
+        throw new Error('User authentication required');
+      }
+      
+      const isConnected = await testConnection(accessToken);
+      if (!isConnected) {
+        throw new Error('Unable to connect to database. Please check your connection.');
+      }
+      
+      setUpdateMessage({ type: 'info', text: 'Saving your progress...' });
+      console.log('💾 Saving progress to goal_progress table...');
+      
+      // Save each goal's progress to the goal_progress table using local progress
+      const currentMonth = getCurrentMonth();
+      let saveErrors: string[] = [];
+      
+      for (const goal of state.goals) {
+        const localData = localProgress[goal.id];
+        const actualAmount = localData?.actualAmount || 0;
+        
+        if (actualAmount > 0) {
+          const plannedAmount = goal.requiredPMT || 0;
+          
+          const result = await saveGoalProgress(
+            user.id,
+            goal.id,
+            currentMonth,
+            actualAmount,
+            plannedAmount,
+            accessToken,
+            'Progress update from dashboard'
+          );
+          
+          if (!result.success) {
+            saveErrors.push(`${goal.name || goal.id}: ${result.error}`);
+          }
+        }
+      }
+      
+      if (saveErrors.length > 0) {
+        throw new Error(`Failed to save some progress: ${saveErrors.join('; ')}`);
+      }
+      
+      // Also save profile and plan data for compatibility
+      // Merge local progress with actual progress for legacy save
+      const mergedProgress = actualProgress.map(progress => ({
+        ...progress,
+        actualAmount: localProgress[progress.goalId]?.actualAmount ?? progress.actualAmount,
+        monthlyActual: localProgress[progress.goalId]?.monthlyActual ?? progress.monthlyActual
+      }));
+      
+      const legacyResult = await saveProgressQuick(user.id, accessToken, state, mergedProgress);
+      if (!legacyResult.success) {
+        console.warn('Legacy progress save failed:', legacyResult.error);
+        // Don't fail completely, as the main progress is saved in goal_progress table
+      }
+      
+      // 2. Trigger recalculations by dispatching state updates
+      setUpdateMessage({ type: 'info', text: 'Updating calculations...' });
+      console.log('🔄 Triggering recalculations...');
+      
+      // Force recalculation of all allocations
+      const recalculatedState = {
+        ...state,
+        // This will trigger the recalculateAllocations function in the reducer
+        budget: state.budget // Trigger by updating budget (even if same value)
+      };
+      
+      // Dispatch updates to refresh calculations
+      dispatch({ type: 'SET_BUDGET', payload: state.budget });
+      
+      // 3. Sync progress data
+      console.log('📊 Syncing progress data...');
+      
+      // Reload progress data from database to get latest state
+      const progressResult = await getUserGoalProgress(user.id, accessToken);
+      if (progressResult.success && progressResult.data) {
+        setGoalProgressEntries(progressResult.data);
+      }
+      
+      // 4. Update Timeline calculations
+      console.log('📅 Updating timeline calculations...');
+      
+      // Calculate new completion dates based on current progress
+      const updatedGoals = state.goals.map(goal => {
+        const localData = localProgress[goal.id];
+        const currentAmount = localData?.actualAmount || actualProgress.find(p => p.goalId === goal.id)?.actualAmount || 0;
+        
+        if (currentAmount > 0) {
+          // Calculate remaining amount needed
+          const remainingAmount = Math.max(0, goal.amount - currentAmount);
+          const monthlyContribution = goal.requiredPMT || 0;
+          
+          if (monthlyContribution > 0) {
+            // Calculate new target date based on remaining amount and monthly payment
+            const remainingMonths = Math.ceil(remainingAmount / monthlyContribution);
+            const newTargetDate = new Date();
+            newTargetDate.setMonth(newTargetDate.getMonth() + remainingMonths);
+            
+            return {
+              ...goal,
+              // Only update if significantly different to avoid constant changes
+              targetDate: remainingMonths !== goal.horizonMonths ? newTargetDate : goal.targetDate,
+              horizonMonths: remainingMonths !== goal.horizonMonths ? remainingMonths : goal.horizonMonths
+            };
+          }
+        }
+        return goal;
+      });
+      
+      // Update goals with new timelines if changed
+      updatedGoals.forEach(goal => {
+        const originalGoal = state.goals.find(g => g.id === goal.id);
+        if (originalGoal && (
+          goal.targetDate.getTime() !== originalGoal.targetDate.getTime() ||
+          goal.horizonMonths !== originalGoal.horizonMonths
+        )) {
+          dispatch({ type: 'UPDATE_GOAL', payload: goal });
+        }
+      });
+      
+      // 5. Show success message
+      setUpdateMessage({ 
+        type: 'success', 
+        text: '✅ Progress saved successfully! Your financial plan has been updated.' 
+      });
+      
+      // 6. Call parent callback if provided
+      if (onUpdateProgress) {
+        onUpdateProgress();
+      }
+      
+      console.log('✅ Update Progress completed successfully');
+      
+      // Clear success message after 3 seconds
+      setTimeout(() => {
+        setUpdateMessage(null);
+      }, 3000);
+      
+    } catch (error) {
+      console.error('❌ Error updating progress:', error);
+      setUpdateMessage({ 
+        type: 'error', 
+        text: `❌ Failed to save progress: ${error instanceof Error ? error.message : 'Unknown error'}` 
+      });
+      
+      // Clear error message after 5 seconds
+      setTimeout(() => {
+        setUpdateMessage(null);
+      }, 5000);
+    } finally {
+      setIsUpdatingProgress(false);
     }
   };
 
@@ -766,7 +1122,7 @@ const LiveDashboard: React.FC<LiveDashboardProps> = ({
                           )}
                           <input
                             type="number"
-                            value={goal.actualAmount}
+                            value={localProgress[goal.goal.id]?.actualAmount ?? goal.actualAmount}
                             onChange={(e) => updateActualAmount(goal.goal.id, parseFloat(e.target.value) || 0)}
                             disabled={(goal.goal.id === 'emergency-fund' || goal.goal.name === 'Safety Net') && trackingMode === 'automatic' && connectedAccounts.find(acc => acc.is_emergency_fund)}
                             className={`input-dark w-full pl-10 pr-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 ${
@@ -850,16 +1206,10 @@ const LiveDashboard: React.FC<LiveDashboardProps> = ({
                           <PlusCircle className="w-5 h-5 text-theme-muted absolute left-3 top-3" />
                           <input
                             type="number"
-                            value={actualProgress.find(p => p.goalId === goal.goal.id)?.monthlyActual || 0}
+                            value={localProgress[goal.goal.id]?.monthlyActual ?? (actualProgress.find(p => p.goalId === goal.goal.id)?.monthlyActual || 0)}
                             onChange={(e) => {
                               const value = parseFloat(e.target.value) || 0;
-                              setActualProgress(prev => 
-                                prev.map(p => 
-                                  p.goalId === goal.goal.id 
-                                    ? { ...p, monthlyActual: value }
-                                    : p
-                                )
-                              );
+                              updateMonthlyContribution(goal.goal.id, value);
                             }}
                             className="input-dark w-full pl-10 pr-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
                             placeholder="0.00"
@@ -886,8 +1236,31 @@ const LiveDashboard: React.FC<LiveDashboardProps> = ({
                   </div>
                 ))}
 
-                <Button className="w-full" variant="primary" onClick={onUpdateProgress}>
-                  Update Progress
+                {/* Update Progress Feedback */}
+                {updateMessage && (
+                  <div className={`p-3 rounded-lg text-sm font-medium ${
+                    updateMessage.type === 'success' ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300' :
+                    updateMessage.type === 'error' ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300' :
+                    'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300'
+                  }`}>
+                    {updateMessage.text}
+                  </div>
+                )}
+
+                <Button 
+                  className="w-full" 
+                  variant="primary" 
+                  onClick={handleUpdateProgress}
+                  disabled={isUpdatingProgress}
+                >
+                  {isUpdatingProgress ? (
+                    <div className="flex items-center gap-2">
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      Saving Progress...
+                    </div>
+                  ) : (
+                    'Update Progress'
+                  )}
                 </Button>
               </div>
             </CardContent>

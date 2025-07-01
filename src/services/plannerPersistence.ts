@@ -179,6 +179,14 @@ async function loadDataViaRestAPI(userId: string, accessToken: string): Promise<
       const plansData = await plansResponse.json();
       latestPlan = plansData[0] || null;
       console.log('✅ Plans loaded via REST API');
+      
+      // Debug: Check what actualProgress data exists
+      if (latestPlan?.plan_data?.actualProgress) {
+        console.log('🔍 Found saved actualProgress data:', latestPlan.plan_data.actualProgress);
+      } else {
+        console.log('🔍 No actualProgress data found in plan_data');
+        console.log('🔍 Plan data structure:', latestPlan?.plan_data ? Object.keys(latestPlan.plan_data) : 'No plan_data');
+      }
     } else {
       const errorText = await plansResponse.text();
       console.warn('⚠️ Failed to load plans via REST API:', errorText);
@@ -208,9 +216,17 @@ async function loadDataViaRestAPI(userId: string, accessToken: string): Promise<
         emergencyFundCreated: latestPlan.plan_data.emergencyFundCreated || false,
         bufferMonths: latestPlan.plan_data.bufferMonths || 3,
         selectedPhase: latestPlan.plan_data.selectedPhase || 0,
-        allocations: latestPlan.plan_data.allocations || []
+        allocations: latestPlan.plan_data.allocations || [],
+                // Include saved actual progress data
+        savedActualProgress: latestPlan.plan_data.actualProgress || []
       })
     };
+
+    // Debug: Log what we're returning
+    console.log('🔍 Final plannerData keys:', Object.keys(plannerData));
+    if (latestPlan?.plan_data?.actualProgress) {
+      console.log('🔍 Returning savedActualProgress:', latestPlan.plan_data.actualProgress);
+    }
 
     console.log('✅ Successfully reconstructed planning data via REST API');
     return { success: true, data: plannerData };

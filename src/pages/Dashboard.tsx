@@ -24,7 +24,6 @@ const DashboardContent: React.FC = () => {
   const [isBankManagementOpen, setIsBankManagementOpen] = useState(false);
   const [forceNewConnection, setForceNewConnection] = useState(false);
   const [connectedAccounts, setConnectedAccounts] = useState<any[]>([]);
-
   const [bankConnectionStatus, setBankConnectionStatus] = useState<'none' | 'partial' | 'complete'>('none');
 
   // Handle URL hash tokens for email confirmation
@@ -189,8 +188,6 @@ const DashboardContent: React.FC = () => {
     );
   }
 
-
-
   const handleBackToHome = () => {
     window.location.href = '/';
   };
@@ -220,30 +217,11 @@ const DashboardContent: React.FC = () => {
   };
 
   const handleSaveEditedPlan = async () => {
-    try {
-      console.log('💾 Saving edited plan...');
-      
-      if (!user) {
-        console.error('❌ No user found for saving');
-        return;
-      }
-
-      // Save the updated planner state to Supabase
-      const result = await plannerPersistence.savePlanningData(user.id, state);
-      
-      if (result.success) {
-        console.log('✅ Plan saved successfully');
-        // You could show a success toast notification here
-      } else {
-        console.error('❌ Failed to save plan:', result.error);
-        // You could show an error toast notification here
-      }
-    } catch (error) {
-      console.error('❌ Error saving edited plan:', error);
-    }
+    setIsEditWizardOpen(false);
+    // Plan will auto-save via context
   };
 
-  const handleConnectBank = () => {
+    const handleConnectBank = () => {
     // Check if we have access token from PlannerContext
     if (!accessToken) {
       console.error('❌ No access token available from PlannerContext');
@@ -315,8 +293,6 @@ const DashboardContent: React.FC = () => {
     setForceNewConnection(false); // Reset the flag
     sessionStorage.setItem('bank_wizard_dismissed', 'true');
   };
-
-
 
   return (
     <div className="min-h-screen app-background">
@@ -420,10 +396,7 @@ const DashboardContent: React.FC = () => {
             // Could trigger plan re-optimization
             console.log('Optimizing plan...');
           }}
-          onUpdateProgress={() => {
-            // Handle progress updates
-            console.log('Updating progress...');
-          }}
+          onUpdateProgress={undefined}
           onConnectBank={handleConnectBank}
           onManageBanks={handleManageBanks}
           connectedAccounts={connectedAccounts}

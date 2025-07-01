@@ -32,6 +32,8 @@ export interface PlannerState {
   // Add loading state
   isLoading: boolean;
   isDataLoaded: boolean;
+  // Saved actual progress data from database
+  savedActualProgress?: any[];
 }
 
 // Define the initial state
@@ -398,6 +400,7 @@ const plannerReducer = (state: PlannerState, action: PlannerAction): PlannerStat
 
     case 'LOAD_PLANNING_DATA': {
       const loadedData = action.payload;
+      console.log('🔄 LOAD_PLANNING_DATA: savedActualProgress =', loadedData.savedActualProgress);
       newState = {
         ...state,
         currentStep: loadedData.currentStep ?? state.currentStep,
@@ -412,7 +415,9 @@ const plannerReducer = (state: PlannerState, action: PlannerAction): PlannerStat
         leftoverSavings: loadedData.leftoverSavings ?? state.leftoverSavings,
         userProfile: loadedData.userProfile ?? state.userProfile,
         isLoading: loadedData.isLoading ?? false,
-        isDataLoaded: loadedData.isDataLoaded ?? true
+        isDataLoaded: loadedData.isDataLoaded ?? true,
+        // ✅ Include savedActualProgress in the state
+        savedActualProgress: loadedData.savedActualProgress ?? state.savedActualProgress
       };
       newState.allocations = recalculateAllocations(newState);
       return newState;
@@ -753,26 +758,129 @@ export const PlannerProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
   }, [state, user, session]); // Include user and session in dependencies
 
-  // Save function to persist changes to Supabase (kept for manual use)
+  // REST API save function that doesn't use Supabase client (prevents hanging)
   const saveToSupabase = async (): Promise<{ success: boolean; error?: string }> => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) {
+      if (!user || !session?.access_token) {
         return { success: false, error: 'User not authenticated' };
       }
 
-      console.log('Saving planning data to Supabase...');
-      const result = await plannerPersistence.savePlanningData(user.id, state);
+      console.log('💾 Saving planning data via REST API...');
       
-      if (result.success) {
-        console.log('Successfully saved planning data to Supabase');
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+      
+      const headers = {
+        'apikey': anonKey,
+        'Authorization': `Bearer ${session.access_token}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=representation'
+      };
+
+      // Helper function with timeout
+      const fetchWithTimeout = async (url: string, options: RequestInit, timeoutMs: number = 8000) => {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+        
+        try {
+          const response = await fetch(url, {
+            ...options,
+            signal: controller.signal
+          });
+          clearTimeout(timeoutId);
+          return response;
+        } catch (error: any) {
+          clearTimeout(timeoutId);
+          if (error?.name === 'AbortError') {
+            throw new Error(`Request timed out after ${timeoutMs}ms`);
+          }
+          throw error;
+        }
+      };
+
+      // 1. Save/Update User Profile
+      console.log('🔄 Saving profile...');
+      const profileData = {
+        id: user.id,
+        monthly_income: state.userProfile.monthlyIncome || 0,
+        monthly_expenses: state.monthlyExpenses || 0,
+        current_savings: state.userProfile.currentSavings || 0,
+        currency: state.userProfile.currency || 'AED',
+        full_name: state.userProfile.name || '',
+        country: state.userProfile.location || '',
+        nationality: state.userProfile.nationality || '',
+        planning_type: state.userProfile.planningType || 'individual',
+        family_size: state.userProfile.familySize || 1,
+        risk_profile: (state.selectedPhase === 0 ? 'Conservative' : 
+                     state.selectedPhase === 1 ? 'Balanced' : 'Growth'),
+        updated_at: new Date().toISOString()
+      };
+
+      const profileResponse = await fetchWithTimeout(`${supabaseUrl}/rest/v1/profiles`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(profileData)
+      });
+
+      if (!profileResponse.ok) {
+        // Try update instead of insert
+        const updateResponse = await fetchWithTimeout(`${supabaseUrl}/rest/v1/profiles?id=eq.${user.id}`, {
+          method: 'PATCH',
+          headers,
+          body: JSON.stringify(profileData)
+        });
+        
+        if (!updateResponse.ok) {
+          const errorText = await updateResponse.text();
+          console.error('❌ Failed to save profile:', errorText);
+          return { success: false, error: `Failed to save profile: ${updateResponse.status}` };
+        }
       }
-      
-      return result;
+      console.log('✅ Profile saved');
+
+      // 2. Save Financial Plan Summary (lightweight save for progress updates)
+      console.log('🔄 Saving financial plan...');
+      const planData = {
+        user_id: user.id,
+        plan_name: `Progress Update - ${new Date().toLocaleDateString()}`,
+        funding_style: state.fundingStyle,
+        total_monthly_allocation: state.budget,
+        plan_data: {
+          currentStep: state.currentStep,
+          emergencyFundCreated: state.emergencyFundCreated,
+          bufferMonths: state.bufferMonths,
+          selectedPhase: state.selectedPhase,
+          allocations: state.allocations,
+          userProfile: state.userProfile,
+          leftoverSavings: state.leftoverSavings || 0,
+          lastProgressUpdate: new Date().toISOString()
+        },
+        is_active: true,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
+
+      const planResponse = await fetchWithTimeout(`${supabaseUrl}/rest/v1/financial_plans`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(planData)
+      });
+
+      if (!planResponse.ok) {
+        const errorText = await planResponse.text();
+        console.error('❌ Failed to save plan:', errorText);
+        return { success: false, error: `Failed to save plan: ${planResponse.status}` };
+      }
+
+      console.log('✅ Successfully saved progress via REST API');
+      return { success: true };
+
     } catch (error) {
-      console.error('Error saving to Supabase:', error);
-      return { success: false, error: 'Failed to save data' };
+      console.error('❌ Error saving via REST API:', error);
+      return { 
+        success: false, 
+        error: error instanceof Error ? error.message : 'Failed to save progress' 
+      };
     }
   };
 
