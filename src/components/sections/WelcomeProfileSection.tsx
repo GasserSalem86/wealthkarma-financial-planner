@@ -68,32 +68,82 @@ const WelcomeProfileSection: React.FC<WelcomeProfileSectionProps> = ({ onNext })
     'Hong Konger', 'Macanese', 'Puerto Rican', 'Kosovar', 'Palestinian', 'Gibraltarian', 'Greenlander', 'Faroese', 'Other'
   ];
 
-  // --- LOCATIONS: Major cities and capitals for all countries, deduped and consistent ---
-  const locationOptions = [
-    // Middle East
-    'Abu Dhabi, UAE', 'Dubai, UAE', 'Sharjah, UAE', 'Ajman, UAE', 'Al Ain, UAE', 'Riyadh, Saudi Arabia', 'Jeddah, Saudi Arabia', 'Dammam, Saudi Arabia', 'Mecca, Saudi Arabia', 'Medina, Saudi Arabia', 'Doha, Qatar', 'Kuwait City, Kuwait', 'Manama, Bahrain', 'Muscat, Oman', 'Amman, Jordan', 'Baghdad, Iraq', 'Beirut, Lebanon', 'Damascus, Syria', 'Sana\'a, Yemen', 'Jerusalem, Israel', 'Gaza City, Palestine', 'Ramallah, Palestine', 'Tehran, Iran', 'Ankara, Turkey', 'Istanbul, Turkey',
-
-    // Africa
-    'Cairo, Egypt', 'Alexandria, Egypt', 'Lagos, Nigeria', 'Abuja, Nigeria', 'Johannesburg, South Africa', 'Cape Town, South Africa', 'Durban, South Africa', 'Nairobi, Kenya', 'Mombasa, Kenya', 'Casablanca, Morocco', 'Rabat, Morocco', 'Accra, Ghana', 'Kumasi, Ghana', 'Addis Ababa, Ethiopia', 'Algiers, Algeria', 'Dakar, Senegal', 'Tunis, Tunisia', 'Kampala, Uganda', 'Harare, Zimbabwe', 'Maputo, Mozambique', 'Luanda, Angola', 'Kinshasa, DR Congo', 'Brazzaville, Republic of the Congo', 'Antananarivo, Madagascar', 'Tripoli, Libya', 'Khartoum, Sudan', 'Gaborone, Botswana', 'Windhoek, Namibia', 'Bamako, Mali', 'Ouagadougou, Burkina Faso', 'Lusaka, Zambia', 'Abidjan, Côte d\'Ivoire', 'Freetown, Sierra Leone', 'Banjul, Gambia', 'Monrovia, Liberia', 'Kigali, Rwanda', 'Lilongwe, Malawi', 'Djibouti, Djibouti', 'Nouakchott, Mauritania', 'Port Louis, Mauritius', 'Victoria, Seychelles', 'Moroni, Comoros', 'São Tomé, São Tomé and Príncipe',
-
-    // Asia
-    'Beijing, China', 'Shanghai, China', 'Shenzhen, China', 'Hong Kong, China', 'Macau, China', 'Tokyo, Japan', 'Osaka, Japan', 'Seoul, South Korea', 'Busan, South Korea', 'Pyongyang, North Korea', 'Bangkok, Thailand', 'Singapore', 'Kuala Lumpur, Malaysia', 'Penang, Malaysia', 'Jakarta, Indonesia', 'Surabaya, Indonesia', 'Manila, Philippines', 'Cebu, Philippines', 'Mumbai, India', 'Delhi, India', 'Bangalore, India', 'Chennai, India', 'Kolkata, India', 'Islamabad, Pakistan', 'Karachi, Pakistan', 'Dhaka, Bangladesh', 'Kathmandu, Nepal', 'Colombo, Sri Lanka', 'Hanoi, Vietnam', 'Ho Chi Minh City, Vietnam', 'Taipei, Taiwan', 'Ulaanbaatar, Mongolia', 'Phnom Penh, Cambodia', 'Vientiane, Laos', 'Yangon, Myanmar', 'Dili, Timor-Leste', 'Thimphu, Bhutan', 'Male, Maldives', 'Tashkent, Uzbekistan', 'Bishkek, Kyrgyzstan', 'Dushanbe, Tajikistan', 'Ashgabat, Turkmenistan', 'Nur-Sultan, Kazakhstan', 'Yerevan, Armenia', 'Baku, Azerbaijan', 'Tbilisi, Georgia',
-
-    // Europe
-    'London, UK', 'Manchester, UK', 'Birmingham, UK', 'Edinburgh, UK', 'Glasgow, UK', 'Paris, France', 'Marseille, France', 'Lyon, France', 'Berlin, Germany', 'Munich, Germany', 'Frankfurt, Germany', 'Hamburg, Germany', 'Madrid, Spain', 'Barcelona, Spain', 'Valencia, Spain', 'Rome, Italy', 'Milan, Italy', 'Naples, Italy', 'Amsterdam, Netherlands', 'Rotterdam, Netherlands', 'Brussels, Belgium', 'Antwerp, Belgium', 'Zurich, Switzerland', 'Geneva, Switzerland', 'Vienna, Austria', 'Salzburg, Austria', 'Stockholm, Sweden', 'Gothenburg, Sweden', 'Copenhagen, Denmark', 'Aarhus, Denmark', 'Oslo, Norway', 'Bergen, Norway', 'Dublin, Ireland', 'Cork, Ireland', 'Lisbon, Portugal', 'Porto, Portugal', 'Prague, Czech Republic', 'Warsaw, Poland', 'Budapest, Hungary', 'Athens, Greece', 'Thessaloniki, Greece', 'Moscow, Russia', 'Saint Petersburg, Russia', 'Helsinki, Finland', 'Tallinn, Estonia', 'Riga, Latvia', 'Vilnius, Lithuania', 'Bratislava, Slovakia', 'Ljubljana, Slovenia', 'Zagreb, Croatia', 'Belgrade, Serbia', 'Sarajevo, Bosnia and Herzegovina', 'Podgorica, Montenegro', 'Skopje, North Macedonia', 'Sofia, Bulgaria', 'Bucharest, Romania', 'Chisinau, Moldova', 'Kiev, Ukraine', 'Minsk, Belarus', 'Luxembourg City, Luxembourg', 'Monaco', 'San Marino', 'Andorra la Vella, Andorra', 'Vaduz, Liechtenstein', 'Valletta, Malta', 'Reykjavik, Iceland', 'Tirana, Albania',
-
-    // North America
-    'New York, USA', 'Los Angeles, USA', 'San Francisco, USA', 'Chicago, USA', 'Houston, USA', 'Miami, USA', 'Washington, D.C., USA', 'Boston, USA', 'Toronto, Canada', 'Vancouver, Canada', 'Montreal, Canada', 'Ottawa, Canada', 'Calgary, Canada', 'Mexico City, Mexico', 'Guadalajara, Mexico', 'Monterrey, Mexico', 'San Juan, Puerto Rico', 'Havana, Cuba', 'Kingston, Jamaica', 'Port-au-Prince, Haiti', 'Santo Domingo, Dominican Republic', 'Panama City, Panama', 'San Jose, Costa Rica', 'Guatemala City, Guatemala', 'Tegucigalpa, Honduras', 'San Salvador, El Salvador', 'Managua, Nicaragua', 'Belmopan, Belize',
-
-    // South America
-    'São Paulo, Brazil', 'Rio de Janeiro, Brazil', 'Brasília, Brazil', 'Buenos Aires, Argentina', 'Córdoba, Argentina', 'Santiago, Chile', 'Valparaíso, Chile', 'Bogotá, Colombia', 'Medellín, Colombia', 'Lima, Peru', 'Quito, Ecuador', 'Caracas, Venezuela', 'La Paz, Bolivia', 'Asunción, Paraguay', 'Montevideo, Uruguay', 'Georgetown, Guyana', 'Paramaribo, Suriname',
-
-    // Oceania
-    'Sydney, Australia', 'Melbourne, Australia', 'Brisbane, Australia', 'Perth, Australia', 'Adelaide, Australia', 'Auckland, New Zealand', 'Wellington, New Zealand', 'Christchurch, New Zealand', 'Suva, Fiji', 'Port Moresby, Papua New Guinea', 'Apia, Samoa', 'Nukuʻalofa, Tonga', 'Port Vila, Vanuatu', 'Honiara, Solomon Islands', 'Funafuti, Tuvalu', 'Palikir, Micronesia', 'Majuro, Marshall Islands', 'Yaren, Nauru', 'Tarawa, Kiribati',
-
-    // Other/General
-    'Other'
-  ];
+  // --- LOCATIONS: Major cities and capitals organized by regions ---
+  const locationGroups = {
+    'Middle East': [
+      'Abu Dhabi, UAE', 'Dubai, UAE', 'Sharjah, UAE', 'Ajman, UAE', 'Al Ain, UAE', 
+      'Riyadh, Saudi Arabia', 'Jeddah, Saudi Arabia', 'Dammam, Saudi Arabia', 'Mecca, Saudi Arabia', 'Medina, Saudi Arabia', 
+      'Doha, Qatar', 'Kuwait City, Kuwait', 'Manama, Bahrain', 'Muscat, Oman', 'Amman, Jordan', 
+      'Baghdad, Iraq', 'Beirut, Lebanon', 'Damascus, Syria', 'Sana\'a, Yemen', 
+      'Jerusalem, Israel', 'Gaza City, Palestine', 'Ramallah, Palestine', 'Tehran, Iran', 
+      'Ankara, Turkey', 'Istanbul, Turkey'
+    ],
+    'Africa': [
+      'Cairo, Egypt', 'Alexandria, Egypt', 'Lagos, Nigeria', 'Abuja, Nigeria', 
+      'Johannesburg, South Africa', 'Cape Town, South Africa', 'Durban, South Africa', 
+      'Nairobi, Kenya', 'Mombasa, Kenya', 'Casablanca, Morocco', 'Rabat, Morocco', 
+      'Accra, Ghana', 'Kumasi, Ghana', 'Addis Ababa, Ethiopia', 'Algiers, Algeria', 
+      'Dakar, Senegal', 'Tunis, Tunisia', 'Kampala, Uganda', 'Harare, Zimbabwe', 
+      'Maputo, Mozambique', 'Luanda, Angola', 'Kinshasa, DR Congo', 'Brazzaville, Republic of the Congo', 
+      'Antananarivo, Madagascar', 'Tripoli, Libya', 'Khartoum, Sudan', 'Gaborone, Botswana', 
+      'Windhoek, Namibia', 'Bamako, Mali', 'Ouagadougou, Burkina Faso', 'Lusaka, Zambia', 
+      'Abidjan, Côte d\'Ivoire', 'Freetown, Sierra Leone', 'Banjul, Gambia', 'Monrovia, Liberia', 
+      'Kigali, Rwanda', 'Lilongwe, Malawi', 'Djibouti, Djibouti', 'Nouakchott, Mauritania', 
+      'Port Louis, Mauritius', 'Victoria, Seychelles', 'Moroni, Comoros', 'São Tomé, São Tomé and Príncipe'
+    ],
+    'Asia': [
+      'Beijing, China', 'Shanghai, China', 'Shenzhen, China', 'Hong Kong, China', 'Macau, China', 
+      'Tokyo, Japan', 'Osaka, Japan', 'Seoul, South Korea', 'Busan, South Korea', 'Pyongyang, North Korea', 
+      'Bangkok, Thailand', 'Singapore', 'Kuala Lumpur, Malaysia', 'Penang, Malaysia', 
+      'Jakarta, Indonesia', 'Surabaya, Indonesia', 'Manila, Philippines', 'Cebu, Philippines', 
+      'Mumbai, India', 'Delhi, India', 'Bangalore, India', 'Chennai, India', 'Kolkata, India', 
+      'Islamabad, Pakistan', 'Karachi, Pakistan', 'Dhaka, Bangladesh', 'Kathmandu, Nepal', 
+      'Colombo, Sri Lanka', 'Hanoi, Vietnam', 'Ho Chi Minh City, Vietnam', 'Taipei, Taiwan', 
+      'Ulaanbaatar, Mongolia', 'Phnom Penh, Cambodia', 'Vientiane, Laos', 'Yangon, Myanmar', 
+      'Dili, Timor-Leste', 'Thimphu, Bhutan', 'Male, Maldives', 'Tashkent, Uzbekistan', 
+      'Bishkek, Kyrgyzstan', 'Dushanbe, Tajikistan', 'Ashgabat, Turkmenistan', 'Nur-Sultan, Kazakhstan', 
+      'Yerevan, Armenia', 'Baku, Azerbaijan', 'Tbilisi, Georgia'
+    ],
+    'Europe': [
+      'London, UK', 'Manchester, UK', 'Birmingham, UK', 'Edinburgh, UK', 'Glasgow, UK', 
+      'Paris, France', 'Marseille, France', 'Lyon, France', 'Berlin, Germany', 'Munich, Germany', 
+      'Frankfurt, Germany', 'Hamburg, Germany', 'Madrid, Spain', 'Barcelona, Spain', 'Valencia, Spain', 
+      'Rome, Italy', 'Milan, Italy', 'Naples, Italy', 'Amsterdam, Netherlands', 'Rotterdam, Netherlands', 
+      'Brussels, Belgium', 'Antwerp, Belgium', 'Zurich, Switzerland', 'Geneva, Switzerland', 
+      'Vienna, Austria', 'Salzburg, Austria', 'Stockholm, Sweden', 'Gothenburg, Sweden', 
+      'Copenhagen, Denmark', 'Aarhus, Denmark', 'Oslo, Norway', 'Bergen, Norway', 'Dublin, Ireland', 
+      'Cork, Ireland', 'Lisbon, Portugal', 'Porto, Portugal', 'Prague, Czech Republic', 'Warsaw, Poland', 
+      'Budapest, Hungary', 'Athens, Greece', 'Thessaloniki, Greece', 'Moscow, Russia', 'Saint Petersburg, Russia', 
+      'Helsinki, Finland', 'Tallinn, Estonia', 'Riga, Latvia', 'Vilnius, Lithuania', 'Bratislava, Slovakia', 
+      'Ljubljana, Slovenia', 'Zagreb, Croatia', 'Belgrade, Serbia', 'Sarajevo, Bosnia and Herzegovina', 
+      'Podgorica, Montenegro', 'Skopje, North Macedonia', 'Sofia, Bulgaria', 'Bucharest, Romania', 
+      'Chisinau, Moldova', 'Kiev, Ukraine', 'Minsk, Belarus', 'Luxembourg City, Luxembourg', 'Monaco', 
+      'San Marino', 'Andorra la Vella, Andorra', 'Vaduz, Liechtenstein', 'Valletta, Malta', 'Reykjavik, Iceland', 
+      'Tirana, Albania'
+    ],
+    'North America': [
+      'New York, USA', 'Los Angeles, USA', 'San Francisco, USA', 'Chicago, USA', 'Houston, USA', 
+      'Miami, USA', 'Washington, D.C., USA', 'Boston, USA', 'Toronto, Canada', 'Vancouver, Canada', 
+      'Montreal, Canada', 'Ottawa, Canada', 'Calgary, Canada', 'Mexico City, Mexico', 'Guadalajara, Mexico', 
+      'Monterrey, Mexico', 'San Juan, Puerto Rico', 'Havana, Cuba', 'Kingston, Jamaica', 'Port-au-Prince, Haiti', 
+      'Santo Domingo, Dominican Republic', 'Panama City, Panama', 'San Jose, Costa Rica', 'Guatemala City, Guatemala', 
+      'Tegucigalpa, Honduras', 'San Salvador, El Salvador', 'Managua, Nicaragua', 'Belmopan, Belize'
+    ],
+    'South America': [
+      'São Paulo, Brazil', 'Rio de Janeiro, Brazil', 'Brasília, Brazil', 'Buenos Aires, Argentina', 
+      'Córdoba, Argentina', 'Santiago, Chile', 'Valparaíso, Chile', 'Bogotá, Colombia', 'Medellín, Colombia', 
+      'Lima, Peru', 'Quito, Ecuador', 'Caracas, Venezuela', 'La Paz, Bolivia', 'Asunción, Paraguay', 
+      'Montevideo, Uruguay', 'Georgetown, Guyana', 'Paramaribo, Suriname'
+    ],
+    'Oceania': [
+      'Sydney, Australia', 'Melbourne, Australia', 'Brisbane, Australia', 'Perth, Australia', 'Adelaide, Australia', 
+      'Auckland, New Zealand', 'Wellington, New Zealand', 'Christchurch, New Zealand', 'Suva, Fiji', 
+      'Port Moresby, Papua New Guinea', 'Apia, Samoa', 'Nukuʻalofa, Tonga', 'Port Vila, Vanuatu', 
+      'Honiara, Solomon Islands', 'Funafuti, Tuvalu', 'Palikir, Micronesia', 'Majuro, Marshall Islands', 
+      'Yaren, Nauru', 'Tarawa, Kiribati'
+    ],
+    'Other': ['Other']
+  };
 
   // Use organized currencies from currencyTypes.ts
   const currencyGroups = CURRENCIES.reduce((groups, curr) => {
@@ -339,8 +389,12 @@ const WelcomeProfileSection: React.FC<WelcomeProfileSectionProps> = ({ onNext })
                   className="input-dark w-full rounded-lg px-3 lg:px-4 py-3 lg:py-2 text-base lg:text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors"
                 >
                   <option value="">Select your location</option>
-                  {locationOptions.map(loc => (
-                    <option key={loc} value={loc}>{loc}</option>
+                  {Object.entries(locationGroups).map(([region, locations]) => (
+                    <optgroup key={region} label={region}>
+                      {locations.map(loc => (
+                        <option key={loc} value={loc}>{loc}</option>
+                      ))}
+                    </optgroup>
                   ))}
                 </select>
               </div>
