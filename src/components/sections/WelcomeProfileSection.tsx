@@ -7,7 +7,7 @@ import { PlanningType } from '../../types/plannerTypes';
 import Button from '../ui/Button';
 import Card, { CardHeader, CardTitle, CardContent, CardFooter } from '../ui/Card';
 import AIGuidance from '../AIGuidance';
-import { Bot, Target, TrendingUp, DollarSign, Shield, Sparkles, Brain, Zap, PiggyBank, Users, User } from 'lucide-react';
+import { Target, TrendingUp, Shield, Sparkles, Brain, Zap, PiggyBank, Users, User } from 'lucide-react';
 
 interface WelcomeProfileSectionProps {
   onNext: () => void;
@@ -479,7 +479,7 @@ const WelcomeProfileSection: React.FC<WelcomeProfileSectionProps> = ({ onNext })
                     <span className="text-sm font-medium text-green-300">Current Savings Impact</span>
                   </div>
                   <p className="text-xs text-theme-secondary">
-                    Your {formatCurrency(currentSavings, { code: selectedCurrency || 'USD' } as any)} in savings will be automatically applied to your emergency fund first, then to other goals, reducing your monthly savings requirements.
+                    Your {formatCurrency(currentSavings, { code: selectedCurrency || 'USD', symbol: '$', name: 'US Dollar', region: 'Major' })} in savings will be automatically applied to your emergency fund first, then to other goals, reducing your monthly savings requirements.
                   </p>
                 </div>
               )}
