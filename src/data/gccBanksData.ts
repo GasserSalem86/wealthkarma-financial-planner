@@ -87,7 +87,128 @@ export const gccSavingsAccounts: BankAccount[] = [
   { country: "Oman", bank: "Oman Arab Bank (OAB)", url: "https://www.oman-arabbank.com/personal/accounts/savings-account/", rate: "~0.25%", minDeposit: "No minimum", lockin: "None" },
   { country: "Oman", bank: "Ahli Bank Oman", url: "https://www.ahlibank.om/en/personal/accounts/savings-account", rate: "~0.25%", minDeposit: "No minimum", lockin: "None" },
   { country: "Oman", bank: "Bank Nizwa", url: "https://www.banknizwa.om/personal/accounts/savings-account", rate: "Profit-sharing", minDeposit: "No minimum", lockin: "None" },
-  { country: "Oman", bank: "HSBC Oman", url: "https://www.hsbc.co.om/accounts/products/savings/", rate: "~0.25%", minDeposit: "No minimum", lockin: "None" }
+  { country: "Oman", bank: "HSBC Oman", url: "https://www.hsbc.co.om/accounts/products/savings/", rate: "~0.25%", minDeposit: "No minimum", lockin: "None" },
+
+  // Global Banks - Major Countries
+  // USA
+  { country: "USA", bank: "Chase Bank", url: "https://www.chase.com/personal/savings", rate: "0.01% - 4.50% APY", minDeposit: "No minimum", lockin: "None" },
+  { country: "USA", bank: "Bank of America", url: "https://www.bankofamerica.com/deposits/savings-accounts/", rate: "0.01% - 4.50% APY", minDeposit: "No minimum", lockin: "None" },
+  { country: "USA", bank: "Wells Fargo", url: "https://www.wellsfargo.com/savings-cds/", rate: "0.01% - 4.50% APY", minDeposit: "No minimum", lockin: "None" },
+  { country: "USA", bank: "Citibank", url: "https://www.citi.com/personal/savings/", rate: "0.01% - 4.50% APY", minDeposit: "No minimum", lockin: "None" },
+  { country: "USA", bank: "Capital One", url: "https://www.capitalone.com/bank/savings-accounts/", rate: "4.35% APY", minDeposit: "No minimum", lockin: "None" },
+  { country: "USA", bank: "Ally Bank", url: "https://www.ally.com/bank/online-savings-account/", rate: "4.35% APY", minDeposit: "No minimum", lockin: "None" },
+  { country: "USA", bank: "Marcus by Goldman Sachs", url: "https://www.marcus.com/us/en/savings", rate: "4.40% APY", minDeposit: "No minimum", lockin: "None" },
+
+  // UK
+  { country: "UK", bank: "Barclays", url: "https://www.barclays.co.uk/savings/", rate: "0.01% - 5.12% AER", minDeposit: "No minimum", lockin: "None" },
+  { country: "UK", bank: "HSBC UK", url: "https://www.hsbc.co.uk/savings/", rate: "0.01% - 5.12% AER", minDeposit: "No minimum", lockin: "None" },
+  { country: "UK", bank: "Lloyds Bank", url: "https://www.lloydsbank.com/savings/", rate: "0.01% - 5.12% AER", minDeposit: "No minimum", lockin: "None" },
+  { country: "UK", bank: "NatWest", url: "https://www.natwest.com/savings/", rate: "0.01% - 5.12% AER", minDeposit: "No minimum", lockin: "None" },
+  { country: "UK", bank: "Santander UK", url: "https://www.santander.co.uk/savings/", rate: "0.01% - 5.12% AER", minDeposit: "No minimum", lockin: "None" },
+  { country: "UK", bank: "Nationwide", url: "https://www.nationwide.co.uk/savings/", rate: "0.01% - 5.12% AER", minDeposit: "No minimum", lockin: "None" },
+
+  // Canada
+  { country: "Canada", bank: "Royal Bank of Canada", url: "https://www.rbc.com/canada/savings/", rate: "0.01% - 4.50%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Canada", bank: "TD Canada Trust", url: "https://www.td.com/ca/personal-banking/savings/", rate: "0.01% - 4.50%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Canada", bank: "Scotiabank", url: "https://www.scotiabank.com/ca/en/personal/bank-accounts/savings-accounts.html", rate: "0.01% - 4.50%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Canada", bank: "Bank of Montreal", url: "https://www.bmo.com/main/personal/bank-accounts/savings-accounts/", rate: "0.01% - 4.50%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Canada", bank: "CIBC", url: "https://www.cibc.com/en/personal-banking/accounts/savings-accounts.html", rate: "0.01% - 4.50%", minDeposit: "No minimum", lockin: "None" },
+
+  // Australia
+  { country: "Australia", bank: "Commonwealth Bank", url: "https://www.commbank.com.au/personal/accounts/savings-accounts.html", rate: "0.01% - 5.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Australia", bank: "Westpac", url: "https://www.westpac.com.au/personal-banking/savings-accounts/", rate: "0.01% - 5.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Australia", bank: "ANZ", url: "https://www.anz.com.au/personal/savings-accounts/", rate: "0.01% - 5.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Australia", bank: "National Australia Bank", url: "https://www.nab.com.au/personal/accounts/savings-accounts", rate: "0.01% - 5.00%", minDeposit: "No minimum", lockin: "None" },
+
+  // Germany
+  { country: "Germany", bank: "Deutsche Bank", url: "https://www.deutsche-bank.de/pk/savings/", rate: "0.01% - 3.50%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Germany", bank: "Commerzbank", url: "https://www.commerzbank.de/pk/savings/", rate: "0.01% - 3.50%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Germany", bank: "Sparkasse", url: "https://www.sparkasse.de/savings/", rate: "0.01% - 3.50%", minDeposit: "No minimum", lockin: "None" },
+
+  // France
+  { country: "France", bank: "BNP Paribas", url: "https://www.bnpparibas.fr/epargne/", rate: "0.01% - 3.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "France", bank: "Crédit Agricole", url: "https://www.credit-agricole.fr/epargne/", rate: "0.01% - 3.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "France", bank: "Société Générale", url: "https://www.societegenerale.fr/epargne/", rate: "0.01% - 3.00%", minDeposit: "No minimum", lockin: "None" },
+
+  // Singapore
+  { country: "Singapore", bank: "DBS Bank", url: "https://www.dbs.com.sg/personal/savings/", rate: "0.01% - 3.50%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Singapore", bank: "OCBC Bank", url: "https://www.ocbc.com/personal-banking/savings-accounts", rate: "0.01% - 3.50%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Singapore", bank: "UOB", url: "https://www.uob.com.sg/personal/savings/", rate: "0.01% - 3.50%", minDeposit: "No minimum", lockin: "None" },
+
+  // India
+  { country: "India", bank: "State Bank of India", url: "https://www.sbi.co.in/web/personal-banking/accounts/savings-account", rate: "2.70% - 3.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "India", bank: "HDFC Bank", url: "https://www.hdfcbank.com/personal/savings-accounts", rate: "2.70% - 3.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "India", bank: "ICICI Bank", url: "https://www.icicibank.com/savings-account", rate: "2.70% - 3.00%", minDeposit: "No minimum", lockin: "None" },
+
+  // Japan
+  { country: "Japan", bank: "MUFG Bank", url: "https://www.bk.mufg.jp/english/", rate: "0.001% - 0.01%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Japan", bank: "Sumitomo Mitsui Banking Corporation", url: "https://www.smbc.co.jp/english/", rate: "0.001% - 0.01%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Japan", bank: "Mizuho Bank", url: "https://www.mizuhobank.co.jp/english/", rate: "0.001% - 0.01%", minDeposit: "No minimum", lockin: "None" },
+
+  // South Korea
+  { country: "South Korea", bank: "Shinhan Bank", url: "https://www.shinhan.com/eng/", rate: "0.01% - 3.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "South Korea", bank: "KB Kookmin Bank", url: "https://www.kbstar.com/eng/", rate: "0.01% - 3.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "South Korea", bank: "Woori Bank", url: "https://www.wooribank.com/eng/", rate: "0.01% - 3.00%", minDeposit: "No minimum", lockin: "None" },
+
+  // China
+  { country: "China", bank: "Industrial and Commercial Bank of China", url: "https://www.icbc.com.cn/icbc/", rate: "0.35% - 1.50%", minDeposit: "No minimum", lockin: "None" },
+  { country: "China", bank: "China Construction Bank", url: "https://www.ccb.com/", rate: "0.35% - 1.50%", minDeposit: "No minimum", lockin: "None" },
+  { country: "China", bank: "Bank of China", url: "https://www.boc.cn/", rate: "0.35% - 1.50%", minDeposit: "No minimum", lockin: "None" },
+
+  // Brazil
+  { country: "Brazil", bank: "Banco do Brasil", url: "https://www.bb.com.br/", rate: "0.50% - 8.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Brazil", bank: "Itaú Unibanco", url: "https://www.itau.com.br/", rate: "0.50% - 8.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Brazil", bank: "Bradesco", url: "https://www.bradesco.com.br/", rate: "0.50% - 8.00%", minDeposit: "No minimum", lockin: "None" },
+
+  // Mexico
+  { country: "Mexico", bank: "Banamex", url: "https://www.banamex.com/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Mexico", bank: "Banorte", url: "https://www.banorte.com/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Mexico", bank: "BBVA México", url: "https://www.bbva.mx/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+
+  // South Africa
+  { country: "South Africa", bank: "Standard Bank", url: "https://www.standardbank.co.za/", rate: "0.01% - 7.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "South Africa", bank: "First National Bank", url: "https://www.fnb.co.za/", rate: "0.01% - 7.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "South Africa", bank: "Nedbank", url: "https://www.nedbank.co.za/", rate: "0.01% - 7.00%", minDeposit: "No minimum", lockin: "None" },
+
+  // Nigeria
+  { country: "Nigeria", bank: "First Bank of Nigeria", url: "https://www.firstbanknigeria.com/", rate: "0.01% - 5.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Nigeria", bank: "Zenith Bank", url: "https://www.zenithbank.com/", rate: "0.01% - 5.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Nigeria", bank: "Guaranty Trust Bank", url: "https://www.gtbank.com/", rate: "0.01% - 5.00%", minDeposit: "No minimum", lockin: "None" },
+
+  // Egypt
+  { country: "Egypt", bank: "National Bank of Egypt", url: "https://www.nbe.com.eg/", rate: "0.01% - 15.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Egypt", bank: "Commercial International Bank", url: "https://www.cibeg.com/", rate: "0.01% - 15.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Egypt", bank: "Banque Misr", url: "https://www.banquemisr.com/", rate: "0.01% - 15.00%", minDeposit: "No minimum", lockin: "None" },
+
+  // Turkey
+  { country: "Turkey", bank: "Garanti BBVA", url: "https://www.garantibbva.com.tr/", rate: "0.01% - 40.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Turkey", bank: "İş Bank", url: "https://www.isbank.com.tr/", rate: "0.01% - 40.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Turkey", bank: "Yapı Kredi", url: "https://www.yapikredibank.com.tr/", rate: "0.01% - 40.00%", minDeposit: "No minimum", lockin: "None" },
+
+  // Malaysia
+  { country: "Malaysia", bank: "Maybank", url: "https://www.maybank.com/", rate: "0.01% - 3.50%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Malaysia", bank: "CIMB Bank", url: "https://www.cimb.com.my/", rate: "0.01% - 3.50%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Malaysia", bank: "Public Bank", url: "https://www.publicbank.com.my/", rate: "0.01% - 3.50%", minDeposit: "No minimum", lockin: "None" },
+
+  // Thailand
+  { country: "Thailand", bank: "Bangkok Bank", url: "https://www.bangkokbank.com/", rate: "0.01% - 2.50%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Thailand", bank: "Siam Commercial Bank", url: "https://www.scb.co.th/", rate: "0.01% - 2.50%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Thailand", bank: "Kasikorn Bank", url: "https://www.kasikornbank.com/", rate: "0.01% - 2.50%", minDeposit: "No minimum", lockin: "None" },
+
+  // Philippines
+  { country: "Philippines", bank: "BDO Unibank", url: "https://www.bdo.com.ph/", rate: "0.01% - 2.50%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Philippines", bank: "Bank of the Philippine Islands", url: "https://www.bpi.com.ph/", rate: "0.01% - 2.50%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Philippines", bank: "Metrobank", url: "https://www.metrobank.com.ph/", rate: "0.01% - 2.50%", minDeposit: "No minimum", lockin: "None" },
+
+  // Indonesia
+  { country: "Indonesia", bank: "Bank Central Asia", url: "https://www.bca.co.id/", rate: "0.01% - 5.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Indonesia", bank: "Bank Mandiri", url: "https://www.bankmandiri.co.id/", rate: "0.01% - 5.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Indonesia", bank: "Bank Rakyat Indonesia", url: "https://www.bri.co.id/", rate: "0.01% - 5.00%", minDeposit: "No minimum", lockin: "None" },
+
+  // Vietnam
+  { country: "Vietnam", bank: "Vietcombank", url: "https://www.vietcombank.com.vn/", rate: "0.01% - 6.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Vietnam", bank: "BIDV", url: "https://www.bidv.com.vn/", rate: "0.01% - 6.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Vietnam", bank: "Agribank", url: "https://www.agribank.com.vn/", rate: "0.01% - 6.00%", minDeposit: "No minimum", lockin: "None" }
   ];
 
 // Utility functions
@@ -97,16 +218,130 @@ export const getBanksByCountry = (country: string): BankAccount[] => {
 
 export const getBanksByLocation = (location: string): BankAccount[] => {
   const countryMapping: { [key: string]: string } = {
-    'dubai': 'UAE',
-    'abu dhabi': 'UAE',
-    'sharjah': 'UAE',
-    'riyadh': 'Saudi Arabia',
-    'jeddah': 'Saudi Arabia',
-    'dammam': 'Saudi Arabia',
-    'doha': 'Qatar',
-    'kuwait city': 'Kuwait',
-    'manama': 'Bahrain',
-    'muscat': 'Oman'
+    // GCC Countries
+    'dubai': 'UAE', 'abu dhabi': 'UAE', 'sharjah': 'UAE', 'ajman': 'UAE', 'fujairah': 'UAE', 'ras al khaimah': 'UAE', 'umm al quwain': 'UAE',
+    'riyadh': 'Saudi Arabia', 'jeddah': 'Saudi Arabia', 'dammam': 'Saudi Arabia', 'makkah': 'Saudi Arabia', 'medina': 'Saudi Arabia',
+    'doha': 'Qatar', 'al wakrah': 'Qatar', 'al khor': 'Qatar',
+    'kuwait city': 'Kuwait', 'salmiya': 'Kuwait', 'hawally': 'Kuwait',
+    'manama': 'Bahrain', 'muharraq': 'Bahrain', 'riffa': 'Bahrain',
+    'muscat': 'Oman', 'salalah': 'Oman', 'sohar': 'Oman',
+    
+    // USA
+    'new york': 'USA', 'los angeles': 'USA', 'chicago': 'USA', 'houston': 'USA', 'phoenix': 'USA', 'philadelphia': 'USA', 'san antonio': 'USA',
+    'san diego': 'USA', 'dallas': 'USA', 'san jose': 'USA', 'austin': 'USA', 'jacksonville': 'USA', 'fort worth': 'USA', 'columbus': 'USA',
+    'charlotte': 'USA', 'san francisco': 'USA', 'indianapolis': 'USA', 'seattle': 'USA', 'denver': 'USA', 'washington': 'USA', 'boston': 'USA',
+    'el paso': 'USA', 'nashville': 'USA', 'detroit': 'USA', 'oklahoma city': 'USA', 'portland': 'USA', 'las vegas': 'USA', 'memphis': 'USA',
+    'louisville': 'USA', 'baltimore': 'USA', 'milwaukee': 'USA', 'albuquerque': 'USA', 'tucson': 'USA', 'fresno': 'USA', 'sacramento': 'USA',
+    'atlanta': 'USA', 'kansas city': 'USA', 'long beach': 'USA', 'colorado springs': 'USA', 'raleigh': 'USA', 'miami': 'USA', 'virginia beach': 'USA',
+    'omaha': 'USA', 'oakland': 'USA', 'minneapolis': 'USA', 'tulsa': 'USA', 'arlington': 'USA', 'tampa': 'USA', 'new orleans': 'USA',
+    'wichita': 'USA', 'cleveland': 'USA', 'bakersfield': 'USA', 'aurora': 'USA', 'anaheim': 'USA', 'honolulu': 'USA', 'santa ana': 'USA',
+    'corpus christi': 'USA', 'riverside': 'USA', 'lexington': 'USA', 'stockton': 'USA', 'henderson': 'USA', 'saint paul': 'USA', 'st. louis': 'USA',
+    'st. petersburg': 'USA', 'cincinnati': 'USA', 'pittsburgh': 'USA', 'anchorage': 'USA', 'greensboro': 'USA', 'plano': 'USA', 'newark': 'USA',
+    'lincoln': 'USA', 'orlando': 'USA', 'irvine': 'USA', 'durham': 'USA', 'chula vista': 'USA', 'toledo': 'USA', 'fort wayne': 'USA',
+    'laredo': 'USA', 'chandler': 'USA', 'madison': 'USA', 'lubbock': 'USA', 'scottsdale': 'USA', 'reno': 'USA', 'glendale': 'USA',
+    'hialeah': 'USA', 'garland': 'USA', 'chesapeake': 'USA', 'norfolk': 'USA', 'fremont': 'USA', 'gilbert': 'USA', 'baton rouge': 'USA',
+    'richmond': 'USA', 'boise': 'USA', 'birmingham': 'USA', 'rochester': 'USA', 'des moines': 'USA', 'tacoma': 'USA',
+    'modesto': 'USA', 'fontana': 'USA', 'oxnard': 'USA', 'moreno valley': 'USA', 'fayetteville': 'USA', 'huntington beach': 'USA', 'yonkers': 'USA',
+    'glendale': 'USA', 'aurora': 'USA', 'montgomery': 'USA', 'grand rapids': 'USA', 'huntsville': 'USA', 'columbus': 'USA',
+         'springfield': 'USA', 'santa clarita': 'USA', 'salinas': 'USA', 'salem': 'USA', 'corona': 'USA', 'eugene': 'USA', 'pasadena': 'USA',
+     'fort collins': 'USA', 'sioux falls': 'USA', 'vallejo': 'USA', 'lancaster': 'USA', 'ann arbor': 'USA', 'aberdeen': 'USA',
+     'palmdale': 'USA', 'macon': 'USA', 'sunnyvale': 'USA', 'pomona': 'USA', 'rockford': 'USA',
+    
+    // UK
+    'london': 'UK', 'birmingham': 'UK', 'leeds': 'UK', 'glasgow': 'UK', 'sheffield': 'UK', 'bradford': 'UK', 'edinburgh': 'UK', 'liverpool': 'UK',
+    'manchester': 'UK', 'bristol': 'UK', 'kirklees': 'UK', 'fife': 'UK', 'north lanarkshire': 'UK', 'wakefield': 'UK', 'cardiff': 'UK',
+    'dudley': 'UK', 'wigan': 'UK', 'east riding': 'UK', 'south lanarkshire': 'UK', 'coventry': 'UK', 'belfast': 'UK', 'leicester': 'UK',
+    'sunderland': 'UK', 'sandwell': 'UK', 'doncaster': 'UK', 'stockport': 'UK', 'sefton': 'UK', 'nottingham': 'UK', 'newcastle': 'UK',
+    'kingston upon hull': 'UK', 'bolton': 'UK', 'walsall': 'UK', 'plymouth': 'UK', 'rotherham': 'UK', 'stoke': 'UK', 'wolverhampton': 'UK',
+    
+    // Canada
+    'toronto': 'Canada', 'montreal': 'Canada', 'vancouver': 'Canada', 'calgary': 'Canada', 'edmonton': 'Canada', 'ottawa': 'Canada', 'winnipeg': 'Canada',
+    'quebec': 'Canada', 'hamilton': 'Canada', 'kitchener': 'Canada', 'london': 'Canada', 'victoria': 'Canada', 'windsor': 'Canada', 'oshawa': 'Canada',
+    'saskatoon': 'Canada', 'regina': 'Canada', 'st. john\'s': 'Canada', 'halifax': 'Canada', 'saint john': 'Canada', 'kelowna': 'Canada',
+    
+    // Australia
+    'sydney': 'Australia', 'melbourne': 'Australia', 'brisbane': 'Australia', 'perth': 'Australia', 'adelaide': 'Australia', 'gold coast': 'Australia',
+    'newcastle': 'Australia', 'canberra': 'Australia', 'sunshine coast': 'Australia', 'wollongong': 'Australia', 'hobart': 'Australia', 'geelong': 'Australia',
+    'townsville': 'Australia', 'cairns': 'Australia', 'toowoomba': 'Australia', 'darwin': 'Australia', 'ballarat': 'Australia', 'bendigo': 'Australia',
+    
+    // Germany
+    'berlin': 'Germany', 'hamburg': 'Germany', 'munich': 'Germany', 'cologne': 'Germany', 'frankfurt': 'Germany', 'stuttgart': 'Germany',
+    'düsseldorf': 'Germany', 'leipzig': 'Germany', 'dortmund': 'Germany', 'essen': 'Germany', 'bremen': 'Germany', 'dresden': 'Germany',
+    'hanover': 'Germany', 'nuremberg': 'Germany', 'duisburg': 'Germany', 'bochum': 'Germany', 'wuppertal': 'Germany', 'bielefeld': 'Germany',
+    
+    // France
+    'paris': 'France', 'marseille': 'France', 'lyon': 'France', 'toulouse': 'France', 'nice': 'France', 'nantes': 'France', 'strasbourg': 'France',
+    'montpellier': 'France', 'bordeaux': 'France', 'lille': 'France', 'rennes': 'France', 'reims': 'France', 'saint-étienne': 'France',
+    'toulon': 'France', 'le havre': 'France', 'grenoble': 'France', 'dijon': 'France', 'angers': 'France', 'saint-denis': 'France',
+    
+    // Singapore
+    'singapore': 'Singapore',
+    
+    // India
+    'mumbai': 'India', 'delhi': 'India', 'bangalore': 'India', 'hyderabad': 'India', 'chennai': 'India', 'kolkata': 'India', 'pune': 'India',
+    'ahmedabad': 'India', 'surat': 'India', 'jaipur': 'India', 'lucknow': 'India', 'kanpur': 'India', 'nagpur': 'India', 'indore': 'India',
+    'thane': 'India', 'bhopal': 'India', 'visakhapatnam': 'India', 'patna': 'India', 'vadodara': 'India', 'ghaziabad': 'India', 'ludhiana': 'India',
+    
+    // Japan
+    'tokyo': 'Japan', 'yokohama': 'Japan', 'osaka': 'Japan', 'nagoya': 'Japan', 'sapporo': 'Japan', 'fukuoka': 'Japan', 'kobe': 'Japan',
+    'kyoto': 'Japan', 'kawasaki': 'Japan', 'saitama': 'Japan', 'hiroshima': 'Japan', 'sendai': 'Japan', 'chiba': 'Japan', 'kitakyushu': 'Japan',
+    'sakai': 'Japan', 'niigata': 'Japan', 'hamamatsu': 'Japan', 'kumamoto': 'Japan', 'sagamihara': 'Japan', 'shizuoka': 'Japan', 'okayama': 'Japan',
+    
+    // South Korea
+    'seoul': 'South Korea', 'busan': 'South Korea', 'incheon': 'South Korea', 'daegu': 'South Korea', 'daejeon': 'South Korea', 'gwangju': 'South Korea',
+    'suwon': 'South Korea', 'ulsan': 'South Korea', 'changwon': 'South Korea', 'seongnam': 'South Korea', 'bucheon': 'South Korea', 'ansan': 'South Korea',
+    'jeonju': 'South Korea', 'anyang': 'South Korea', 'pohang': 'South Korea', 'jeju': 'South Korea', 'cheongju': 'South Korea', 'gangneung': 'South Korea',
+    
+    // China
+    'shanghai': 'China', 'beijing': 'China', 'guangzhou': 'China', 'shenzhen': 'China', 'tianjin': 'China', 'chongqing': 'China', 'chengdu': 'China',
+    'nanjing': 'China', 'wuhan': 'China', 'xian': 'China', 'hangzhou': 'China', 'dongguan': 'China', 'foshan': 'China', 'shenyang': 'China',
+    'qingdao': 'China', 'dalian': 'China', 'jinan': 'China', 'zhengzhou': 'China', 'kunming': 'China', 'changsha': 'China', 'ningbo': 'China',
+    
+    // Brazil
+    'são paulo': 'Brazil', 'rio de janeiro': 'Brazil', 'brasília': 'Brazil', 'salvador': 'Brazil', 'fortaleza': 'Brazil', 'belo horizonte': 'Brazil',
+    'manaus': 'Brazil', 'curitiba': 'Brazil', 'recife': 'Brazil', 'porto alegre': 'Brazil', 'belém': 'Brazil', 'goiânia': 'Brazil', 'guarulhos': 'Brazil',
+    'campinas': 'Brazil', 'nova iguaçu': 'Brazil', 'são gonçalo': 'Brazil', 'maceió': 'Brazil', 'duque de caxias': 'Brazil', 'natal': 'Brazil',
+    
+    // Mexico
+    'mexico city': 'Mexico', 'guadalajara': 'Mexico', 'monterrey': 'Mexico', 'puebla': 'Mexico', 'tijuana': 'Mexico', 'ciudad juárez': 'Mexico',
+    'leon': 'Mexico', 'zapopan': 'Mexico', 'aguascalientes': 'Mexico', 'san luis potosí': 'Mexico', 'mérida': 'Mexico', 'querétaro': 'Mexico',
+    'morelia': 'Mexico', 'hermosillo': 'Mexico', 'culiacán': 'Mexico', 'saltillo': 'Mexico', 'torreón': 'Mexico', 'chihuahua': 'Mexico',
+    
+    // South Africa
+    'johannesburg': 'South Africa', 'cape town': 'South Africa', 'durban': 'South Africa', 'pretoria': 'South Africa', 'port elizabeth': 'South Africa',
+    'bloemfontein': 'South Africa', 'kimberley': 'South Africa', 'east london': 'South Africa', 'nelspruit': 'South Africa', 'polokwane': 'South Africa',
+    
+    // Nigeria
+    'lagos': 'Nigeria', 'kano': 'Nigeria', 'ibadan': 'Nigeria', 'kaduna': 'Nigeria', 'port harcourt': 'Nigeria', 'benin city': 'Nigeria',
+    'maiduguri': 'Nigeria', 'zaria': 'Nigeria', 'abuja': 'Nigeria', 'jos': 'Nigeria', 'ilorin': 'Nigeria', 'new haven': 'Nigeria',
+    
+    // Egypt
+    'cairo': 'Egypt', 'alexandria': 'Egypt', 'giza': 'Egypt', 'shubra el kheima': 'Egypt', 'port said': 'Egypt', 'suez': 'Egypt',
+    'luxor': 'Egypt', 'aswan': 'Egypt', 'hurghada': 'Egypt', 'sharm el sheikh': 'Egypt', 'dahab': 'Egypt', 'siwa': 'Egypt',
+    
+    // Turkey
+    'istanbul': 'Turkey', 'ankara': 'Turkey', 'izmir': 'Turkey', 'bursa': 'Turkey', 'antalya': 'Turkey', 'adana': 'Turkey',
+    'gaziantep': 'Turkey', 'konya': 'Turkey', 'mersin': 'Turkey', 'diyarbakır': 'Turkey', 'samsun': 'Turkey', 'denizli': 'Turkey',
+    
+    // Malaysia
+    'kuala lumpur': 'Malaysia', 'george town': 'Malaysia', 'ipoh': 'Malaysia', 'shah alam': 'Malaysia', 'johor bahru': 'Malaysia', 'melaka': 'Malaysia',
+    'alor setar': 'Malaysia', 'miri': 'Malaysia', 'petaling jaya': 'Malaysia', 'kuching': 'Malaysia', 'kota kinabalu': 'Malaysia', 'sandakan': 'Malaysia',
+    
+    // Thailand
+    'bangkok': 'Thailand', 'chiang mai': 'Thailand', 'pattaya': 'Thailand', 'phuket': 'Thailand', 'hat yai': 'Thailand', 'udon thani': 'Thailand',
+    'nakhon ratchasima': 'Thailand', 'chiang rai': 'Thailand', 'surat thani': 'Thailand', 'nakhon si thammarat': 'Thailand', 'khon kaen': 'Thailand',
+    
+    // Philippines
+    'manila': 'Philippines', 'quezon city': 'Philippines', 'davao city': 'Philippines', 'caloocan': 'Philippines', 'cebu city': 'Philippines',
+    'zamboanga city': 'Philippines', 'antipolo': 'Philippines', 'pasig': 'Philippines', 'taguig': 'Philippines', 'valenzuela': 'Philippines',
+    
+    // Indonesia
+    'jakarta': 'Indonesia', 'surabaya': 'Indonesia', 'bandung': 'Indonesia', 'medan': 'Indonesia', 'semarang': 'Indonesia', 'palembang': 'Indonesia',
+    'makassar': 'Indonesia', 'tangerang': 'Indonesia', 'depok': 'Indonesia', 'batam': 'Indonesia', 'padang': 'Indonesia', 'malang': 'Indonesia',
+    
+    // Vietnam
+    'ho chi minh city': 'Vietnam', 'hanoi': 'Vietnam', 'da nang': 'Vietnam', 'haiphong': 'Vietnam', 'can tho': 'Vietnam', 'buon ma thuot': 'Vietnam',
+    'nha trang': 'Vietnam', 'vung tau': 'Vietnam', 'quy nhon': 'Vietnam', 'hai duong': 'Vietnam', 'nam dinh': 'Vietnam', 'thanh hoa': 'Vietnam'
   };
 
   const country = countryMapping[location.toLowerCase()];
