@@ -26,8 +26,8 @@ export const CurrencyProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       // Ignore parsing errors
     }
     
-    // Default to AED for GCC users
-    return CURRENCIES.find(c => c.code === 'AED') || CURRENCIES[0];
+    // Default to USD for global users
+    return CURRENCIES.find(c => c.code === 'USD') || CURRENCIES[0];
   });
 
   return (

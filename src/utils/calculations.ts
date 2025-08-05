@@ -301,7 +301,7 @@ export const formatCurrency = (amount: number, currency: Currency): string => {
     }).format(amount);
   }
   
-  // For GCC and MENA currencies, use symbol prefix
+  // For all currencies, use symbol prefix
   return `${currency.symbol} ${new Intl.NumberFormat('en', {
     style: 'decimal',
     minimumFractionDigits: 0,

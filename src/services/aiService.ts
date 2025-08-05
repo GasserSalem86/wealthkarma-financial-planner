@@ -194,9 +194,9 @@ class AIService {
   }
 
   private buildSystemPrompt(): string {
-    return `You are an expert financial advisor specializing in helping GCC expats (UAE, Saudi Arabia, Qatar, Kuwait, Bahrain, Oman) with their financial planning.
+    return `You are an expert financial advisor specializing in helping global expats and international users with their financial planning.
 
-Key considerations for GCC expats:
+Key considerations for global expats:
 - Zero local income tax environment provides excellent wealth-building opportunities
 - Temporary residency requires portable investment strategies
 - Limited local investment options, offshore accounts often needed
@@ -507,7 +507,7 @@ Always provide specific, actionable advice relevant to their expat status.`;
       }
 
       const stepPrompts = {
-        'welcome': 'Provide a warm welcome and overview of the financial planning process for this GCC expat.',
+        'welcome': 'Provide a warm welcome and overview of the financial planning process for this global expat.',
         'profile-setup': 'Help the user understand why their profile information is important for personalized financial planning.',
         'emergency-fund': 'Explain the importance of emergency funds for expats and provide guidance on building one.',
         'financial-goals': 'Help the user understand how to set and prioritize their financial goals.',
@@ -614,7 +614,7 @@ ${stepPrompts[step as keyof typeof stepPrompts] || 'Please provide general finan
       // Handle form filling requests for goals
       if (isFormFillRequest) {
         const messages: any[] = [
-          { role: "system", content: `You are a specialized goal planning expert for GCC expats. When users ask for goal recommendations or form filling, provide detailed, personalized advice based on their specific situation and existing goal portfolio.
+          { role: "system", content: `You are a specialized goal planning expert for global expats. When users ask for goal recommendations or form filling, provide detailed, personalized advice based on their specific situation and existing goal portfolio.
 
 CRITICAL INFLATION REQUIREMENT - MANDATORY:
 🔥 ALL COST ESTIMATES MUST BE INFLATION-ADJUSTED 🔥
@@ -635,9 +635,9 @@ EXISTING GOALS AWARENESS:
 - Recommend complementary goals that fill gaps in their portfolio
 
 EXPERTISE AREAS:
-- Education costs in GCC, US, UK, Europe, Australia (WITH INFLATION ADJUSTMENTS)
+- Education costs in local and international markets (WITH INFLATION ADJUSTMENTS)
 - Travel budgets for different destinations and trip types (WITH INFLATION ADJUSTMENTS)
-- Property down payments across GCC and international markets (WITH INFLATION ADJUSTMENTS)
+- Property down payments across local and international markets (WITH INFLATION ADJUSTMENTS)
 - Cultural gift-giving expectations and amounts (WITH INFLATION ADJUSTMENTS)
 - Timeline planning based on life circumstances
 
@@ -822,7 +822,7 @@ Include sources where possible and verify information is current and from 2025.`
             console.log('🔍 Using OpenAI Chat Completions with search model...');
             
             const messages: any[] = [
-              { role: "system", content: `You are a specialized financial planning expert for GCC expats. Help users with education costs, travel planning, property purchases, bank rate searches, and other financial goals. Use web search to get current, accurate information.
+              { role: "system", content: `You are a specialized financial planning expert for global expats. Help users with education costs, travel planning, property purchases, bank rate searches, and other financial goals. Use web search to get current, accurate information.
 
 For bank rate searches: Focus on current January 2025 interest rates from retail/personal banking products. Search official bank websites, financial news, and rate comparison sites.
 
@@ -874,7 +874,7 @@ Please search for current 2025 cost information to help with their goal planning
         }
       } else {
         // Regular chat for goal planning questions
-        const systemPrompt = `You are a specialized goal planning coach for GCC expats. Help users plan specific financial goals through interactive conversations.
+        const systemPrompt = `You are a specialized goal planning coach for global expats. Help users plan specific financial goals through interactive conversations.
 
 CRITICAL INFLATION REQUIREMENT:
 🔥 ALWAYS FACTOR INFLATION INTO ALL COST DISCUSSIONS AND RECOMMENDATIONS 🔥
@@ -913,7 +913,7 @@ SPECIALIZED GUIDANCE FOR EDUCATION GOALS:
    - Living expenses, visa costs, travel, insurance (with 3-4% inflation)
    - Emergency buffer (10-15% of total inflation-adjusted amount)
 2. **Payment Timeline Clarity**: Target date = when studies BEGIN, Payment period = duration of studies
-3. **Local vs International Analysis**: Compare local universities, regional GCC options, international programs (all inflation-adjusted)
+3. **Local vs International Analysis**: Compare local universities, regional options, international programs (all inflation-adjusted)
 4. **Scholarship Strategy**: Academic targets, extracurricular activities, competition participation plans
 5. **Risk Mitigation**: Career interest changes, currency risks, backup plans
 6. **Regular Reviews**: Annual adjustments for inflation, cost changes, interest evolution
@@ -1418,11 +1418,11 @@ RETIREMENT PREFERENCES:
 
 IMPORTANT: Use these preferences to heavily influence your destination selection and recommendations.` : '';
 
-      const prompt = `As a comprehensive retirement planning expert for GCC expats, provide both destination suggestions AND detailed cost breakdown for the user's top choice. This will be a complete retirement planning analysis in one response.
+      const prompt = `As a comprehensive retirement planning expert for global expats, provide both destination suggestions AND detailed cost breakdown for the user's top choice. This will be a complete retirement planning analysis in one response.
 
 User Profile:
 - Name: ${context.name || 'Valued client'}
-- Current Location: ${context.location || 'GCC'}
+- Current Location: ${context.location || 'Global'}
 - Nationality: ${context.nationality || 'Unknown'}
 - Monthly Income: ${context.monthlyIncome || 'Not specified'} ${context.currency || ''}
 - Current Monthly Expenses: ${context.monthlyExpenses || 'Not specified'} ${context.currency || ''}
@@ -1446,7 +1446,7 @@ PART 2: DETAILED BREAKDOWN FOR TOP RECOMMENDATION
 
 EXPENSE-BASED COST CALCULATION INSTRUCTIONS:
 - Use the user's current expense level (${retirementExpenses || context.monthlyExpenses || 'not provided'} ${context.currency || ''}) as the baseline
-- Adjust costs based on cost-of-living differences between ${context.location || 'GCC'} and each destination
+- Adjust costs based on cost-of-living differences between ${context.location || 'Global'} and each destination
 - For family planning: costs should reflect 2 adults only, regardless of current family size
 - Provide realistic cost estimates that align with their current spending patterns
 
@@ -1499,7 +1499,7 @@ CRITICAL: Return ONLY a raw JSON object without any markdown formatting or code 
       const completion = await this.openai.chat.completions.create({
         model: 'gpt-4o-mini',
         messages: [
-          { role: 'system', content: `You are a comprehensive retirement planning expert for GCC expats. Always include the user's home country as the first destination option. Address the user by their actual name when provided. CRITICAL: Always provide all cost estimates in the user's chosen currency using accurate conversions. 
+          { role: 'system', content: `You are a comprehensive retirement planning expert for global expats. Always include the user's home country as the first destination option. Address the user by their actual name when provided. CRITICAL: Always provide all cost estimates in the user's chosen currency using accurate conversions. 
 
 EXPENSE CALCULATION PRIORITY: Base all cost estimates on the user's current expense baseline and adjust for cost-of-living differences between locations. For family planning, calculate costs for 2 adults only. Make realistic adjustments for retirement lifestyle changes.
 

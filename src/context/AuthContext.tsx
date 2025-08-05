@@ -140,7 +140,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           full_name: userData.fullName || user.user_metadata?.full_name || '',
           country: userData.country || user.user_metadata?.country || '',
           nationality: userData.nationality || user.user_metadata?.nationality || '',
-          currency: 'AED', // Default currency for GCC expats
+          currency: 'USD', // Default currency for global users
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
         });
