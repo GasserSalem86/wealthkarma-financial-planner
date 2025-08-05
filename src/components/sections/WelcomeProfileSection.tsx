@@ -95,172 +95,14 @@ const WelcomeProfileSection: React.FC<WelcomeProfileSectionProps> = ({ onNext })
     'Other'
   ];
 
-  // --- CURRENCIES: All major world currencies, deduped and consistent ---
-  const currencyOptions = [
-    // Middle East
-    { code: 'AED', name: 'UAE Dirham' },
-    { code: 'SAR', name: 'Saudi Riyal' },
-    { code: 'QAR', name: 'Qatari Riyal' },
-    { code: 'KWD', name: 'Kuwaiti Dinar' },
-    { code: 'BHD', name: 'Bahraini Dinar' },
-    { code: 'OMR', name: 'Omani Rial' },
-    { code: 'JOD', name: 'Jordanian Dinar' },
-    { code: 'ILS', name: 'Israeli New Shekel' },
-    { code: 'TRY', name: 'Turkish Lira' },
-    { code: 'IRR', name: 'Iranian Rial' },
-    { code: 'LBP', name: 'Lebanese Pound' },
-    { code: 'SYP', name: 'Syrian Pound' },
-    { code: 'YER', name: 'Yemeni Rial' },
-    { code: 'IQD', name: 'Iraqi Dinar' },
-
-    // Africa
-    { code: 'EGP', name: 'Egyptian Pound' },
-    { code: 'NGN', name: 'Nigerian Naira' },
-    { code: 'ZAR', name: 'South African Rand' },
-    { code: 'KES', name: 'Kenyan Shilling' },
-    { code: 'MAD', name: 'Moroccan Dirham' },
-    { code: 'GHS', name: 'Ghanaian Cedi' },
-    { code: 'ETB', name: 'Ethiopian Birr' },
-    { code: 'DZD', name: 'Algerian Dinar' },
-    { code: 'XOF', name: 'West African CFA Franc' },
-    { code: 'XAF', name: 'Central African CFA Franc' },
-    { code: 'TND', name: 'Tunisian Dinar' },
-    { code: 'SDG', name: 'Sudanese Pound' },
-    { code: 'BWP', name: 'Botswana Pula' },
-    { code: 'MZN', name: 'Mozambican Metical' },
-    { code: 'UGX', name: 'Ugandan Shilling' },
-    { code: 'RWF', name: 'Rwandan Franc' },
-    { code: 'MWK', name: 'Malawian Kwacha' },
-    { code: 'LSL', name: 'Lesotho Loti' },
-    { code: 'SZL', name: 'Swazi Lilangeni' },
-    { code: 'MUR', name: 'Mauritian Rupee' },
-    { code: 'SCR', name: 'Seychellois Rupee' },
-    { code: 'CVE', name: 'Cape Verdean Escudo' },
-    { code: 'GMD', name: 'Gambian Dalasi' },
-    { code: 'SLL', name: 'Sierra Leonean Leone' },
-    { code: 'LRD', name: 'Liberian Dollar' },
-    { code: 'SOS', name: 'Somali Shilling' },
-    { code: 'MGA', name: 'Malagasy Ariary' },
-    { code: 'AOA', name: 'Angolan Kwanza' },
-    { code: 'ZMW', name: 'Zambian Kwacha' },
-    { code: 'BIF', name: 'Burundian Franc' },
-    { code: 'DJF', name: 'Djiboutian Franc' },
-    { code: 'GNF', name: 'Guinean Franc' },
-    { code: 'KMF', name: 'Comorian Franc' },
-    { code: 'STD', name: 'São Tomé and Príncipe Dobra' },
-    { code: 'MRU', name: 'Mauritanian Ouguiya' },
-
-    // Asia
-    { code: 'CNY', name: 'Chinese Yuan' },
-    { code: 'HKD', name: 'Hong Kong Dollar' },
-    { code: 'MOP', name: 'Macanese Pataca' },
-    { code: 'JPY', name: 'Japanese Yen' },
-    { code: 'KRW', name: 'South Korean Won' },
-    { code: 'KPW', name: 'North Korean Won' },
-    { code: 'THB', name: 'Thai Baht' },
-    { code: 'SGD', name: 'Singapore Dollar' },
-    { code: 'MYR', name: 'Malaysian Ringgit' },
-    { code: 'IDR', name: 'Indonesian Rupiah' },
-    { code: 'PHP', name: 'Philippine Peso' },
-    { code: 'INR', name: 'Indian Rupee' },
-    { code: 'VND', name: 'Vietnamese Dong' },
-    { code: 'TWD', name: 'New Taiwan Dollar' },
-    { code: 'PKR', name: 'Pakistani Rupee' },
-    { code: 'BDT', name: 'Bangladeshi Taka' },
-    { code: 'MMK', name: 'Burmese Kyat' },
-    { code: 'KHR', name: 'Cambodian Riel' },
-    { code: 'LAK', name: 'Lao Kip' },
-    { code: 'LKR', name: 'Sri Lankan Rupee' },
-    { code: 'NPR', name: 'Nepalese Rupee' },
-    { code: 'MNT', name: 'Mongolian Tögrög' },
-    { code: 'KZT', name: 'Kazakhstani Tenge' },
-    { code: 'UZS', name: 'Uzbekistani Soʻm' },
-    { code: 'TJS', name: 'Tajikistani Somoni' },
-    { code: 'KGS', name: 'Kyrgyzstani Som' },
-    { code: 'AZN', name: 'Azerbaijani Manat' },
-    { code: 'GEL', name: 'Georgian Lari' },
-    { code: 'AMD', name: 'Armenian Dram' },
-    { code: 'ILS', name: 'Israeli New Shekel' },
-
-    // Europe
-    { code: 'GBP', name: 'British Pound' },
-    { code: 'EUR', name: 'Euro' },
-    { code: 'CHF', name: 'Swiss Franc' },
-    { code: 'SEK', name: 'Swedish Krona' },
-    { code: 'DKK', name: 'Danish Krone' },
-    { code: 'NOK', name: 'Norwegian Krone' },
-    { code: 'PLN', name: 'Polish Zloty' },
-    { code: 'CZK', name: 'Czech Koruna' },
-    { code: 'HUF', name: 'Hungarian Forint' },
-    { code: 'RUB', name: 'Russian Ruble' },
-    { code: 'UAH', name: 'Ukrainian Hryvnia' },
-    { code: 'RON', name: 'Romanian Leu' },
-    { code: 'BGN', name: 'Bulgarian Lev' },
-    { code: 'HRK', name: 'Croatian Kuna' },
-    { code: 'ISK', name: 'Icelandic Krona' },
-    { code: 'MKD', name: 'Macedonian Denar' },
-    { code: 'MDL', name: 'Moldovan Leu' },
-    { code: 'RSD', name: 'Serbian Dinar' },
-    { code: 'ALL', name: 'Albanian Lek' },
-    { code: 'BYN', name: 'Belarusian Ruble' },
-    { code: 'GIP', name: 'Gibraltar Pound' },
-
-    // North America
-    { code: 'USD', name: 'US Dollar' },
-    { code: 'CAD', name: 'Canadian Dollar' },
-    { code: 'MXN', name: 'Mexican Peso' },
-    { code: 'BSD', name: 'Bahamian Dollar' },
-    { code: 'BBD', name: 'Barbadian Dollar' },
-    { code: 'BZD', name: 'Belize Dollar' },
-    { code: 'BMD', name: 'Bermudian Dollar' },
-    { code: 'KYD', name: 'Cayman Islands Dollar' },
-    { code: 'CRC', name: 'Costa Rican Colón' },
-    { code: 'CUP', name: 'Cuban Peso' },
-    { code: 'DOP', name: 'Dominican Peso' },
-    { code: 'GTQ', name: 'Guatemalan Quetzal' },
-    { code: 'HTG', name: 'Haitian Gourde' },
-    { code: 'HNL', name: 'Honduran Lempira' },
-    { code: 'JMD', name: 'Jamaican Dollar' },
-    { code: 'NIO', name: 'Nicaraguan Córdoba' },
-    { code: 'PAB', name: 'Panamanian Balboa' },
-    { code: 'TTD', name: 'Trinidad and Tobago Dollar' },
-    { code: 'XCD', name: 'East Caribbean Dollar' },
-    { code: 'ANG', name: 'Netherlands Antillean Guilder' },
-    { code: 'SRD', name: 'Surinamese Dollar' },
-
-    // South America
-    { code: 'BRL', name: 'Brazilian Real' },
-    { code: 'ARS', name: 'Argentine Peso' },
-    { code: 'CLP', name: 'Chilean Peso' },
-    { code: 'COP', name: 'Colombian Peso' },
-    { code: 'PEN', name: 'Peruvian Sol' },
-    { code: 'USD', name: 'US Dollar' }, // Ecuador, El Salvador, Panama use USD
-    { code: 'VES', name: 'Venezuelan Bolívar' },
-    { code: 'BOB', name: 'Bolivian Boliviano' },
-    { code: 'PYG', name: 'Paraguayan Guaraní' },
-    { code: 'UYU', name: 'Uruguayan Peso' },
-    { code: 'GYD', name: 'Guyanese Dollar' },
-    { code: 'SRD', name: 'Surinamese Dollar' },
-    { code: 'ECS', name: 'Ecuadorian Sucre' }, // historical
-
-    // Oceania
-    { code: 'AUD', name: 'Australian Dollar' },
-    { code: 'NZD', name: 'New Zealand Dollar' },
-    { code: 'FJD', name: 'Fijian Dollar' },
-    { code: 'PGK', name: 'Papua New Guinean Kina' },
-    { code: 'SBD', name: 'Solomon Islands Dollar' },
-    { code: 'TOP', name: 'Tongan Paʻanga' },
-    { code: 'VUV', name: 'Vanuatu Vatu' },
-    { code: 'WST', name: 'Samoan Tala' },
-    { code: 'KID', name: 'Kiribati Dollar' },
-    { code: 'MVR', name: 'Maldivian Rufiyaa' },
-    { code: 'XPF', name: 'CFP Franc' },
-    { code: 'TVD', name: 'Tuvaluan Dollar' },
-    { code: 'NAD', name: 'Namibian Dollar' },
-
-    // Other/General
-    { code: 'Other', name: 'Other' }
-  ];
+  // Use organized currencies from currencyTypes.ts
+  const currencyGroups = CURRENCIES.reduce((groups, curr) => {
+    if (!groups[curr.region]) {
+      groups[curr.region] = [];
+    }
+    groups[curr.region].push(curr);
+    return groups;
+  }, {} as Record<string, typeof CURRENCIES>);
 
   // Handle currency change to sync both contexts
   const handleCurrencyChange = (currencyCode: string) => {
@@ -516,11 +358,15 @@ const WelcomeProfileSection: React.FC<WelcomeProfileSectionProps> = ({ onNext })
                   className="input-dark w-full rounded-lg px-3 lg:px-4 py-3 lg:py-2 text-base lg:text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors"
               >
                   <option value="">Select currency</option>
-                  {currencyOptions.map(curr => (
-                    <option key={curr.code} value={curr.code}>
-                      {curr.code} - {curr.name}
-                  </option>
-                ))}
+                  {Object.entries(currencyGroups).map(([region, currencies]) => (
+                    <optgroup key={region} label={region}>
+                      {currencies.map(curr => (
+                        <option key={curr.code} value={curr.code}>
+                          {curr.code} - {curr.name}
+                        </option>
+                      ))}
+                    </optgroup>
+                  ))}
               </select>
             </div>
 
