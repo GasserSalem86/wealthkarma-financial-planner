@@ -326,31 +326,88 @@ Always provide specific, actionable advice relevant to their expat status.`;
   }
 
   private getCountryFromLocation(location: string): string {
+    // Comprehensive location to country mapping
     const locationMappings: { [key: string]: string } = {
-      // UAE cities
-      'dubai': 'UAE',
-      'abu dhabi': 'UAE', 
-      'sharjah': 'UAE',
-      'ajman': 'UAE',
-      
-      // Saudi Arabia cities
-      'riyadh': 'Saudi Arabia',
-      'jeddah': 'Saudi Arabia',
-      'mecca': 'Saudi Arabia',
-      'dammam': 'Saudi Arabia',
-      
-      // Kuwait
-      'kuwait city': 'Kuwait',
-      'hawalli': 'Kuwait',
-      
-      // Qatar
-      'doha': 'Qatar',
-      
-      // Bahrain
-      'manama': 'Bahrain',
-      
-      // Oman
-      'muscat': 'Oman',
+      // Middle East
+      'abu dhabi, uae': 'UAE', 'dubai, uae': 'UAE', 'sharjah, uae': 'UAE', 'ajman, uae': 'UAE', 'al ain, uae': 'UAE',
+      'riyadh, saudi arabia': 'Saudi Arabia', 'jeddah, saudi arabia': 'Saudi Arabia', 'dammam, saudi arabia': 'Saudi Arabia', 'mecca, saudi arabia': 'Saudi Arabia', 'medina, saudi arabia': 'Saudi Arabia',
+      'doha, qatar': 'Qatar', 'kuwait city, kuwait': 'Kuwait', 'manama, bahrain': 'Bahrain', 'muscat, oman': 'Oman',
+      'amman, jordan': 'Jordan', 'baghdad, iraq': 'Iraq', 'beirut, lebanon': 'Lebanon', 'damascus, syria': 'Syria',
+      'sana\'a, yemen': 'Yemen', 'jerusalem, israel': 'Israel', 'gaza city, palestine': 'Palestine', 'ramallah, palestine': 'Palestine',
+      'tehran, iran': 'Iran', 'ankara, turkey': 'Turkey', 'istanbul, turkey': 'Turkey',
+
+      // Africa
+      'cairo, egypt': 'Egypt', 'alexandria, egypt': 'Egypt', 'lagos, nigeria': 'Nigeria', 'abuja, nigeria': 'Nigeria',
+      'johannesburg, south africa': 'South Africa', 'cape town, south africa': 'South Africa', 'durban, south africa': 'South Africa',
+      'nairobi, kenya': 'Kenya', 'mombasa, kenya': 'Kenya', 'casablanca, morocco': 'Morocco', 'rabat, morocco': 'Morocco',
+      'accra, ghana': 'Ghana', 'kumasi, ghana': 'Ghana', 'addis ababa, ethiopia': 'Ethiopia', 'algiers, algeria': 'Algeria',
+      'dakar, senegal': 'Senegal', 'tunis, tunisia': 'Tunisia', 'kampala, uganda': 'Uganda', 'harare, zimbabwe': 'Zimbabwe',
+      'maputo, mozambique': 'Mozambique', 'luanda, angola': 'Angola', 'kinshasa, dr congo': 'DR Congo', 'brazzaville, republic of the congo': 'Republic of the Congo',
+      'antananarivo, madagascar': 'Madagascar', 'tripoli, libya': 'Libya', 'khartoum, sudan': 'Sudan', 'gaborone, botswana': 'Botswana',
+      'windhoek, namibia': 'Namibia', 'bamako, mali': 'Mali', 'ouagadougou, burkina faso': 'Burkina Faso', 'lusaka, zambia': 'Zambia',
+      'abidjan, côte d\'ivoire': 'Côte d\'Ivoire', 'freetown, sierra leone': 'Sierra Leone', 'banjul, gambia': 'Gambia',
+      'monrovia, liberia': 'Liberia', 'kigali, rwanda': 'Rwanda', 'lilongwe, malawi': 'Malawi', 'djibouti, djibouti': 'Djibouti',
+      'nouakchott, mauritania': 'Mauritania', 'port louis, mauritius': 'Mauritius', 'victoria, seychelles': 'Seychelles',
+      'moroni, comoros': 'Comoros', 'são tomé, são tomé and príncipe': 'São Tomé and Príncipe',
+
+      // Asia
+      'beijing, china': 'China', 'shanghai, china': 'China', 'shenzhen, china': 'China', 'hong kong, china': 'China', 'macau, china': 'China',
+      'tokyo, japan': 'Japan', 'osaka, japan': 'Japan', 'seoul, south korea': 'South Korea', 'busan, south korea': 'South Korea',
+      'pyongyang, north korea': 'North Korea', 'bangkok, thailand': 'Thailand', 'singapore': 'Singapore',
+      'kuala lumpur, malaysia': 'Malaysia', 'penang, malaysia': 'Malaysia', 'jakarta, indonesia': 'Indonesia', 'surabaya, indonesia': 'Indonesia',
+      'manila, philippines': 'Philippines', 'cebu, philippines': 'Philippines', 'mumbai, india': 'India', 'delhi, india': 'India',
+      'bangalore, india': 'India', 'chennai, india': 'India', 'kolkata, india': 'India', 'islamabad, pakistan': 'Pakistan',
+      'karachi, pakistan': 'Pakistan', 'dhaka, bangladesh': 'Bangladesh', 'kathmandu, nepal': 'Nepal', 'colombo, sri lanka': 'Sri Lanka',
+      'hanoi, vietnam': 'Vietnam', 'ho chi minh city, vietnam': 'Vietnam', 'taipei, taiwan': 'Taiwan', 'ulaanbaatar, mongolia': 'Mongolia',
+      'phnom penh, cambodia': 'Cambodia', 'vientiane, laos': 'Laos', 'yangon, myanmar': 'Myanmar', 'dili, timor-leste': 'Timor-Leste',
+      'thimphu, bhutan': 'Bhutan', 'male, maldives': 'Maldives', 'tashkent, uzbekistan': 'Uzbekistan', 'bishkek, kyrgyzstan': 'Kyrgyzstan',
+      'dushanbe, tajikistan': 'Tajikistan', 'ashgabat, turkmenistan': 'Turkmenistan', 'nur-sultan, kazakhstan': 'Kazakhstan',
+      'yerevan, armenia': 'Armenia', 'baku, azerbaijan': 'Azerbaijan', 'tbilisi, georgia': 'Georgia',
+
+      // Europe
+      'london, uk': 'UK', 'manchester, uk': 'UK', 'birmingham, uk': 'UK', 'edinburgh, uk': 'UK', 'glasgow, uk': 'UK',
+      'paris, france': 'France', 'marseille, france': 'France', 'lyon, france': 'France', 'berlin, germany': 'Germany',
+      'munich, germany': 'Germany', 'frankfurt, germany': 'Germany', 'hamburg, germany': 'Germany', 'madrid, spain': 'Spain',
+      'barcelona, spain': 'Spain', 'valencia, spain': 'Spain', 'rome, italy': 'Italy', 'milan, italy': 'Italy', 'naples, italy': 'Italy',
+      'amsterdam, netherlands': 'Netherlands', 'rotterdam, netherlands': 'Netherlands', 'brussels, belgium': 'Belgium', 'antwerp, belgium': 'Belgium',
+      'zurich, switzerland': 'Switzerland', 'geneva, switzerland': 'Switzerland', 'vienna, austria': 'Austria', 'salzburg, austria': 'Austria',
+      'stockholm, sweden': 'Sweden', 'gothenburg, sweden': 'Sweden', 'copenhagen, denmark': 'Denmark', 'aarhus, denmark': 'Denmark',
+      'oslo, norway': 'Norway', 'bergen, norway': 'Norway', 'dublin, ireland': 'Ireland', 'cork, ireland': 'Ireland',
+      'lisbon, portugal': 'Portugal', 'porto, portugal': 'Portugal', 'prague, czech republic': 'Czech Republic', 'warsaw, poland': 'Poland',
+      'budapest, hungary': 'Hungary', 'athens, greece': 'Greece', 'thessaloniki, greece': 'Greece', 'moscow, russia': 'Russia',
+      'saint petersburg, russia': 'Russia', 'helsinki, finland': 'Finland', 'tallinn, estonia': 'Estonia', 'riga, latvia': 'Latvia',
+      'vilnius, lithuania': 'Lithuania', 'bratislava, slovakia': 'Slovakia', 'ljubljana, slovenia': 'Slovenia', 'zagreb, croatia': 'Croatia',
+      'belgrade, serbia': 'Serbia', 'sarajevo, bosnia and herzegovina': 'Bosnia and Herzegovina', 'podgorica, montenegro': 'Montenegro',
+      'skopje, north macedonia': 'North Macedonia', 'sofia, bulgaria': 'Bulgaria', 'bucharest, romania': 'Romania',
+      'chisinau, moldova': 'Moldova', 'kiev, ukraine': 'Ukraine', 'minsk, belarus': 'Belarus', 'luxembourg city, luxembourg': 'Luxembourg',
+      'monaco': 'Monaco', 'san marino': 'San Marino', 'andorra la vella, andorra': 'Andorra', 'vaduz, liechtenstein': 'Liechtenstein',
+      'valletta, malta': 'Malta', 'reykjavik, iceland': 'Iceland', 'tirana, albania': 'Albania',
+
+      // North America
+      'new york, usa': 'USA', 'los angeles, usa': 'USA', 'san francisco, usa': 'USA', 'chicago, usa': 'USA', 'houston, usa': 'USA',
+      'miami, usa': 'USA', 'washington, d.c., usa': 'USA', 'boston, usa': 'USA', 'toronto, canada': 'Canada', 'vancouver, canada': 'Canada',
+      'montreal, canada': 'Canada', 'ottawa, canada': 'Canada', 'calgary, canada': 'Canada', 'mexico city, mexico': 'Mexico',
+      'guadalajara, mexico': 'Mexico', 'monterrey, mexico': 'Mexico', 'san juan, puerto rico': 'Puerto Rico', 'havana, cuba': 'Cuba',
+      'kingston, jamaica': 'Jamaica', 'port-au-prince, haiti': 'Haiti', 'santo domingo, dominican republic': 'Dominican Republic',
+      'panama city, panama': 'Panama', 'san jose, costa rica': 'Costa Rica', 'guatemala city, guatemala': 'Guatemala',
+      'tegucigalpa, honduras': 'Honduras', 'san salvador, el salvador': 'El Salvador', 'managua, nicaragua': 'Nicaragua',
+      'belmopan, belize': 'Belize',
+
+      // South America
+      'são paulo, brazil': 'Brazil', 'rio de janeiro, brazil': 'Brazil', 'brasília, brazil': 'Brazil',
+      'buenos aires, argentina': 'Argentina', 'córdoba, argentina': 'Argentina', 'santiago, chile': 'Chile', 'valparaíso, chile': 'Chile',
+      'bogotá, colombia': 'Colombia', 'medellín, colombia': 'Colombia', 'lima, peru': 'Peru', 'quito, ecuador': 'Ecuador',
+      'caracas, venezuela': 'Venezuela', 'la paz, bolivia': 'Bolivia', 'asunción, paraguay': 'Paraguay', 'montevideo, uruguay': 'Uruguay',
+      'georgetown, guyana': 'Guyana', 'paramaribo, suriname': 'Suriname',
+
+      // Oceania
+      'sydney, australia': 'Australia', 'melbourne, australia': 'Australia', 'brisbane, australia': 'Australia',
+      'perth, australia': 'Australia', 'adelaide, australia': 'Australia', 'auckland, new zealand': 'New Zealand',
+      'wellington, new zealand': 'New Zealand', 'christchurch, new zealand': 'New Zealand', 'suva, fiji': 'Fiji',
+      'port moresby, papua new guinea': 'Papua New Guinea', 'apia, samoa': 'Samoa', 'nukuʻalofa, tonga': 'Tonga',
+      'port vila, vanuatu': 'Vanuatu', 'honiara, solomon islands': 'Solomon Islands', 'funafuti, tuvalu': 'Tuvalu',
+      'palikir, micronesia': 'Micronesia', 'majuro, marshall islands': 'Marshall Islands', 'yaren, nauru': 'Nauru',
+      'tarawa, kiribati': 'Kiribati'
     };
 
     // Convert to lowercase and check direct mapping
@@ -361,39 +418,77 @@ Always provide specific, actionable advice relevant to their expat status.`;
       return locationMappings[lowerLocation];
     }
     
-    // Check if location contains country name
-    if (lowerLocation.includes('uae') || lowerLocation.includes('emirates')) {
-      return 'UAE';
-    }
-    if (lowerLocation.includes('saudi') || lowerLocation.includes('ksa')) {
-      return 'Saudi Arabia';
-    }
-    if (lowerLocation.includes('kuwait')) {
-      return 'Kuwait';
-    }
-    if (lowerLocation.includes('qatar')) {
-      return 'Qatar';
-    }
-    if (lowerLocation.includes('bahrain')) {
-      return 'Bahrain';
-    }
-    if (lowerLocation.includes('oman')) {
-      return 'Oman';
-    }
-    
     // Try to extract country from comma-separated location (e.g., "Dubai, UAE")
     const parts = location.split(',').map(part => part.trim());
     if (parts.length > 1) {
       const lastPart = parts[parts.length - 1].toLowerCase();
-      if (lastPart === 'uae' || lastPart === 'united arab emirates') return 'UAE';
-      if (lastPart === 'saudi arabia' || lastPart === 'ksa') return 'Saudi Arabia';
-      if (lastPart === 'kuwait') return 'Kuwait';
-      if (lastPart === 'qatar') return 'Qatar';
-      if (lastPart === 'bahrain') return 'Bahrain';
-      if (lastPart === 'oman') return 'Oman';
+      
+      // Common country name mappings
+      const countryMappings: { [key: string]: string } = {
+        'uae': 'UAE', 'united arab emirates': 'UAE',
+        'saudi arabia': 'Saudi Arabia', 'ksa': 'Saudi Arabia',
+        'kuwait': 'Kuwait', 'qatar': 'Qatar', 'bahrain': 'Bahrain', 'oman': 'Oman',
+        'jordan': 'Jordan', 'iraq': 'Iraq', 'lebanon': 'Lebanon', 'syria': 'Syria',
+        'yemen': 'Yemen', 'israel': 'Israel', 'palestine': 'Palestine', 'iran': 'Iran', 'turkey': 'Turkey',
+        'egypt': 'Egypt', 'nigeria': 'Nigeria', 'south africa': 'South Africa', 'kenya': 'Kenya',
+        'morocco': 'Morocco', 'ghana': 'Ghana', 'ethiopia': 'Ethiopia', 'algeria': 'Algeria',
+        'senegal': 'Senegal', 'tunisia': 'Tunisia', 'uganda': 'Uganda', 'zimbabwe': 'Zimbabwe',
+        'mozambique': 'Mozambique', 'angola': 'Angola', 'dr congo': 'DR Congo', 'republic of the congo': 'Republic of the Congo',
+        'madagascar': 'Madagascar', 'libya': 'Libya', 'sudan': 'Sudan', 'botswana': 'Botswana',
+        'namibia': 'Namibia', 'mali': 'Mali', 'burkina faso': 'Burkina Faso', 'zambia': 'Zambia',
+        'côte d\'ivoire': 'Côte d\'Ivoire', 'sierra leone': 'Sierra Leone', 'gambia': 'Gambia',
+        'liberia': 'Liberia', 'rwanda': 'Rwanda', 'malawi': 'Malawi', 'djibouti': 'Djibouti',
+        'mauritania': 'Mauritania', 'mauritius': 'Mauritius', 'seychelles': 'Seychelles',
+        'comoros': 'Comoros', 'são tomé and príncipe': 'São Tomé and Príncipe',
+        'china': 'China', 'japan': 'Japan', 'south korea': 'South Korea', 'north korea': 'North Korea',
+        'thailand': 'Thailand', 'singapore': 'Singapore', 'malaysia': 'Malaysia', 'indonesia': 'Indonesia',
+        'philippines': 'Philippines', 'india': 'India', 'pakistan': 'Pakistan', 'bangladesh': 'Bangladesh',
+        'nepal': 'Nepal', 'sri lanka': 'Sri Lanka', 'vietnam': 'Vietnam', 'taiwan': 'Taiwan',
+        'mongolia': 'Mongolia', 'cambodia': 'Cambodia', 'laos': 'Laos', 'myanmar': 'Myanmar',
+        'timor-leste': 'Timor-Leste', 'bhutan': 'Bhutan', 'maldives': 'Maldives', 'uzbekistan': 'Uzbekistan',
+        'kyrgyzstan': 'Kyrgyzstan', 'tajikistan': 'Tajikistan', 'turkmenistan': 'Turkmenistan',
+        'kazakhstan': 'Kazakhstan', 'armenia': 'Armenia', 'azerbaijan': 'Azerbaijan', 'georgia': 'Georgia',
+        'uk': 'UK', 'united kingdom': 'UK', 'france': 'France', 'germany': 'Germany', 'spain': 'Spain',
+        'italy': 'Italy', 'netherlands': 'Netherlands', 'belgium': 'Belgium', 'switzerland': 'Switzerland',
+        'austria': 'Austria', 'sweden': 'Sweden', 'denmark': 'Denmark', 'norway': 'Norway',
+        'ireland': 'Ireland', 'portugal': 'Portugal', 'czech republic': 'Czech Republic', 'poland': 'Poland',
+        'hungary': 'Hungary', 'greece': 'Greece', 'russia': 'Russia', 'finland': 'Finland',
+        'estonia': 'Estonia', 'latvia': 'Latvia', 'lithuania': 'Lithuania', 'slovakia': 'Slovakia',
+        'slovenia': 'Slovenia', 'croatia': 'Croatia', 'serbia': 'Serbia', 'bosnia and herzegovina': 'Bosnia and Herzegovina',
+        'montenegro': 'Montenegro', 'north macedonia': 'North Macedonia', 'bulgaria': 'Bulgaria',
+        'romania': 'Romania', 'moldova': 'Moldova', 'ukraine': 'Ukraine', 'belarus': 'Belarus',
+        'luxembourg': 'Luxembourg', 'monaco': 'Monaco', 'san marino': 'San Marino', 'andorra': 'Andorra',
+        'liechtenstein': 'Liechtenstein', 'malta': 'Malta', 'iceland': 'Iceland', 'albania': 'Albania',
+        'usa': 'USA', 'united states': 'USA', 'canada': 'Canada', 'mexico': 'Mexico', 'puerto rico': 'Puerto Rico',
+        'cuba': 'Cuba', 'jamaica': 'Jamaica', 'haiti': 'Haiti', 'dominican republic': 'Dominican Republic',
+        'panama': 'Panama', 'costa rica': 'Costa Rica', 'guatemala': 'Guatemala', 'honduras': 'Honduras',
+        'el salvador': 'El Salvador', 'nicaragua': 'Nicaragua', 'belize': 'Belize', 'brazil': 'Brazil',
+        'argentina': 'Argentina', 'chile': 'Chile', 'colombia': 'Colombia', 'peru': 'Peru', 'ecuador': 'Ecuador',
+        'venezuela': 'Venezuela', 'bolivia': 'Bolivia', 'paraguay': 'Paraguay', 'uruguay': 'Uruguay',
+        'guyana': 'Guyana', 'suriname': 'Suriname', 'australia': 'Australia', 'new zealand': 'New Zealand',
+        'fiji': 'Fiji', 'papua new guinea': 'Papua New Guinea', 'samoa': 'Samoa', 'tonga': 'Tonga',
+        'vanuatu': 'Vanuatu', 'solomon islands': 'Solomon Islands', 'tuvalu': 'Tuvalu', 'micronesia': 'Micronesia',
+        'marshall islands': 'Marshall Islands', 'nauru': 'Nauru', 'kiribati': 'Kiribati'
+      };
+      
+      if (countryMappings[lastPart]) {
+        return countryMappings[lastPart];
+      }
     }
     
-    return 'UAE'; // Default fallback
+    // Check if location contains country name
+    for (const [country, mappedCountry] of Object.entries(countryMappings)) {
+      if (lowerLocation.includes(country)) {
+        return mappedCountry;
+      }
+    }
+    
+    // If no match found, try to extract the last part as country
+    if (parts.length > 1) {
+      return parts[parts.length - 1].trim();
+    }
+    
+    return location; // Return the original location if no mapping found
   }
 
   async getStepGuidance(step: string, context: UserContext): Promise<AIGuidanceResponse> {
