@@ -1751,7 +1751,382 @@ export const gccSavingsAccounts: BankAccount[] = [
   // Vietnam
   { country: "Vietnam", bank: "Vietcombank", url: "https://www.vietcombank.com.vn/", rate: "0.01% - 6.00%", minDeposit: "No minimum", lockin: "None" },
   { country: "Vietnam", bank: "BIDV", url: "https://www.bidv.com.vn/", rate: "0.01% - 6.00%", minDeposit: "No minimum", lockin: "None" },
-  { country: "Vietnam", bank: "Agribank", url: "https://www.agribank.com.vn/", rate: "0.01% - 6.00%", minDeposit: "No minimum", lockin: "None" }
+  { country: "Vietnam", bank: "Agribank", url: "https://www.agribank.com.vn/", rate: "0.01% - 6.00%", minDeposit: "No minimum", lockin: "None" },
+
+  // South and Central America - Additional Countries
+  // Argentina
+  { country: "Argentina", bank: "Banco de la Nación Argentina", url: "https://www.banconacion.com.ar/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Argentina", bank: "Banco Santander Argentina", url: "https://www.santander.com.ar/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Argentina", bank: "Banco Galicia", url: "https://www.galicia.com.ar/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Argentina", bank: "BBVA Argentina", url: "https://www.bbva.com.ar/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Argentina", bank: "Banco Macro", url: "https://www.macro.com.ar/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Argentina", bank: "HSBC Argentina", url: "https://www.hsbc.com.ar/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Argentina", bank: "Banco Itaú Argentina", url: "https://www.itau.com.ar/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Argentina", bank: "Banco Supervielle", url: "https://www.supervielle.com.ar/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Argentina", bank: "Banco Credicoop", url: "https://www.credicoop.coop/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Argentina", bank: "Banco Industrial", url: "https://www.bancoindustrial.com.ar/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+
+  // Chile
+  { country: "Chile", bank: "Banco de Chile", url: "https://www.bancochile.cl/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Chile", bank: "Banco Santander Chile", url: "https://www.santander.cl/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Chile", bank: "Banco de Crédito e Inversiones", url: "https://www.bci.cl/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Chile", bank: "Banco Estado", url: "https://www.bancoestado.cl/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Chile", bank: "Banco Itaú Chile", url: "https://www.itau.cl/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Chile", bank: "Scotiabank Chile", url: "https://www.scotiabank.cl/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Chile", bank: "Banco Security", url: "https://www.bansecurity.cl/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Chile", bank: "Banco Falabella", url: "https://www.bancofalabella.cl/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Chile", bank: "Banco Ripley", url: "https://www.bancoripley.cl/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Chile", bank: "Banco Consorcio", url: "https://www.banco-consorcio.cl/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+
+  // Colombia
+  { country: "Colombia", bank: "Banco de Bogotá", url: "https://www.bancodebogota.com.co/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Colombia", bank: "Banco Popular", url: "https://www.bancopopular.com.co/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Colombia", bank: "Banco AV Villas", url: "https://www.bancoavvillas.com.co/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Colombia", bank: "Banco Colpatria", url: "https://www.colpatria.com/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Colombia", bank: "Banco Caja Social", url: "https://www.cajasocial.com/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Colombia", bank: "Banco Santander Colombia", url: "https://www.santander.com.co/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Colombia", bank: "BBVA Colombia", url: "https://www.bbva.com.co/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Colombia", bank: "Banco Itaú Colombia", url: "https://www.itau.com.co/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Colombia", bank: "Scotiabank Colpatria", url: "https://www.scotiabankcolpatria.com/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Colombia", bank: "Banco Davivienda", url: "https://www.davivienda.com/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+
+  // Peru
+  { country: "Peru", bank: "Banco de Crédito del Perú", url: "https://www.viabcp.com/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Peru", bank: "BBVA Perú", url: "https://www.bbva.com.pe/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Peru", bank: "Banco Santander Perú", url: "https://www.santander.com.pe/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Peru", bank: "Scotiabank Perú", url: "https://www.scotiabank.com.pe/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Peru", bank: "Banco Interbank", url: "https://www.interbank.com.pe/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Peru", bank: "Banco Continental", url: "https://www.viabcp.com/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Peru", bank: "Banco Financiero", url: "https://www.bancofinanciero.com.pe/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Peru", bank: "Banco Ripley Perú", url: "https://www.banco-ripley.com.pe/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Peru", bank: "Banco Azteca Perú", url: "https://www.bancoazteca.com.pe/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Peru", bank: "Banco Cencosud", url: "https://www.bancocencosud.pe/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+
+  // Venezuela
+  { country: "Venezuela", bank: "Banco de Venezuela", url: "https://www.bancodevenezuela.com/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Venezuela", bank: "Banco Mercantil", url: "https://www.mercantil.com/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Venezuela", bank: "Banco Banesco", url: "https://www.banesco.com/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Venezuela", bank: "Banco Provincial", url: "https://www.provincial.com/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Venezuela", bank: "Banco Exterior", url: "https://www.bancoexterior.com/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Venezuela", bank: "Banco Caracas", url: "https://www.bancocaracas.com/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Venezuela", bank: "Banco del Tesoro", url: "https://www.bancodeltesoro.gob.ve/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Venezuela", bank: "Banco Bicentenario", url: "https://www.bancobicentenario.gob.ve/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Venezuela", bank: "Banco del Pueblo Soberano", url: "https://www.bancopueblo.gob.ve/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Venezuela", bank: "Banco de la Fuerza Armada", url: "https://www.banfaanb.gob.ve/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+
+  // Ecuador
+  { country: "Ecuador", bank: "Banco Pichincha", url: "https://www.pichincha.com/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Ecuador", bank: "Banco de Guayaquil", url: "https://www.bancodeguayaquil.com/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Ecuador", bank: "Banco Internacional", url: "https://www.bancointernacional.com.ec/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Ecuador", bank: "Banco Produbanco", url: "https://www.produbanco.com/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Ecuador", bank: "Banco Bolivariano", url: "https://www.bolivariano.com/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Ecuador", bank: "Banco del Austro", url: "https://www.bancodelaustro.com/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Ecuador", bank: "Banco Solidario", url: "https://www.banco-solidario.com/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Ecuador", bank: "Banco Comercial de Manabí", url: "https://www.bancomanabi.com/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Ecuador", bank: "Banco de Loja", url: "https://www.bancodeloja.com/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Ecuador", bank: "Banco de Machala", url: "https://www.bancodemachala.com/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+
+  // Uruguay
+  { country: "Uruguay", bank: "Banco República", url: "https://www.bancorepublica.com.uy/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Uruguay", bank: "Banco Santander Uruguay", url: "https://www.santander.com.uy/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Uruguay", bank: "BBVA Uruguay", url: "https://www.bbva.com.uy/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Uruguay", bank: "Banco Itaú Uruguay", url: "https://www.itau.com.uy/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Uruguay", bank: "Scotiabank Uruguay", url: "https://www.scotiabank.com.uy/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Uruguay", bank: "Banco HSBC Uruguay", url: "https://www.hsbc.com.uy/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Uruguay", bank: "Banco Credicoop Uruguay", url: "https://www.credicoop.coop.uy/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Uruguay", bank: "Banco Caja Obrera", url: "https://www.cajaobrera.com.uy/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Uruguay", bank: "Banco de Seguros del Estado", url: "https://www.bse.com.uy/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Uruguay", bank: "Banco Central del Uruguay", url: "https://www.bcu.gub.uy/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+
+  // Paraguay
+  { country: "Paraguay", bank: "Banco Central del Paraguay", url: "https://www.bcp.gov.py/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Paraguay", bank: "Banco Itaú Paraguay", url: "https://www.itau.com.py/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Paraguay", bank: "Banco Santander Paraguay", url: "https://www.santander.com.py/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Paraguay", bank: "BBVA Paraguay", url: "https://www.bbva.com.py/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Paraguay", bank: "Banco Regional", url: "https://www.bancoregional.com.py/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Paraguay", bank: "Banco Familiar", url: "https://www.bancofamiliar.com.py/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Paraguay", bank: "Banco GNB Paraguay", url: "https://www.gnb.com.py/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Paraguay", bank: "Banco Atlas", url: "https://www.bancoatlas.com.py/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Paraguay", bank: "Banco Visión", url: "https://www.bancovision.com.py/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Paraguay", bank: "Banco Amambay", url: "https://www.bancoamambay.com.py/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+
+  // Bolivia
+  { country: "Bolivia", bank: "Banco Central de Bolivia", url: "https://www.bcb.gob.bo/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Bolivia", bank: "Banco Mercantil Santa Cruz", url: "https://www.bmsc.com.bo/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Bolivia", bank: "Banco Nacional de Bolivia", url: "https://www.bnb.com.bo/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Bolivia", bank: "Banco Bisa", url: "https://www.bisa.com/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Bolivia", bank: "Banco Ganadero", url: "https://www.banco-ganadero.com/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Bolivia", bank: "Banco Económico", url: "https://www.bancoeconomico.com.bo/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Bolivia", bank: "Banco Fassil", url: "https://www.bancofassil.com.bo/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Bolivia", bank: "Banco Unión", url: "https://www.banco-union.com.bo/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Bolivia", bank: "Banco Fortaleza", url: "https://www.bancofortaleza.com.bo/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Bolivia", bank: "Banco Prodem", url: "https://www.prodem.com.bo/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+
+  // Costa Rica
+  { country: "Costa Rica", bank: "Banco Nacional de Costa Rica", url: "https://www.bncr.fi.cr/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Costa Rica", bank: "Banco de Costa Rica", url: "https://www.bancobcr.com/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Costa Rica", bank: "Banco Popular", url: "https://www.bancopopular.cr/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Costa Rica", bank: "Banco BAC San José", url: "https://www.baccredomatic.com/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Costa Rica", bank: "Scotiabank Costa Rica", url: "https://www.scotiabank.com/cr/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Costa Rica", bank: "Banco HSBC Costa Rica", url: "https://www.hsbc.co.cr/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Costa Rica", bank: "Banco Promerica", url: "https://www.promerica.com.cr/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Costa Rica", bank: "Banco Lafise", url: "https://www.lafise.com/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Costa Rica", bank: "Banco Improsa", url: "https://www.improsa.fi.cr/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Costa Rica", bank: "Banco Cathay", url: "https://www.cathay.com.cr/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+
+  // Panama
+  { country: "Panama", bank: "Banco Nacional de Panamá", url: "https://www.banconacional.com.pa/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Panama", bank: "Banco General", url: "https://www.bancogeneral.com/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Panama", bank: "Banco BAC Credomatic", url: "https://www.baccredomatic.com/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Panama", bank: "Banco Global Bank", url: "https://www.globalbank.com.pa/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Panama", bank: "Banco Credicorp Bank", url: "https://www.credicorpbank.com/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Panama", bank: "Banco Aliado", url: "https://www.bancoaliado.com/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Panama", bank: "Banco Unibank", url: "https://www.unibank.com.pa/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Panama", bank: "Banco Ficohsa", url: "https://www.ficohsa.com/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Panama", bank: "Banco Azteca Panamá", url: "https://www.bancoazteca.com.pa/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Panama", bank: "Banco Delta", url: "https://www.bancodelta.com/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+
+  // Guatemala
+  { country: "Guatemala", bank: "Banco de Guatemala", url: "https://www.banguat.gob.gt/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Guatemala", bank: "Banco Industrial", url: "https://www.bi.com.gt/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Guatemala", bank: "Banco G&T Continental", url: "https://www.gytcontinental.com.gt/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Guatemala", bank: "Banco BAC Credomatic", url: "https://www.baccredomatic.com/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Guatemala", bank: "Banco Promerica", url: "https://www.promerica.com.gt/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Guatemala", bank: "Banco Azteca Guatemala", url: "https://www.bancoazteca.com.gt/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Guatemala", bank: "Banco Ficohsa", url: "https://www.ficohsa.com/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Guatemala", bank: "Banco Agromercantil", url: "https://www.agromercantil.com.gt/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Guatemala", bank: "Banco Internacional", url: "https://www.bancointernacional.com.gt/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Guatemala", bank: "Banco de Antigua", url: "https://www.bancoantigua.com.gt/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+
+  // Honduras
+  { country: "Honduras", bank: "Banco Central de Honduras", url: "https://www.bch.hn/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Honduras", bank: "Banco Ficohsa", url: "https://www.ficohsa.com/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Honduras", bank: "Banco BAC Credomatic", url: "https://www.baccredomatic.com/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Honduras", bank: "Banco Promerica", url: "https://www.promerica.com.hn/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Honduras", bank: "Banco Azteca Honduras", url: "https://www.bancoazteca.com.hn/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Honduras", bank: "Banco Atlántida", url: "https://www.atlantida.com.hn/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Honduras", bank: "Banco de Occidente", url: "https://www.bancooccidente.com.hn/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Honduras", bank: "Banco Lafise", url: "https://www.lafise.com/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Honduras", bank: "Banco Popular", url: "https://www.bancopopular.hn/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Honduras", bank: "Banco de los Trabajadores", url: "https://www.bantrab.hn/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+
+  // El Salvador
+  { country: "El Salvador", bank: "Banco Central de Reserva", url: "https://www.bcr.gob.sv/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "El Salvador", bank: "Banco Agrícola", url: "https://www.bancoagricola.com/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "El Salvador", bank: "Banco Cuscatlán", url: "https://www.bancocuscatlan.com/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "El Salvador", bank: "Banco BAC Credomatic", url: "https://www.baccredomatic.com/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "El Salvador", bank: "Banco Promerica", url: "https://www.promerica.com.sv/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "El Salvador", bank: "Banco Azteca El Salvador", url: "https://www.bancoazteca.com.sv/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "El Salvador", bank: "Banco Hipotecario", url: "https://www.bancohipotecario.com.sv/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "El Salvador", bank: "Banco de América Central", url: "https://www.bac.com.sv/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "El Salvador", bank: "Banco de Fomento Agropecuario", url: "https://www.bfa.gob.sv/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "El Salvador", bank: "Banco de Desarrollo de El Salvador", url: "https://www.bandesal.gob.sv/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+
+  // Nicaragua
+  { country: "Nicaragua", bank: "Banco Central de Nicaragua", url: "https://www.bcn.gob.ni/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Nicaragua", bank: "Banco BAC Credomatic", url: "https://www.baccredomatic.com/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Nicaragua", bank: "Banco Lafise", url: "https://www.lafise.com/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Nicaragua", bank: "Banco de Fomento a la Producción", url: "https://www.banpro.com.ni/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Nicaragua", bank: "Banco Azteca Nicaragua", url: "https://www.bancoazteca.com.ni/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Nicaragua", bank: "Banco de América Central", url: "https://www.bac.com.ni/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Nicaragua", bank: "Banco de la Producción", url: "https://www.banpro.com.ni/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Nicaragua", bank: "Banco de Crédito Popular", url: "https://www.bancopopular.com.ni/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Nicaragua", bank: "Banco de Finanzas", url: "https://www.bancofinanzas.com.ni/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Nicaragua", bank: "Banco de Inversiones", url: "https://www.bancoinversiones.com.ni/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+
+  // Eastern Europe
+  // Poland
+  { country: "Poland", bank: "PKO Bank Polski", url: "https://www.pkobp.pl/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Poland", bank: "Bank Pekao", url: "https://www.pekao.com.pl/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Poland", bank: "mBank", url: "https://www.mbank.pl/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Poland", bank: "ING Bank Śląski", url: "https://www.ing.pl/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Poland", bank: "Bank Millennium", url: "https://www.bankmillennium.pl/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Poland", bank: "Santander Bank Polska", url: "https://www.santander.pl/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Poland", bank: "BNP Paribas Bank Polska", url: "https://www.bnpparibas.pl/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Poland", bank: "Bank Zachodni WBK", url: "https://www.bzwbk.pl/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Poland", bank: "Alior Bank", url: "https://www.aliorbank.pl/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Poland", bank: "Getin Noble Bank", url: "https://www.getinbank.pl/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+
+  // Czech Republic
+  { country: "Czech Republic", bank: "Česká spořitelna", url: "https://www.csas.cz/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Czech Republic", bank: "Československá obchodní banka", url: "https://www.csob.cz/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Czech Republic", bank: "Komerční banka", url: "https://www.kb.cz/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Czech Republic", bank: "Raiffeisenbank", url: "https://www.rb.cz/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Czech Republic", bank: "UniCredit Bank Czech Republic", url: "https://www.unicreditbank.cz/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Czech Republic", bank: "Air Bank", url: "https://www.airbank.cz/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Czech Republic", bank: "Fio banka", url: "https://www.fio.cz/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Czech Republic", bank: "mBank", url: "https://www.mbank.cz/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Czech Republic", bank: "Equa bank", url: "https://www.equabank.cz/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Czech Republic", bank: "Moneta Money Bank", url: "https://www.moneta.cz/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+
+  // Hungary
+  { country: "Hungary", bank: "OTP Bank", url: "https://www.otpbank.hu/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Hungary", bank: "Erste Bank Hungary", url: "https://www.erstebank.hu/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Hungary", bank: "K&H Bank", url: "https://www.kh.hu/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Hungary", bank: "Raiffeisen Bank", url: "https://www.raiffeisen.hu/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Hungary", bank: "UniCredit Bank Hungary", url: "https://www.unicreditbank.hu/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Hungary", bank: "CIB Bank", url: "https://www.cib.hu/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Hungary", bank: "MKB Bank", url: "https://www.mkb.hu/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Hungary", bank: "Budapest Bank", url: "https://www.budapestbank.hu/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Hungary", bank: "Sberbank Hungary", url: "https://www.sberbank.hu/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Hungary", bank: "Takarékbank", url: "https://www.takarekbank.hu/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+
+  // Romania
+  { country: "Romania", bank: "Banca Transilvania", url: "https://www.bancatransilvania.ro/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Romania", bank: "BRD - Groupe Société Générale", url: "https://www.brd.ro/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Romania", bank: "Raiffeisen Bank", url: "https://www.raiffeisen.ro/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Romania", bank: "ING Bank Romania", url: "https://www.ing.ro/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Romania", bank: "UniCredit Bank Romania", url: "https://www.unicredit.ro/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Romania", bank: "CEC Bank", url: "https://www.cec.ro/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Romania", bank: "Alpha Bank Romania", url: "https://www.alphabank.ro/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Romania", bank: "Libra Internet Bank", url: "https://www.librabank.ro/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Romania", bank: "Garanti BBVA Romania", url: "https://www.garantibbva.ro/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Romania", bank: "Banca Română de Dezvoltare", url: "https://www.brd.ro/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+
+  // Bulgaria
+  { country: "Bulgaria", bank: "UniCredit Bulbank", url: "https://www.unicreditbulbank.bg/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Bulgaria", bank: "DSK Bank", url: "https://www.dskbank.bg/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Bulgaria", bank: "United Bulgarian Bank", url: "https://www.ubb.bg/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Bulgaria", bank: "Raiffeisenbank Bulgaria", url: "https://www.raiffeisenbank.bg/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Bulgaria", bank: "First Investment Bank", url: "https://www.fibank.bg/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Bulgaria", bank: "Central Cooperative Bank", url: "https://www.ccbank.bg/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Bulgaria", bank: "Piraeus Bank Bulgaria", url: "https://www.piraeusbank.bg/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Bulgaria", bank: "Societe Generale Expressbank", url: "https://www.sgeb.bg/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Bulgaria", bank: "ING Bank Bulgaria", url: "https://www.ing.bg/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Bulgaria", bank: "TBI Bank", url: "https://www.tbibank.bg/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+
+  // Slovakia
+  { country: "Slovakia", bank: "Slovenská sporiteľňa", url: "https://www.slsp.sk/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Slovakia", bank: "Všeobecná úverová banka", url: "https://www.vub.sk/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Slovakia", bank: "Tatra banka", url: "https://www.tatrabanka.sk/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Slovakia", bank: "ČSOB", url: "https://www.csob.sk/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Slovakia", bank: "UniCredit Bank Slovakia", url: "https://www.unicreditbank.sk/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Slovakia", bank: "Raiffeisen Bank", url: "https://www.raiffeisen.sk/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Slovakia", bank: "Prima banka", url: "https://www.primabanka.sk/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Slovakia", bank: "Slovenská záručná a rozvojová banka", url: "https://www.szrb.sk/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Slovakia", bank: "OTP Banka Slovensko", url: "https://www.otpbanka.sk/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Slovakia", bank: "Poštová banka", url: "https://www.postovabanka.sk/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+
+  // Croatia
+  { country: "Croatia", bank: "Zagrebačka banka", url: "https://www.zaba.hr/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Croatia", bank: "Privredna banka Zagreb", url: "https://www.pbz.hr/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Croatia", bank: "Erste & Steiermärkische Bank", url: "https://www.erstebank.hr/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Croatia", bank: "Raiffeisenbank Austria", url: "https://www.raiffeisen.hr/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Croatia", bank: "Splitska banka", url: "https://www.splitskabanka.hr/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Croatia", bank: "Hrvatska poštanska banka", url: "https://www.hpb.hr/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Croatia", bank: "Karlovačka banka", url: "https://www.kaba.hr/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Croatia", bank: "Vaba d.d. banka", url: "https://www.vaba.hr/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Croatia", bank: "Slatinska banka", url: "https://www.slatinska-banka.hr/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Croatia", bank: "Croatian Bank for Reconstruction and Development", url: "https://www.hbor.hr/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+
+  // Serbia
+  { country: "Serbia", bank: "Banca Intesa", url: "https://www.bancaintesa.rs/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Serbia", bank: "UniCredit Bank Serbia", url: "https://www.unicreditbank.rs/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Serbia", bank: "Raiffeisen Bank Serbia", url: "https://www.raiffeisenbank.rs/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Serbia", bank: "Erste Bank Serbia", url: "https://www.erstebank.rs/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Serbia", bank: "Komercijalna banka", url: "https://www.kombank.com/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Serbia", bank: "Vojvođanska banka", url: "https://www.vob.rs/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Serbia", bank: "Poštanska štedionica", url: "https://www.poststek.rs/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Serbia", bank: "Sberbank Srbija", url: "https://www.sberbank.rs/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Serbia", bank: "Alpha Bank Srbija", url: "https://www.alphabank.rs/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Serbia", bank: "NLB Banka Beograd", url: "https://www.nlb.rs/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+
+  // Slovenia
+  { country: "Slovenia", bank: "Nova Ljubljanska banka", url: "https://www.nlb.si/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Slovenia", bank: "Nova Kreditna banka Maribor", url: "https://www.nkbm.si/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Slovenia", bank: "Abanka Vipa", url: "https://www.abanka.si/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Slovenia", bank: "Banka Intesa Sanpaolo", url: "https://www.bancaintesa.si/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Slovenia", bank: "UniCredit Bank Slovenia", url: "https://www.unicreditbank.si/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Slovenia", bank: "Raiffeisen Bank Slovenia", url: "https://www.raiffeisen.si/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Slovenia", bank: "SID Bank", url: "https://www.sid.si/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Slovenia", bank: "Banka Koper", url: "https://www.banka-koper.si/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Slovenia", bank: "Banka Celje", url: "https://www.banka-celje.si/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Slovenia", bank: "Deželna banka Slovenije", url: "https://www.dbs.si/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+
+  // Central and South Asia
+  // Pakistan
+  { country: "Pakistan", bank: "State Bank of Pakistan", url: "https://www.sbp.org.pk/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Pakistan", bank: "HBL", url: "https://www.hbl.com/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Pakistan", bank: "UBL", url: "https://www.ubl.com.pk/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Pakistan", bank: "MCB Bank", url: "https://www.mcb.com.pk/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Pakistan", bank: "Allied Bank", url: "https://www.abl.com.pk/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Pakistan", bank: "Bank Alfalah", url: "https://www.bankalfalah.com/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Pakistan", bank: "Askari Bank", url: "https://www.askaribank.com.pk/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Pakistan", bank: "Bank Al Habib", url: "https://www.bankalhabib.com/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Pakistan", bank: "Soneri Bank", url: "https://www.soneri.com.pk/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Pakistan", bank: "JS Bank", url: "https://www.jsbl.com/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+
+  // Bangladesh
+  { country: "Bangladesh", bank: "Sonali Bank", url: "https://www.sonalibank.com.bd/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Bangladesh", bank: "Rupali Bank", url: "https://www.rupali-bank.com/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Bangladesh", bank: "Agrani Bank", url: "https://www.agranibank.org/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Bangladesh", bank: "Janata Bank", url: "https://www.janatabank-bd.com/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Bangladesh", bank: "Pubali Bank", url: "https://www.pubalibangla.com/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Bangladesh", bank: "Uttara Bank", url: "https://www.uttarabank-bd.com/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Bangladesh", bank: "IFIC Bank", url: "https://www.ificbank.com.bd/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Bangladesh", bank: "Eastern Bank", url: "https://www.ebl.com.bd/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Bangladesh", bank: "Dhaka Bank", url: "https://www.dhakabankltd.com/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Bangladesh", bank: "Prime Bank", url: "https://www.primebank.com.bd/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+
+  // Sri Lanka
+  { country: "Sri Lanka", bank: "Bank of Ceylon", url: "https://www.boc.lk/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Sri Lanka", bank: "People's Bank", url: "https://www.peoplesbank.lk/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Sri Lanka", bank: "Commercial Bank of Ceylon", url: "https://www.combank.lk/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Sri Lanka", bank: "Hatton National Bank", url: "https://www.hnb.lk/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Sri Lanka", bank: "Sampath Bank", url: "https://www.sampath.lk/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Sri Lanka", bank: "National Development Bank", url: "https://www.ndbbank.com/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Sri Lanka", bank: "Seylan Bank", url: "https://www.seylan.lk/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Sri Lanka", bank: "Union Bank of Colombo", url: "https://www.unionbank.lk/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Sri Lanka", bank: "DFCC Bank", url: "https://www.dfcc.lk/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Sri Lanka", bank: "Pan Asia Bank", url: "https://www.pabcbank.com/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+
+  // Nepal
+  { country: "Nepal", bank: "Nepal Bank", url: "https://www.nepalbank.com.np/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Nepal", bank: "Rastriya Banijya Bank", url: "https://www.rbb.com.np/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Nepal", bank: "Nepal Investment Bank", url: "https://www.nibl.com.np/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Nepal", bank: "Nabil Bank", url: "https://www.nabilbank.com/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Nepal", bank: "Nepal Bank Limited", url: "https://www.nepalbank.com.np/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Nepal", bank: "Everest Bank", url: "https://www.everestbankltd.com/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Nepal", bank: "NIC Asia Bank", url: "https://www.nicasiabank.com/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Nepal", bank: "Prabhu Bank", url: "https://www.prabhubank.com/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Nepal", bank: "Global IME Bank", url: "https://www.globalimebank.com/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Nepal", bank: "Nepal Credit and Commerce Bank", url: "https://www.nccbank.com.np/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+
+  // Afghanistan
+  { country: "Afghanistan", bank: "Da Afghanistan Bank", url: "https://www.dab.gov.af/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Afghanistan", bank: "Kabul Bank", url: "https://www.kabulbank.af/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Afghanistan", bank: "Azizi Bank", url: "https://www.azizibank.com/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Afghanistan", bank: "Afghan United Bank", url: "https://www.aub.af/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Afghanistan", bank: "International Bank of Afghanistan", url: "https://www.iba.af/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Afghanistan", bank: "Ghazanfar Bank", url: "https://www.ghazanfarbank.com/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Afghanistan", bank: "Afghanistan International Bank", url: "https://www.aib.af/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Afghanistan", bank: "Pashtany Bank", url: "https://www.pashtanybank.com/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Afghanistan", bank: "Bakhtar Bank", url: "https://www.bakhtarbank.com/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Afghanistan", bank: "Afghan Commercial Bank", url: "https://www.acb.af/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+
+  // Bhutan
+  { country: "Bhutan", bank: "Royal Monetary Authority of Bhutan", url: "https://www.rma.org.bt/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Bhutan", bank: "Bank of Bhutan", url: "https://www.bob.bt/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Bhutan", bank: "Bhutan National Bank", url: "https://www.bnb.bt/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Bhutan", bank: "Druk PNB Bank", url: "https://www.drukpnb.bt/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Bhutan", bank: "Bhutan Development Bank", url: "https://www.bdb.bt/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Bhutan", bank: "T-Bank", url: "https://www.tbank.bt/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Bhutan", bank: "Bhutan Cooperative Bank", url: "https://www.bcb.bt/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Bhutan", bank: "Bhutan Insurance Limited", url: "https://www.bil.bt/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Bhutan", bank: "Bhutan Post", url: "https://www.bhutanpost.bt/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Bhutan", bank: "Bhutan Financial Institutions", url: "https://www.bfi.bt/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+
+  // Maldives
+  { country: "Maldives", bank: "Maldives Monetary Authority", url: "https://www.mma.gov.mv/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Maldives", bank: "Bank of Maldives", url: "https://www.bankofmaldives.com.mv/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Maldives", bank: "Maldives Islamic Bank", url: "https://www.mib.com.mv/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Maldives", bank: "State Bank of India Maldives", url: "https://www.sbi.co.mv/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Maldives", bank: "Bank of Ceylon Maldives", url: "https://www.boc.com.mv/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Maldives", bank: "Habib Bank Maldives", url: "https://www.hbl.com.mv/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Maldives", bank: "Maldives Finance and Leasing", url: "https://www.mfl.com.mv/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Maldives", bank: "Maldives Development Finance Corporation", url: "https://www.mdfc.com.mv/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Maldives", bank: "Maldives Pension Administration Office", url: "https://www.pension.gov.mv/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" },
+  { country: "Maldives", bank: "Maldives Inland Revenue Authority", url: "https://www.mira.gov.mv/", rate: "0.01% - 4.00%", minDeposit: "No minimum", lockin: "None" }
   ];
 
 // Utility functions
@@ -1884,7 +2259,44 @@ export const getBanksByLocation = (location: string): BankAccount[] => {
     
     // Vietnam
     'ho chi minh city': 'Vietnam', 'hanoi': 'Vietnam', 'da nang': 'Vietnam', 'haiphong': 'Vietnam', 'can tho': 'Vietnam', 'buon ma thuot': 'Vietnam',
-    'nha trang': 'Vietnam', 'vung tau': 'Vietnam', 'quy nhon': 'Vietnam', 'hai duong': 'Vietnam', 'nam dinh': 'Vietnam', 'thanh hoa': 'Vietnam'
+    'nha trang': 'Vietnam', 'vung tau': 'Vietnam', 'quy nhon': 'Vietnam', 'hai duong': 'Vietnam', 'nam dinh': 'Vietnam', 'thanh hoa': 'Vietnam',
+
+    // South and Central America
+    'buenos aires': 'Argentina', 'cordoba': 'Argentina', 'rosario': 'Argentina', 'mendoza': 'Argentina', 'la plata': 'Argentina',
+    'santiago': 'Chile', 'valparaiso': 'Chile', 'concepcion': 'Chile', 'la serena': 'Chile', 'antofagasta': 'Chile',
+    'bogota': 'Colombia', 'medellin': 'Colombia', 'cali': 'Colombia', 'barranquilla': 'Colombia', 'cartagena': 'Colombia',
+    'lima': 'Peru', 'arequipa': 'Peru', 'trujillo': 'Peru', 'chiclayo': 'Peru', 'piura': 'Peru',
+    'caracas': 'Venezuela', 'maracaibo': 'Venezuela', 'valencia': 'Venezuela', 'barquisimeto': 'Venezuela', 'maracay': 'Venezuela',
+    'quito': 'Ecuador', 'guayaquil': 'Ecuador', 'cuenca': 'Ecuador', 'machala': 'Ecuador', 'manta': 'Ecuador',
+    'montevideo': 'Uruguay', 'salto': 'Uruguay', 'paysandu': 'Uruguay', 'las piedras': 'Uruguay', 'rivera': 'Uruguay',
+    'asuncion': 'Paraguay', 'ciudad del este': 'Paraguay', 'san lorenzo': 'Paraguay', 'luque': 'Paraguay', 'capiatá': 'Paraguay',
+    'la paz': 'Bolivia', 'santa cruz': 'Bolivia', 'cochabamba': 'Bolivia', 'oruro': 'Bolivia', 'sucre': 'Bolivia',
+    'limon': 'Costa Rica', 'heredia': 'Costa Rica', 'alajuela': 'Costa Rica', 'cartago': 'Costa Rica',
+    'panama city': 'Panama', 'san miguelito': 'Panama', 'penonome': 'Panama', 'colon': 'Panama',
+    'guatemala city': 'Guatemala', 'mixco': 'Guatemala', 'villa nueva': 'Guatemala', 'quetzaltenango': 'Guatemala', 'petapa': 'Guatemala',
+    'tegucigalpa': 'Honduras', 'san pedro sula': 'Honduras', 'choloma': 'Honduras', 'la ceiba': 'Honduras', 'el progreso': 'Honduras',
+    'san salvador': 'El Salvador', 'san miguel': 'El Salvador', 'mejicanos': 'El Salvador', 'soyapango': 'El Salvador',
+    'managua': 'Nicaragua', 'masaya': 'Nicaragua', 'chinandega': 'Nicaragua', 'matagalpa': 'Nicaragua',
+
+    // Eastern Europe
+    'warsaw': 'Poland', 'krakow': 'Poland', 'lodz': 'Poland', 'wroclaw': 'Poland', 'poznan': 'Poland',
+    'prague': 'Czech Republic', 'brno': 'Czech Republic', 'ostrava': 'Czech Republic', 'plzen': 'Czech Republic', 'liberec': 'Czech Republic',
+    'budapest': 'Hungary', 'debrecen': 'Hungary', 'szeged': 'Hungary', 'miskolc': 'Hungary', 'pecs': 'Hungary',
+    'bucharest': 'Romania', 'cluj-napoca': 'Romania', 'timisoara': 'Romania', 'iasi': 'Romania', 'constanta': 'Romania',
+    'sofia': 'Bulgaria', 'plovdiv': 'Bulgaria', 'varna': 'Bulgaria', 'burgas': 'Bulgaria', 'ruse': 'Bulgaria',
+    'bratislava': 'Slovakia', 'kosice': 'Slovakia', 'presov': 'Slovakia', 'nitra': 'Slovakia', 'zilina': 'Slovakia',
+    'zagreb': 'Croatia', 'split': 'Croatia', 'rijeka': 'Croatia', 'osijek': 'Croatia', 'zadar': 'Croatia',
+    'belgrade': 'Serbia', 'novi sad': 'Serbia', 'nis': 'Serbia', 'kragujevac': 'Serbia', 'subotica': 'Serbia',
+    'ljubljana': 'Slovenia', 'maribor': 'Slovenia', 'celje': 'Slovenia', 'kranj': 'Slovenia', 'velenje': 'Slovenia',
+
+    // Central and South Asia
+    'karachi': 'Pakistan', 'lahore': 'Pakistan', 'faisalabad': 'Pakistan', 'rawalpindi': 'Pakistan', 'multan': 'Pakistan',
+    'dhaka': 'Bangladesh', 'chittagong': 'Bangladesh', 'khulna': 'Bangladesh', 'rajshahi': 'Bangladesh', 'sylhet': 'Bangladesh',
+    'colombo': 'Sri Lanka', 'kandy': 'Sri Lanka', 'galle': 'Sri Lanka', 'jaffna': 'Sri Lanka', 'trincomalee': 'Sri Lanka',
+    'kathmandu': 'Nepal', 'pokhara': 'Nepal', 'patan': 'Nepal', 'biratnagar': 'Nepal', 'birgunj': 'Nepal',
+    'kabul': 'Afghanistan', 'kandahar': 'Afghanistan', 'herat': 'Afghanistan', 'mazar-e sharif': 'Afghanistan', 'jalalabad': 'Afghanistan',
+    'thimphu': 'Bhutan', 'phuntsholing': 'Bhutan', 'paro': 'Bhutan', 'geylegphug': 'Bhutan', 'samdrup jongkhar': 'Bhutan',
+    'male': 'Maldives', 'addu city': 'Maldives', 'fuvahmulah': 'Maldives', 'kulhudhuffushi': 'Maldives', 'thinadhoo': 'Maldives'
   };
 
   const country = countryMapping[location.toLowerCase()];
